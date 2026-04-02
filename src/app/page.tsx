@@ -1,65 +1,91 @@
-import Image from "next/image";
+"use client";
+
+import { useMemo } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DataTable } from "@/components/table/data-table";
+import { TableToolbar } from "@/components/table/table-toolbar";
+import { ColumnHeader } from "@/components/table/column-header";
+import { CellRenderer } from "@/components/table/cell-renderer";
+import { createMockDatabase } from "@/lib/mock-data";
+import type { Row, FieldDef } from "@/store/types";
+
+function buildColumns(schema: FieldDef[]): ColumnDef<Row, unknown>[] {
+  const checkboxColumn: ColumnDef<Row, unknown> = {
+    id: "select",
+    size: 40,
+    minSize: 40,
+    maxSize: 40,
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        onCheckedChange={(checked) =>
+          table.toggleAllPageRowsSelected(!!checked)
+        }
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(checked) => row.toggleSelected(!!checked)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+  };
+
+  const dataColumns: ColumnDef<Row, unknown>[] = schema.map((fieldDef) => ({
+    id: fieldDef.name,
+    accessorFn: (row: Row) => row.data[fieldDef.name],
+    header: ({ column }) => (
+      <ColumnHeader
+        column={column}
+        label={fieldDef.label}
+        fieldType={fieldDef.type}
+      />
+    ),
+    cell: ({ row }) => (
+      <CellRenderer
+        value={row.original.data[fieldDef.name]}
+        fieldDef={fieldDef}
+      />
+    ),
+    size:
+      fieldDef.type === "text" ? 180 :
+      fieldDef.type === "email" ? 200 :
+      fieldDef.type === "currency" ? 120 :
+      fieldDef.type === "number" ? 100 :
+      fieldDef.type === "percent" ? 100 :
+      fieldDef.type === "date" ? 130 :
+      fieldDef.type === "datetime" ? 180 :
+      fieldDef.type === "select" || fieldDef.type === "status" ? 130 :
+      fieldDef.type === "tags" || fieldDef.type === "multi_select" ? 200 :
+      fieldDef.type === "url" ? 160 :
+      fieldDef.type === "phone" ? 160 :
+      fieldDef.type === "checkbox" ? 80 :
+      fieldDef.type === "color" ? 120 :
+      150,
+    minSize: 80,
+  }));
+
+  return [checkboxColumn, ...dataColumns];
+}
 
 export default function Home() {
+  const db = useMemo(() => createMockDatabase(), []);
+  const columns = useMemo(() => buildColumns(db.schema), [db.schema]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="flex h-screen flex-col bg-background">
+      <TableToolbar
+        databaseName={db.name}
+        rowCount={db.rows.length}
+        databaseIcon={db.icon}
+      />
+      <div className="flex-1 overflow-hidden border-t border-border">
+        <DataTable columns={columns} data={db.rows} />
+      </div>
     </div>
   );
 }

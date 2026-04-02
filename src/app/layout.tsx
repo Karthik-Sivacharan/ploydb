@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const clashGrotesk = localFont({
@@ -43,7 +44,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
