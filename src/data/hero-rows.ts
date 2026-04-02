@@ -1,0 +1,211 @@
+import type { CellValue } from "@/store/types";
+
+export interface HeroRowData {
+  company_name: string;
+  notes: string;
+  employee_count: number;
+  deal_size: number;
+  win_probability: number;
+  source: string;
+  products_interested: string[];
+  status: string;
+  tags: string[];
+  created_date: string;
+  last_contacted: string;
+  contact_email: string;
+  phone: string;
+  website: string;
+  brand_color: string;
+  metadata: Record<string, unknown>;
+  location: string;
+  has_nda: boolean;
+}
+
+const HERO_ROWS: HeroRowData[] = [
+  {
+    company_name: "Acme Corp",
+    notes: "Strong interest in enterprise analytics suite. CTO is the key decision maker. Follow up after Q2 board meeting.",
+    employee_count: 2400,
+    deal_size: 120000,
+    win_probability: 45,
+    source: "Referral",
+    products_interested: ["Analytics", "CRM"],
+    status: "Qualified",
+    tags: ["Enterprise", "Hot"],
+    created_date: "2025-11-15",
+    last_contacted: "2026-03-28T14:30:00Z",
+    contact_email: "j.smith@acmecorp.com",
+    phone: "+1 (415) 555-0101",
+    website: "https://acmecorp.com",
+    brand_color: "#e74c3c",
+    metadata: { industry: "Manufacturing", employeeRange: "1000-5000", source_detail: "VP of Engineering referral" },
+    location: "San Francisco, CA",
+    has_nda: true,
+  },
+  {
+    company_name: "TechVault Inc",
+    notes: "Mid-market SaaS company looking to replace their existing CRM. Budget approved for Q2.",
+    employee_count: 180,
+    deal_size: 85000,
+    win_probability: 60,
+    source: "Website",
+    products_interested: ["CRM", "Automation"],
+    status: "Proposal",
+    tags: ["SMB"],
+    created_date: "2025-12-03",
+    last_contacted: "2026-03-25T10:15:00Z",
+    contact_email: "lisa.chen@techvault.io",
+    phone: "+1 (212) 555-0142",
+    website: "https://techvault.io",
+    brand_color: "#2980b9",
+    metadata: { industry: "Technology", employeeRange: "100-500", source_detail: "Inbound demo request" },
+    location: "New York, NY",
+    has_nda: false,
+  },
+  {
+    company_name: "GlobalSync",
+    notes: "Enterprise deal with multiple stakeholders. Legal review in progress. Potential for multi-year contract.",
+    employee_count: 8500,
+    deal_size: 250000,
+    win_probability: 75,
+    source: "Conference",
+    products_interested: ["Analytics", "CRM", "API"],
+    status: "Negotiation",
+    tags: ["Enterprise", "VIP"],
+    created_date: "2025-10-22",
+    last_contacted: "2026-03-30T16:00:00Z",
+    contact_email: "m.johnson@globalsync.com",
+    phone: "+44 20 7946 0958",
+    website: "https://globalsync.com",
+    brand_color: "#1abc9c",
+    metadata: { industry: "Financial Services", employeeRange: "5000+", source_detail: "SaaStr Annual 2025" },
+    location: "London, UK",
+    has_nda: true,
+  },
+  {
+    company_name: "NovaBright Solutions",
+    notes: "Early-stage startup looking for an affordable CRM. Founder-led sales process.",
+    employee_count: 25,
+    deal_size: 45000,
+    win_probability: 10,
+    source: "LinkedIn",
+    products_interested: ["CRM"],
+    status: "New",
+    tags: ["Startup"],
+    created_date: "2026-03-10",
+    last_contacted: "2026-03-20T09:00:00Z",
+    contact_email: "alex@novabright.co",
+    phone: "+1 (650) 555-0199",
+    website: "https://novabright.co",
+    brand_color: "#f39c12",
+    metadata: { industry: "Technology", employeeRange: "1-50", source_detail: "LinkedIn outreach" },
+    location: "Austin, TX",
+    has_nda: false,
+  },
+  {
+    company_name: "Meridian Group",
+    notes: "Closed! 3-year enterprise contract with annual renewal. Implementation kickoff scheduled for April.",
+    employee_count: 3200,
+    deal_size: 180000,
+    win_probability: 100,
+    source: "Partner",
+    products_interested: ["Analytics", "CRM", "Support"],
+    status: "Won",
+    tags: ["Enterprise"],
+    created_date: "2025-09-08",
+    last_contacted: "2026-03-15T11:30:00Z",
+    contact_email: "sarah.patel@meridiangroup.com",
+    phone: "+1 (312) 555-0167",
+    website: "https://meridiangroup.com",
+    brand_color: "#8e44ad",
+    metadata: { industry: "Consulting", employeeRange: "1000-5000", source_detail: "Deloitte partnership" },
+    location: "Chicago, IL",
+    has_nda: true,
+  },
+  {
+    company_name: "Skyline Digital",
+    notes: "Marketing agency interested in automation tools. Need to schedule a demo with their ops team.",
+    employee_count: 95,
+    deal_size: 32000,
+    win_probability: 22,
+    source: "Cold Call",
+    products_interested: ["Marketing", "Automation"],
+    status: "Contacted",
+    tags: ["SMB"],
+    created_date: "2026-01-18",
+    last_contacted: "2026-03-22T15:45:00Z",
+    contact_email: "david.r@skylinedigital.com",
+    phone: "+1 (310) 555-0134",
+    website: "https://skylinedigital.com",
+    brand_color: "#3498db",
+    metadata: { industry: "Marketing", employeeRange: "50-100", source_detail: "Cold outreach campaign Q1" },
+    location: "Los Angeles, CA",
+    has_nda: false,
+  },
+  {
+    company_name: "Apex Industries",
+    notes: "Large manufacturing conglomerate evaluating analytics platforms. RFP response submitted. Strong exec sponsorship.",
+    employee_count: 12000,
+    deal_size: 310000,
+    win_probability: 48,
+    source: "Referral",
+    products_interested: ["Analytics", "API"],
+    status: "Qualified",
+    tags: ["Enterprise", "Hot"],
+    created_date: "2025-11-30",
+    last_contacted: "2026-03-29T13:00:00Z",
+    contact_email: "r.nakamura@apexind.com",
+    phone: "+81 3-1234-5678",
+    website: "https://apexindustries.com",
+    brand_color: "#2c3e50",
+    metadata: { industry: "Manufacturing", employeeRange: "5000+", source_detail: "Board member referral" },
+    location: "Tokyo, Japan",
+    has_nda: true,
+  },
+  {
+    company_name: "Quantum Labs",
+    notes: "Lost to competitor (HubSpot). Budget constraints cited. May revisit in Q4 when new funding closes.",
+    employee_count: 42,
+    deal_size: 67000,
+    win_probability: 0,
+    source: "Website",
+    products_interested: ["CRM", "Marketing"],
+    status: "Lost",
+    tags: ["Startup"],
+    created_date: "2025-12-20",
+    last_contacted: "2026-02-28T10:00:00Z",
+    contact_email: "founders@quantumlabs.dev",
+    phone: "+1 (617) 555-0188",
+    website: "https://quantumlabs.dev",
+    brand_color: "#9b59b6",
+    metadata: { industry: "Technology", employeeRange: "1-50", source_detail: "Inbound blog lead" },
+    location: "Boston, MA",
+    has_nda: false,
+  },
+];
+
+/** Convert hero row data to a Record<string, CellValue> */
+export function heroRowToData(row: HeroRowData): Record<string, CellValue> {
+  return {
+    company_name: row.company_name,
+    notes: row.notes,
+    employee_count: row.employee_count,
+    deal_size: row.deal_size,
+    win_probability: row.win_probability,
+    source: row.source,
+    products_interested: row.products_interested,
+    status: row.status,
+    tags: row.tags,
+    created_date: row.created_date,
+    last_contacted: row.last_contacted,
+    contact_email: row.contact_email,
+    phone: row.phone,
+    website: row.website,
+    brand_color: row.brand_color,
+    metadata: row.metadata,
+    location: row.location,
+    has_nda: row.has_nda,
+  };
+}
+
+export { HERO_ROWS };
