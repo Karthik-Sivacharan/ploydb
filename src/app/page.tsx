@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DataTable } from "@/components/table/data-table";
 import { TableToolbar } from "@/components/table/table-toolbar";
 import { ColumnHeader } from "@/components/table/column-header";
 import { CellRenderer } from "@/components/table/cell-renderer";
-import { createMockDatabase } from "@/lib/mock-data";
+import { useDbStore } from "@/store";
+import { generateSeedData } from "@/data/seed";
 import type { Row, FieldDef } from "@/store/types";
 
 function buildColumns(schema: FieldDef[]): ColumnDef<Row, unknown>[] {
@@ -73,18 +74,46 @@ function buildColumns(schema: FieldDef[]): ColumnDef<Row, unknown>[] {
 }
 
 export default function Home() {
-  const db = useMemo(() => createMockDatabase(), []);
-  const columns = useMemo(() => buildColumns(db.schema), [db.schema]);
+  const databases = useDbStore((s) => s.databases);
+  const activeDbId = useDbStore((s) => s.activeDbId);
+  const seedData = useDbStore((s) => s.seedData);
+  const setActiveDb = useDbStore((s) => s.setActiveDb);
+
+  // Seed on first load if store is empty
+  useEffect(() => {
+    if (databases.length === 0) {
+      const seeded = generateSeedData();
+      seedData(seeded);
+      setActiveDb(seeded[0].id);
+    } else if (!activeDbId) {
+      setActiveDb(databases[0].id);
+    }
+  }, [databases.length, activeDbId, seedData, setActiveDb]);
+
+  const activeDb = databases.find((db) => db.id === activeDbId);
+
+  const columns = useMemo(
+    () => (activeDb ? buildColumns(activeDb.schema) : []),
+    [activeDb]
+  );
+
+  if (!activeDb) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen flex-col bg-background">
       <TableToolbar
-        databaseName={db.name}
-        rowCount={db.rows.length}
-        databaseIcon={db.icon}
+        databaseName={activeDb.name}
+        rowCount={activeDb.rows.length}
+        databaseIcon={activeDb.icon}
       />
       <div className="flex-1 overflow-hidden border-t border-border">
-        <DataTable columns={columns} data={db.rows} />
+        <DataTable columns={columns} data={activeDb.rows} />
       </div>
     </div>
   );
