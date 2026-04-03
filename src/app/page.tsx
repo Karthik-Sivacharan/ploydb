@@ -17,6 +17,7 @@ function buildColumns(schema: FieldDef[]): ColumnDef<Row, unknown>[] {
     size: 40,
     minSize: 40,
     maxSize: 40,
+    enableResizing: false,
     header: ({ table }) => (
       <Checkbox
         checked={table.getIsAllPageRowsSelected()}
@@ -44,6 +45,7 @@ function buildColumns(schema: FieldDef[]): ColumnDef<Row, unknown>[] {
         column={column}
         label={fieldDef.label}
         fieldType={fieldDef.type}
+        fieldDef={fieldDef}
       />
     ),
     cell: ({ row }) => (
@@ -52,25 +54,45 @@ function buildColumns(schema: FieldDef[]): ColumnDef<Row, unknown>[] {
         fieldDef={fieldDef}
       />
     ),
-    size:
-      fieldDef.type === "text" ? 180 :
-      fieldDef.type === "email" ? 200 :
-      fieldDef.type === "currency" ? 120 :
-      fieldDef.type === "number" ? 100 :
-      fieldDef.type === "percent" ? 100 :
-      fieldDef.type === "date" ? 130 :
-      fieldDef.type === "datetime" ? 180 :
-      fieldDef.type === "select" || fieldDef.type === "status" ? 130 :
-      fieldDef.type === "tags" || fieldDef.type === "multi_select" ? 200 :
-      fieldDef.type === "url" ? 160 :
-      fieldDef.type === "phone" ? 160 :
-      fieldDef.type === "checkbox" ? 80 :
-      fieldDef.type === "color" ? 120 :
-      150,
+    size: getDefaultSize(fieldDef.type),
     minSize: 80,
+    enableResizing: true,
   }));
 
   return [checkboxColumn, ...dataColumns];
+}
+
+function getDefaultSize(type: string): number {
+  switch (type) {
+    case "text":
+      return 180;
+    case "email":
+      return 200;
+    case "currency":
+      return 120;
+    case "number":
+    case "percent":
+      return 100;
+    case "date":
+      return 130;
+    case "datetime":
+      return 180;
+    case "select":
+    case "status":
+      return 130;
+    case "tags":
+    case "multi_select":
+      return 200;
+    case "url":
+    case "phone":
+      return 160;
+    case "checkbox":
+      return 80;
+    case "color":
+      return 120;
+    default:
+      return 150;
+  }
 }
 
 export default function Home() {
