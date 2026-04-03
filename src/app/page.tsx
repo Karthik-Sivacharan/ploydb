@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DataTable } from "@/components/table/data-table";
 import { TableToolbar } from "@/components/table/table-toolbar";
 import { ColumnHeader } from "@/components/table/column-header";
-import { CellRenderer } from "@/components/table/cell-renderer";
+import { EditableCell } from "@/components/cells/editable-cell";
 import { useDbStore } from "@/store";
 import { generateSeedData } from "@/data/seed";
 import type { Row, FieldDef } from "@/store/types";
@@ -47,9 +47,10 @@ function buildColumns(schema: FieldDef[]): ColumnDef<Row, unknown>[] {
       />
     ),
     cell: ({ row }) => (
-      <CellRenderer
-        value={row.original.data[fieldDef.name]}
+      <EditableCell
+        rowId={row.original.id}
         fieldDef={fieldDef}
+        value={row.original.data[fieldDef.name]}
       />
     ),
     size:
