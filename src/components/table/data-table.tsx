@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useRef, useState, useMemo, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -13,6 +13,7 @@ import {
   type ColumnOrderState,
   type VisibilityState,
 } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   DndContext,
   closestCenter,
@@ -29,7 +30,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
   TableHeader,
@@ -49,6 +49,8 @@ interface DataTableProps {
   data: Row[];
 }
 
+const ROW_HEIGHT = 40;
+
 export function DataTable({ columns, data }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
@@ -61,7 +63,7 @@ export function DataTable({ columns, data }: DataTableProps) {
   const [columnOrder, setColumnOrder] =
     useState<ColumnOrderState>(defaultOrder);
 
-  // Sync column order when columns change (e.g. new column added)
+  // Sync column order when columns change
   const currentOrder = useMemo(() => {
     const colIds = new Set(columns.map((c) => c.id ?? ""));
     const kept = columnOrder.filter((id) => colIds.has(id));
@@ -93,12 +95,11 @@ export function DataTable({ columns, data }: DataTableProps) {
     columnResizeMode: "onChange",
   });
 
-  // dnd-kit sensors — require 5px drag distance to avoid conflicts with click
+  // dnd-kit sensors
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  // Sortable IDs for the header (exclude "select" checkbox column)
   const sortableIds = useMemo(
     () => currentOrder.filter((id) => id !== "select"),
     [currentOrder]
@@ -116,15 +117,25 @@ export function DataTable({ columns, data }: DataTableProps) {
       const newOrder = arrayMove(currentOrder, oldIndex, newIndex);
       setColumnOrder(newOrder);
 
-      // Persist to store (exclude "select" checkbox column)
       const fieldOrder = newOrder.filter((id) => id !== "select");
       useDbStore.getState().reorderColumns(fieldOrder);
     },
     [currentOrder]
   );
 
+  // Row virtualization
+  const parentRef = useRef<HTMLDivElement>(null);
+  const { rows } = table.getRowModel();
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 10,
+  });
+
   return (
-    <ScrollArea className="h-[calc(100vh-80px)] w-full">
+    <div ref={parentRef} className="h-[calc(100vh-80px)] w-full overflow-auto">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -153,7 +164,7 @@ export function DataTable({ columns, data }: DataTableProps) {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows.length === 0 ? (
+            {rows.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={columns.length + 1}
@@ -163,41 +174,67 @@ export function DataTable({ columns, data }: DataTableProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              table.getRowModel().rows.map((row, rowIndex) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() ? "selected" : undefined}
-                  className={cn(
-                    rowIndex % 2 === 0 && "bg-muted/50",
-                    "transition-colors"
-                  )}
-                >
-                  {row.getVisibleCells().map((cell, cellIndex) => (
-                    <TableCell
-                      key={cell.id}
+              <>
+                {/* Spacer for virtual rows above */}
+                {virtualizer.getVirtualItems().length > 0 && (
+                  <tr
+                    style={{
+                      height: virtualizer.getVirtualItems()[0]?.start ?? 0,
+                    }}
+                  />
+                )}
+                {virtualizer.getVirtualItems().map((virtualRow) => {
+                  const row = rows[virtualRow.index];
+                  return (
+                    <TableRow
+                      key={row.id}
+                      data-index={virtualRow.index}
+                      ref={(node) => virtualizer.measureElement(node)}
+                      data-state={
+                        row.getIsSelected() ? "selected" : undefined
+                      }
                       className={cn(
-                        cellIndex === 0 &&
-                          "sticky left-0 z-10 bg-inherit",
-                        cellIndex === 1 &&
-                          "sticky left-[40px] z-10 bg-inherit font-medium"
+                        virtualRow.index % 2 === 0 && "bg-muted/50",
+                        "transition-colors"
                       )}
-                      style={{ width: cell.column.getSize() }}
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                  {/* Empty cell for the add-column column */}
-                  <TableCell className="w-10" />
-                </TableRow>
-              ))
+                      {row.getVisibleCells().map((cell, cellIndex) => (
+                        <TableCell
+                          key={cell.id}
+                          className={cn(
+                            cellIndex === 0 &&
+                              "sticky left-0 z-10 bg-inherit",
+                            cellIndex === 1 &&
+                              "sticky left-[40px] z-10 bg-inherit font-medium"
+                          )}
+                          style={{ width: cell.column.getSize() }}
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                      <TableCell className="w-10" />
+                    </TableRow>
+                  );
+                })}
+                {/* Spacer for virtual rows below */}
+                {virtualizer.getVirtualItems().length > 0 && (
+                  <tr
+                    style={{
+                      height:
+                        virtualizer.getTotalSize() -
+                        (virtualizer.getVirtualItems().at(-1)?.end ?? 0),
+                    }}
+                  />
+                )}
+              </>
             )}
           </TableBody>
         </Table>
       </DndContext>
-    </ScrollArea>
+    </div>
   );
 }
 

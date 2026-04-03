@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { memo, useState, useCallback } from "react";
 import { useDbStore } from "@/store";
 import { CellRenderer } from "@/components/table/cell-renderer";
 import { TextEditor } from "./text-editor";
@@ -37,16 +37,15 @@ const POPOVER_TYPES = new Set([
   "refs",
 ]);
 
-export function EditableCell({ rowId, fieldDef, value }: EditableCellProps) {
+export const EditableCell = memo(function EditableCell({ rowId, fieldDef, value }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const updateCell = useDbStore((s) => s.updateCell);
 
   const onSave = useCallback(
     (newValue: CellValue) => {
-      updateCell(rowId, fieldDef.name, newValue);
+      useDbStore.getState().updateCell(rowId, fieldDef.name, newValue);
       setIsEditing(false);
     },
-    [updateCell, rowId, fieldDef.name]
+    [rowId, fieldDef.name]
   );
 
   const onCancel = useCallback(() => {
@@ -80,7 +79,7 @@ export function EditableCell({ rowId, fieldDef, value }: EditableCellProps) {
       <CellRenderer value={value} fieldDef={fieldDef} />
     </div>
   );
-}
+});
 
 function renderEditor(
   fieldDef: FieldDef,
