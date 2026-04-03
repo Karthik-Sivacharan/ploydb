@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useAsRef } from "@/hooks/use-as-ref";
 import { useIsomorphicLayoutEffect } from "@/hooks/use-isomorphic-layout-effect";
 import { useLazyRef } from "@/hooks/use-lazy-ref";
+import { getFilterFn } from "@/lib/data-grid-filters";
 import {
   getCellKey,
   getEmptyCellValue,
@@ -2034,6 +2035,7 @@ function useDataGrid<TData>({
       // unstable cell.getContext() (see TanStack Table issue #4794)
       minSize: MIN_COLUMN_SIZE,
       maxSize: MAX_COLUMN_SIZE,
+      filterFn: getFilterFn<TData>(),
     }),
     [],
   );
