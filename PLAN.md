@@ -321,80 +321,69 @@ function handleToolCall(toolCall) {
 
 ---
 
-## Phase 1: Foundation
+## Phase 1: Foundation ✅
 
-### 1.1 — Scaffold
-- [ ] Create Next.js app with `create-next-app`
-- [ ] Init shadcn/ui with **default** style (**Radix** primitives)
-- [ ] Install shadcn components needed by tablecn
-- [ ] Install tablecn data-grid via registry
-- [ ] Fix any import path issues in data-grid files
-- [ ] Install remaining deps (faker, date-fns, lucide, next-themes, motion, cva, clsx, tailwind-merge)
-- [ ] Install additional shadcn components
+### 1.1 — Scaffold ✅
+- [x] Create Next.js app with `create-next-app`
+- [x] Init shadcn/ui with **default** style (**Radix** primitives)
+- [x] Install shadcn components needed by tablecn
+- [x] Install tablecn data-grid via registry
+- [x] Fix import path issues in data-grid files (barrel → @/lib/data-grid, @/types/data-grid)
+- [x] Install remaining deps (ai, @ai-sdk/anthropic, faker, date-fns, lucide, next-themes, motion, cva, clsx, tailwind-merge, zod)
+- [x] Install additional shadcn components
+- [x] Fix PopoverAnchor export, DropdownMenuItem variant prop, SelectTrigger size prop
+- [x] Fix data-slot="dropdown-menu-content" for grid focus management
 
-### 1.2 — Seed Data
-- [ ] `generateSeedData()` function using Faker
-- [ ] 150 flat row objects for "Sales Pipeline" with fields:
-  - text: Company Name, Contact Name, Notes
-  - rich_text: Description
-  - number: Employee Count
-  - currency: Deal Size
-  - percent: Win Probability
-  - select: Lead Source (Referral, Website, Cold Call, Event, Partner)
-  - multi_select: Industries (SaaS, Fintech, Healthcare, E-commerce, AI/ML)
-  - status: Stage (New → Contacted → Qualified → Proposal → Negotiation → Won → Lost)
-  - tags: Labels (Hot Lead, Follow Up, Enterprise, SMB, Startup)
-  - date: Last Contacted
-  - datetime: Next Follow Up
-  - email: Contact Email
-  - phone: Contact Phone
-  - url: Website
-  - color: Account Color
-  - json: Custom Metadata
-  - location: Company HQ
-  - checkbox: Has NDA, Verified
-  - ref: Assigned To (→ Team Members)
-  - refs: Related Deals
-- [ ] 5-8 hand-tuned hero rows for demos
-- [ ] Weighted status distribution (40% New, 25% Contacted, 15% Qualified, etc.)
+### 1.2 — Seed Data ✅
+- [x] `generateSeedData()` function using Faker with deterministic seed
+- [x] 150 flat row objects with all 20 field types
+- [x] 5 hand-tuned hero rows (Acme Corp, TechVault Inc, GlobalSync, NovaPay, DataForge)
+- [x] Weighted status distribution
+- [x] Team Members (10 records) and Deals (30 records) for ref fields
 
-### 1.3 — Wire Data Grid
-- [ ] `useState(() => generateSeedData())` in page component
-- [ ] Map fields to column definitions with `meta.cell.variant`
-- [ ] Pass data + columns to `useDataGrid` hook + `<DataGrid>` component
-- [ ] Wire `onDataChange` → `setData`
-- [ ] Verify it looks and behaves like https://tablecn.com/data-grid-live
-- [ ] Verify inline editing, keyboard nav, copy/paste, filtering, sorting all work
+### 1.3 — Wire Data Grid ✅
+- [x] `useState(() => generateSeedData())` in page component
+- [x] 20 column definitions with `meta.cell.variant`
+- [x] `useDataGrid` hook + `<DataGrid>` component
+- [x] `onDataChange` → `setData`
+- [x] Navbar with breadcrumb, theme toggle, avatar
+- [x] Geist font fix (direct font-family, not circular var reference)
+- [x] Full viewport layout (no rounded border, no maxHeight cap)
 
 ---
 
-## Phase 2: Custom Cell Types (11 remaining)
+## Phase 2: Custom Cell Types ✅
 
-### 2.1 — Number Variants
-- [ ] `currency` — $ + commas display, plain number edit
-- [ ] `percent` — % suffix display, 0-100 edit
+### 2.1 — Number Variants ✅
+- [x] `currency` — $ + commas via Intl.NumberFormat, plain number edit
+- [x] `percent` — % suffix, 0-100 range
 
-### 2.2 — Choice Variants
-- [ ] `status` — colored dot + badge
-- [ ] `tags` — subtle badges + "Add tag"
+### 2.2 — Choice Variants ✅
+- [x] `status` — colored dot + tinted badge (inline styles for dynamic colors)
+- [x] `tags` — outline badges + Command-based multi-select
 
-### 2.3 — Date Variant
-- [ ] `datetime` — calendar + time picker
+### 2.3 — Date Variant ✅
+- [x] `datetime` — Calendar + `<Input type="time">` (native, avoids Radix Select/Popover portal conflict)
 
-### 2.4 — Contact Variants
-- [ ] `email` — mailto link display
-- [ ] `phone` — tel link + formatting
+### 2.4 — Contact Variants ✅
+- [x] `email` — clickable mailto link, text-primary styling
+- [x] `phone` — clickable tel link
 
-### 2.5 — New Cell Types
-- [ ] `color` — swatch + color grid popover
-- [ ] `json` — collapsed preview + validated textarea
-- [ ] `location` — text input
-- [ ] `ref` — badge + Combobox
-- [ ] `refs` — multi-badge + multi-Combobox
+### 2.5 — New Cell Types ✅
+- [x] `color` — read-only, stores string[] (1-3 hex colors), overlapping circular swatches with ring-background stroke
+- [x] `json` — collapsed `{ N keys }` preview, syntax-highlighted editor (layered pre + transparent textarea), semantic token colors
+- [x] `location` — MapPin icon + text with inline-flex fix for line-clamp
+- [x] `ref` — Badge display + Command combobox searching linked table
+- [x] `refs` — Multi-badge with useBadgeOverflow + multi-select Command combobox
 
-### 2.6 — Register All
-- [ ] Extend `CellOpts` in `types/data-grid.ts`
-- [ ] Add cases in `data-grid-cell.tsx`
+### 2.6 — Register All ✅
+- [x] Extended `CellOpts` union in `types/data-grid.ts` (11 new variants)
+- [x] Added cases in `data-grid-cell.tsx` switch
+- [x] Documentation in `src/components/cells/README.md`
+
+### Known Issues
+- Column header dropdown closes immediately when a cell is actively editing (Radix focus/portal race condition — minor UX issue)
+- Calendar `--cell-size` var references fixed to use `var(--cell-size)` syntax
 
 ---
 
