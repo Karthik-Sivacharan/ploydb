@@ -54,9 +54,7 @@ export function ColumnHeaderMenu({
   return (
     <>
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-        <DropdownMenuTrigger render={<div className="w-full" />}>
-          {children}
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild><div className="w-full">{children}</div></DropdownMenuTrigger>
         <DropdownMenuContent align="start" sideOffset={4} className="w-48">
           <SortItems column={column} onClose={() => setMenuOpen(false)} />
           <DropdownMenuSeparator />

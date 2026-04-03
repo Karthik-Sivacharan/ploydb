@@ -42,9 +42,9 @@ import {
   getLineCount,
   getUrlHref,
   parseLocalDate,
-} from "@/components/data-grid/data-grid";
+} from "@/lib/data-grid";
 import { cn } from "@/lib/utils";
-import type { DataGridCellProps, FileCellData } from "@/components/data-grid/data-grid";
+import type { DataGridCellProps, FileCellData } from "@/types/data-grid";
 
 export function ShortTextCell<TData>({
   cell,
@@ -363,7 +363,7 @@ export function LongTextCell<TData>({
 
   return (
     <Popover open={isEditing} onOpenChange={onOpenChange}>
-      <PopoverAnchor render={<DataGridCellWrapper ref={containerRef} cell={cell} tableMeta={tableMeta} rowIndex={rowIndex} columnId={columnId} rowHeight={rowHeight} isEditing={isEditing} isFocused={isFocused} isSelected={isSelected} isSearchMatch={isSearchMatch} isActiveSearchMatch={isActiveSearchMatch} readOnly={readOnly} onKeyDown={onWrapperKeyDown} />}><span data-slot="grid-cell-content">{value}</span></PopoverAnchor>
+      <PopoverAnchor asChild><DataGridCellWrapper ref={containerRef} cell={cell} tableMeta={tableMeta} rowIndex={rowIndex} columnId={columnId} rowHeight={rowHeight} isEditing={isEditing} isFocused={isFocused} isSelected={isSelected} isSearchMatch={isSearchMatch} isActiveSearchMatch={isActiveSearchMatch} readOnly={readOnly} onKeyDown={onWrapperKeyDown}><span data-slot="grid-cell-content">{value}</span></DataGridCellWrapper></PopoverAnchor>
       <PopoverContent
         data-grid-cell-editor=""
         align="start"
@@ -941,8 +941,7 @@ export function SelectCell<TData>({
           onOpenChange={onOpenChange}
         >
           <SelectTrigger
-            size="sm"
-            className="size-full items-start border-none p-0 shadow-none focus-visible:ring-0 dark:bg-transparent [&_svg]:hidden"
+            className="h-7 size-full items-start border-none p-0 shadow-none focus-visible:ring-0 dark:bg-transparent [&_svg]:hidden"
           >
             {displayLabel ? (
               <Badge
@@ -1173,7 +1172,7 @@ export function MultiSelectCell<TData>({
     >
       {isEditing ? (
         <Popover open={isEditing} onOpenChange={onOpenChange}>
-          <PopoverAnchor render={<div className="absolute inset-0" />}></PopoverAnchor>
+          <PopoverAnchor asChild><div className="absolute inset-0" /></PopoverAnchor>
           <PopoverContent
             data-grid-cell-editor=""
             align="start"
@@ -1181,7 +1180,7 @@ export function MultiSelectCell<TData>({
             className="w-[300px] rounded-none p-0"
             onOpenAutoFocus={onOpenAutoFocus}
           >
-            <Command className="**:data-[slot=command-input-wrapper]:h-auto **:data-[slot=command-input-wrapper]:border-none **:data-[slot=command-input-wrapper]:p-0 [&_[data-slot=command-input-wrapper]_svg]:hidden">
+            <Command className="[&_[cmdk-input-wrapper]]:h-auto [&_[cmdk-input-wrapper]]:border-none [&_[cmdk-input-wrapper]]:p-0 [&_[cmdk-input-wrapper]_svg]:hidden">
               <div className="flex min-h-9 flex-wrap items-center gap-1 border-b px-3 py-1.5">
                 {selectedValues.map((value) => {
                   const label = optionByValue.get(value)?.label ?? value;
@@ -1368,7 +1367,7 @@ export function DateCell<TData>({
       onKeyDown={onWrapperKeyDown}
     >
       <Popover open={isEditing} onOpenChange={onOpenChange}>
-        <PopoverAnchor render={<span data-slot="grid-cell-content" />}>{formatDateForDisplay(value)}</PopoverAnchor>
+        <PopoverAnchor asChild><span data-slot="grid-cell-content">{formatDateForDisplay(value)}</span></PopoverAnchor>
         {isEditing && (
           <PopoverContent
             data-grid-cell-editor=""
@@ -1932,7 +1931,7 @@ export function FileCell<TData>({
     >
       {isEditing ? (
         <Popover open={isEditing} onOpenChange={onOpenChange}>
-          <PopoverAnchor render={<div className="absolute inset-0" />}></PopoverAnchor>
+          <PopoverAnchor asChild><div className="absolute inset-0" /></PopoverAnchor>
           <PopoverContent
             data-grid-cell-editor=""
             align="start"

@@ -42,17 +42,15 @@ export function AddColumn() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="shrink-0"
-            aria-label="Add column"
-          />
-        }
-      >
-        <Plus className="size-4" />
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="shrink-0"
+          aria-label="Add column"
+        >
+          <Plus className="size-4" />
+        </Button>
       </PopoverTrigger>
       <PopoverContent align="start" sideOffset={4} className="w-72">
         <div className="space-y-3">

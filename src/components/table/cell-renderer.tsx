@@ -87,7 +87,7 @@ function TextCell({ value }: { value: string }) {
 
   return (
     <Tooltip>
-      <TooltipTrigger render={<span className="block max-w-[200px] truncate">{value}</span>} />
+      <TooltipTrigger asChild><span className="block max-w-[200px] truncate">{value}</span></TooltipTrigger>
       <TooltipContent>{value}</TooltipContent>
     </Tooltip>
   );
