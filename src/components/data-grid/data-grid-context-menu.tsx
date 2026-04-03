@@ -106,17 +106,8 @@ function ContextMenuImpl<TData>({
 
   const triggerStyle = React.useMemo<React.CSSProperties>(
     () => ({
-      position: "fixed",
       left: `${contextMenu.x}px`,
       top: `${contextMenu.y}px`,
-      width: "1px",
-      height: "1px",
-      padding: 0,
-      margin: 0,
-      border: "none",
-      background: "transparent",
-      pointerEvents: "none",
-      opacity: 0,
     }),
     [contextMenu.x, contextMenu.y],
   );
@@ -208,7 +199,10 @@ function ContextMenuImpl<TData>({
       open={contextMenu.open}
       onOpenChange={onContextMenuOpenChange}
     >
-      <DropdownMenuTrigger style={triggerStyle} />
+      <DropdownMenuTrigger
+        className="fixed size-px p-0 m-0 border-none bg-transparent pointer-events-none opacity-0"
+        style={triggerStyle}
+      />
       <DropdownMenuContent
         data-grid-popover=""
         align="start"

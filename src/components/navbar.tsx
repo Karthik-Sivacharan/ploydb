@@ -55,7 +55,7 @@ export function Navbar() {
           </Avatar>
           <div className="hidden sm:flex sm:flex-col">
             <span className="text-xs font-medium leading-none">Karthik Sivacharan</span>
-            <span className="text-[10px] text-muted-foreground leading-none mt-0.5">Karthik&apos;s Workspace</span>
+            <span className="text-xs text-muted-foreground leading-none mt-0.5">Karthik&apos;s Workspace</span>
           </div>
         </div>
       </div>
