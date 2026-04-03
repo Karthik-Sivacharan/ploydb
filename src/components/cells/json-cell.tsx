@@ -137,7 +137,8 @@ export function JsonCell<TData>({
   isActiveSearchMatch,
   readOnly,
 }: DataGridCellProps<TData>) {
-  const initialValue = cell.getValue() as string;
+  const rawValue = cell.getValue();
+  const initialValue = typeof rawValue === "string" ? rawValue : JSON.stringify(rawValue ?? "", null, 2);
   const [value, setValue] = React.useState(initialValue ?? "");
   const containerRef = React.useRef<HTMLDivElement>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
