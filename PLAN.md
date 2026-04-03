@@ -387,6 +387,27 @@ function handleToolCall(toolCall) {
 
 ---
 
+## Phase 2.5: Grid Toolbar (Filter, Sort, View, Row Height)
+
+tablecn provides these as separate registry components. Install and wire to table instance.
+
+### Install
+```bash
+npx shadcn@latest add "https://tablecn.com/r/data-grid-filter-menu.json"
+npx shadcn@latest add "https://tablecn.com/r/data-grid-sort-menu.json"
+npx shadcn@latest add "https://tablecn.com/r/data-grid-view-menu.json"
+npx shadcn@latest add "https://tablecn.com/r/data-grid-row-height-menu.json"
+```
+
+### Wire up
+- [ ] Import all 4 menu components
+- [ ] Add toolbar div above DataGrid in page.tsx
+- [ ] Pass `table` instance to each: `<DataGridFilterMenu table={table} />`
+- [ ] Verify filter, sort, view toggle, row height all work
+- [ ] Fix any import path issues (same barrel fix pattern as data-grid)
+
+---
+
 ## Phase 3: Korra AI Panel (PRIMARY FOCUS)
 
 The AI collaboration surface is the core differentiator. This is what makes PloyDB feel AI-native, not a Notion clone with a chat sidebar. Korra is a peer working on the same table — the UI must make that visible, trustworthy, and natural.
