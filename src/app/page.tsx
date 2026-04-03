@@ -31,10 +31,10 @@ export default function Home() {
           aria-orientation="horizontal"
           className="flex items-center gap-2 border-b px-4 py-2"
         >
-          <DataGridFilterMenu table={dataGrid.table} />
-          <DataGridSortMenu table={dataGrid.table} />
-          <DataGridViewMenu table={dataGrid.table} />
-          <DataGridRowHeightMenu table={dataGrid.table} />
+          <DataGridFilterMenu table={dataGrid.table} align="end" />
+          <DataGridSortMenu table={dataGrid.table} align="end" />
+          <DataGridRowHeightMenu table={dataGrid.table} align="end" />
+          <DataGridViewMenu table={dataGrid.table} align="end" />
         </div>
         <div className="flex-1 overflow-hidden">
           <DataGrid {...dataGrid} height={0} className="h-full" />

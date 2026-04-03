@@ -54,7 +54,7 @@ export function DataGridViewMenu<TData>({
           dir={dir}
           variant="outline"
           size="sm"
-          className="ms-auto hidden h-8 font-normal lg:flex"
+          className="hidden font-normal lg:flex"
           disabled={disabled}
         >
           <Settings2 className="text-muted-foreground" />
