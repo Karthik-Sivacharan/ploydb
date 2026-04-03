@@ -387,111 +387,106 @@ function handleToolCall(toolCall) {
 
 ---
 
-## Phase 3: Column Operations
+## Phase 3: Korra AI Panel (PRIMARY FOCUS)
 
-- [ ] Column header dropdown menu (sort, filter, hide, rename, delete, pin, change type)
-- [ ] "+" button to add column with field type picker
+The AI collaboration surface is the core differentiator. This is what makes PloyDB feel AI-native, not a Notion clone with a chat sidebar. Korra is a peer working on the same table — the UI must make that visible, trustworthy, and natural.
 
----
-
-## Phase 4: Row Operations
-
-- [ ] "+" button to add row
-- [ ] Floating bulk action bar (delete, update, duplicate)
-- [ ] Row detail panel (shadcn Sheet, vertical form, navigate between rows)
-- [ ] Extended context menu (expand, duplicate, copy, delete)
-
----
-
-## Phase 5: Views + Grouping
-
-- [ ] Group by field → collapsible sections
-- [ ] Saved views tab bar (All Leads, My Pipeline, Hot Leads)
-
----
-
-## Phase 6: Search + Command Palette
-
-- [ ] tablecn built-in search (customize styling)
-- [ ] Cmd+K command palette (quick filters, sort, views, actions)
-
----
-
-## Phase 7: Korra AI Panel
-
-Uses Vercel AI SDK for the chat infrastructure. Starts with `MockLanguageModelV1` (no API key), can swap to real Claude later.
-
-### 7.1 — Chat UI (Vercel AI SDK)
-- [ ] Install `ai` package, set up `useChat` hook
+### 3.1 — Chat UI
 - [ ] Right side panel (collapsible, resizable)
 - [ ] Chat message list with streaming text rendering
-- [ ] Tool call results rendered as custom components in chat
 - [ ] Korra avatar + typing indicator
 - [ ] Input area with send button
+- [ ] Ploybook/Skill tags visible near chat input (e.g., `Ploybook: Client Health Assessment` + `Skill: Acme Client Tiers`) — shows what context Korra is using
 
-### 7.2 — API Route + Mock Model
-- [ ] `app/api/chat/route.ts` — Vercel AI SDK route handler
-- [ ] Use `MockLanguageModelV1` from `ai/test` for pre-scripted responses
-- [ ] No API key needed — works on Vercel static deploy
-- [ ] Later: swap `MockLanguageModelV1` for `@ai-sdk/anthropic` with `ANTHROPIC_API_KEY`
+### 3.2 — Dry-Run Preview Cards
+- [ ] Before Korra acts on all rows, she shows a preview card in chat with results for first 5 rows
+- [ ] Card has Approve / Reject buttons
+- [ ] On approve → Korra executes on all rows
+- [ ] On reject → Korra asks for corrections
 
-### 7.3 — Tool Definitions (Zod schemas)
-- [ ] `editCells` — `{ updates: CellUpdate[] }` → `tableMeta.onDataUpdate()`
-- [ ] `addRow` — `{ data: Record<string, unknown> }` → `setData(prev => [...prev, newRow])`
-- [ ] `deleteRows` — `{ rowIndices: number[] }` → `tableMeta.onRowsDelete()`
-- [ ] `filterBy` — `{ filters: ColumnFilter[] }` → `table.setColumnFilters()`
-- [ ] `sortBy` — `{ sorts: SortingState }` → `table.setSorting()`
-- [ ] `selectRows` — `{ rowIds: string[] }` → `table.setRowSelection()`
-- [ ] `clearFilters` — `{}` → `table.setColumnFilters([])`
+### 3.3 — Edit Summary Cards
+- [ ] After Korra makes changes, a summary card appears in chat ("Updated 200 rows — added Client Health column")
+- [ ] Clicking the card opens a diff view — code-editor style: removed values in red, added in green, edited in yellow
+- [ ] Diff view shows before/after per cell, grouped by row
 
-### 7.4 — Pre-Scripted Demo Flows (Mock Recipes)
-- [ ] `demo-scripts.ts` — recipe file with scripted sequences:
-  - **"enrich leads"** → Korra streams "I'll enrich your pipeline data..." → tool call: `editCells` batch updating website, employee count on 5 rows → result card: "Updated 5 leads"
-  - **"show hot leads"** → Korra: "Filtering to hot leads..." → tool call: `filterBy` tags contains "Hot Lead" → result card: filter badge
-  - **"sort by deal size"** → Korra: "Sorting by deal size..." → tool call: `sortBy` dealSize desc → result card: sort indicator
-  - **"qualify stale leads"** → Korra: "Finding stale leads..." → tool call: `editCells` updating status on leads with old lastContacted → result card: "Qualified 3 leads"
-  - **"summarize pipeline"** → Korra streams a text summary of deal count/value by stage (no tool call, just text)
-- [ ] Each recipe: trigger keyword → mock model response with streaming text + tool calls → `onToolCall` handler calls programmatic API
+### 3.4 — Tool Definitions + Mock Model
+- [ ] `editCells` — batch cell updates → `tableMeta.onDataUpdate()`
+- [ ] `addColumn` — add a new column with type/options → updates column definitions
+- [ ] `filterBy` — apply filters → `table.setColumnFilters()`
+- [ ] `sortBy` — apply sorts → `table.setSorting()`
+- [ ] `addRow` / `deleteRows` — row CRUD
+- [ ] Mock model with pre-scripted responses for the happy path demo (no API key needed)
+- [ ] Later: swap mock for real Claude via `@ai-sdk/anthropic`
 
-### 7.5 — AI Trust Signals
-- [ ] Sparkle icon on AI-modified cells
-- [ ] Subtle tint on touched rows
-- [ ] Accept/revert on hover
+### 3.5 — Pre-Scripted Happy Path Demo
+The demo flow follows our prototype story — a client directory:
+- [ ] **"Show me enterprise clients in healthcare we haven't campaigned to in 90 days"** → Korra applies nested filters → table updates
+- [ ] **"Add a Client Health column based on engagement and last campaign date"** → Ploybook/Skill tags appear → dry-run preview on 5 rows → user approves → Korra fills 200 rows
+- [ ] **"Change all At Risk clients' owner to Sarah and tag them Q2 Priority"** → edit summary card → diff view available
 
 ---
 
-## Phase 8: Board View (Kanban) — Stretch Goal
+## Phase 4: AI Trust Signals (IN THE TABLE)
 
-- [ ] Table/Board toggle
-- [ ] Columns = status values, cards = rows
-- [ ] Drag between columns → updates status in state
+Trust is built into the table itself, not just the chat panel.
+
+### 4.1 — Cell-Level Attribution
+- [ ] When clicking a cell, show a badge indicating last editor (user avatar or Korra icon)
+- [ ] AI-written cells have a subtle visual indicator (not loud — discoverable on hover/click)
+- [ ] Non-editable columns show a lock icon in the column header
+
+### 4.2 — Row-Level Activity
+- [ ] Subtle pulse/highlight animation when Korra updates a row in realtime
+- [ ] Rows recently touched by Korra have a faint tint that fades over time
 
 ---
 
-## Phase 9: Polish
+## Phase 5: Row Detail Panel
 
+### 5.1 — Side Panel
+- [ ] Click row → shadcn Sheet opens as side panel
+- [ ] All fields editable in vertical form layout
+- [ ] Relations navigable (click a linked record → navigate)
+- [ ] Navigate between rows (prev/next) without closing panel
+
+### 5.2 — Audit Trail
+- [ ] Timeline at bottom of row detail showing edit history
+- [ ] Each entry: who (user avatar or Korra icon), what changed, when
+- [ ] Human vs AI edits visually distinct
+- [ ] Korra entries show reasoning ("Set to At Risk — no campaign in 120 days, plan tier downgraded")
+- [ ] Clicking an audit entry shows the diff (red/green/yellow)
+
+---
+
+## Phase 6: Column Operations
+
+- [ ] "+" button at end of column headers to add column
+- [ ] Field type picker (approachable for non-technical users)
+- [ ] Constraints: required, unique
+- [ ] Option management for select/status fields
+- [ ] Relation configuration (link to another table)
+- [ ] Column header dropdown menu (sort, filter, hide, rename, delete)
+
+---
+
+## Phase 7: Polish + Stretch
+
+- [ ] Motion animations (cell edit glow, row add/delete, filter transitions, Korra activity pulse)
 - [ ] Loading skeletons, empty states
 - [ ] Row count footer
-- [ ] Keyboard shortcuts help
-- [ ] Motion animations (cell edit glow, row add/delete, filter transitions)
-- [ ] "Reset data" button
 - [ ] Dark mode toggle
+- [ ] "Reset data" button
+- [ ] Board View (kanban) — stretch goal
 
 ---
 
-## Parallel Worktree Strategy
+## Priority Order
 
-| Worktree | Phases | Dependencies |
-|---|---|---|
-| **A: Foundation** | 1.1–1.3 | None (do this first) |
-| **B: Custom Cell Types** | 2.1–2.6 | Phase 1 |
-| **C: Column + Row Ops** | 3, 4 | Phase 1 |
-| **D: Views + Grouping** | 5 | Phase 1 |
-| **E: Search + Cmd Palette** | 6 | Phase 1 |
-| **F: Korra Panel** | 7 | Phase 1 + Phase 2 |
-| **G: Polish** | 9 | Everything |
-
-Phase 1 first. Then B–F in parallel. G last.
+1. **Phase 3 (Korra Panel)** — the differentiator, the soul of the prototype
+2. **Phase 4 (Trust Signals)** — makes the table feel AI-native
+3. **Phase 5 (Row Detail)** — completes the happy path (review what AI did)
+4. **Phase 6 (Column Ops)** — supports the "add a column" moment in the flow
+5. **Phase 7 (Polish)** — only if time permits
 
 ---
 
