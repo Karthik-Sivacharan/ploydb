@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Folder, Table2, HelpCircle, Bell } from "lucide-react";
+import { ChevronDown, Folder, Table2, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -41,10 +41,6 @@ export function Navbar() {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <HelpCircle className="h-4 w-4" />
-        </Button>
-
         <Button variant="ghost" size="icon" className="h-8 w-8">
           <Bell className="h-4 w-4" />
         </Button>

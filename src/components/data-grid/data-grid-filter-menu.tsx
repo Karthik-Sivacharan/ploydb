@@ -213,7 +213,7 @@ export function DataGridFilterMenu<TData>({
             {columnFilters.length > 0 && (
               <Badge
                 variant="secondary"
-                className="h-[18.24px] rounded-[3.2px] px-[5.12px] font-mono font-normal text-[10.4px]"
+                className="h-5 rounded-sm px-1.5 font-mono font-normal text-xs"
               >
                 {columnFilters.length}
               </Badge>
