@@ -13,13 +13,86 @@ Build a fully interactive CRM table experience inside `src/ploy-app` with AI age
 | Framework | Next.js (App Router) | App scaffold |
 | Styling | Tailwind CSS + Design Tokens | Full styling control |
 | Components | shadcn/ui (Radix primitives) | Inputs, selects, popovers, sheets, dialogs, calendar, command palette |
-| Table Shell | sadmann7/shadcn-table | Filter UI, sort UI, pagination, row selection, bulk actions |
-| Table Engine | TanStack Table v8 | Headless state management (bundled with shadcn-table) |
+| Data Grid | tablecn data-grid (`@diceui/data-table`) | Editable spreadsheet grid with 9 built-in cell types, filtering, sorting, column ops, keyboard nav, copy/paste, undo/redo |
+| Table Engine | TanStack Table v8 | Headless state management (bundled inside tablecn) |
+| Virtualization | TanStack Virtual | Row virtualization for 150+ rows (bundled inside tablecn) |
 | Data Store | Zustand + persist middleware | Shared state for rows, filters, sorts, views. Persists to localStorage |
 | Mock Data | @faker-js/faker | Seed 150 CRM rows with all 20 field types |
 | AI Chat | Vercel AI SDK (`useChat`) | Korra panel — `onToolCall` calls Zustand actions |
 | Chat UI | @assistant-ui/react OR custom shadcn | Message list, streaming, tool result rendering |
-| Drag & Drop | dnd-kit | Column reordering, kanban board view |
+| Drag & Drop | dnd-kit | Column reordering (tablecn has this), kanban board view |
+
+---
+
+## What tablecn Data Grid Gives Us for Free
+
+tablecn (formerly sadmann7/shadcn-table) is installed via shadcn registry — source files copied into your project, full styling control. It provides:
+
+### Built-in Cell Types (9 of 20)
+
+| tablecn Variant | PloyDB Field Type | Edit Widget |
+|---|---|---|
+| `short-text` | text | contentEditable with auto-focus |
+| `long-text` | rich_text | Multi-line textarea |
+| `number` | number | Numeric input with min/max/step |
+| `select` | select | Single-select dropdown with icons |
+| `multi-select` | multi_select | Multi-select with badge overflow |
+| `checkbox` | checkbox | Boolean toggle |
+| `date` | date | Calendar popover picker |
+| `url` | url | URL input with link detection |
+| `file` | (bonus) | File upload with drag-and-drop |
+
+### Built-in Features (we don't need to build)
+
+- [x] Inline cell editing with click-to-edit
+- [x] Keyboard navigation (Tab, Enter, Escape, arrow keys)
+- [x] Copy/paste with TSV parsing (paste from Excel/Sheets works)
+- [x] Undo/redo (`useDataGridUndoRedo` hook)
+- [x] Column resizing (`columnResizeMode: "onChange"`)
+- [x] Column reordering
+- [x] Column pinning (left/right with sticky positioning)
+- [x] Column visibility toggle
+- [x] Rich filtering with type-aware operators (text: contains/equals/startsWith, number: equals/lessThan/greaterThan, date: before/after/between, select: is/isAnyOf, boolean: isTrue/isFalse)
+- [x] Multi-column sorting
+- [x] Search across all cells with match navigation
+- [x] Row virtualization (TanStack Virtual)
+- [x] Context menu (right-click on cells)
+- [x] Row selection with checkboxes
+- [x] Row height adjustment
+- [x] Cell selection (click, shift-click, drag)
+
+### Programmatic API (for Korra AI agent)
+
+- `onDataUpdate({ rowIndex, columnId, value })` — edit one or many cells
+- `onRowsDelete(rowIndices[])` — delete rows
+- `onRowAdd` — add rows
+- `onCellEditingStart(rowIndex, columnId)` / `onCellEditingStop()` — enter/exit edit mode
+- Filter/sort state settable via TanStack Table's `setColumnFilters` / `setSorting`
+
+---
+
+## What We Still Build (11 custom cell types + everything else)
+
+### Custom Cell Variants (extending tablecn's 9 built-in types)
+
+These are wrappers/extensions of existing tablecn variants:
+
+| PloyDB Field | Based On | What We Add |
+|---|---|---|
+| `currency` | `number` variant | $ prefix, comma formatting, 2 decimal places |
+| `percent` | `number` variant | % suffix, 0-100 range |
+| `status` | `select` variant | Colored dot indicator + colored badge (like Airtable pipeline stages) |
+| `tags` | `multi-select` variant | Subtle badge styling + "Add tag" inline input |
+| `datetime` | `date` variant | Add time picker (hour:minute) alongside calendar |
+| `email` | `short-text` variant | Email validation + clickable mailto link in display mode |
+| `phone` | `short-text` variant | Phone formatting + clickable tel link in display mode |
+| `color` | New | Color swatch display + preset color grid popover with hex input |
+| `json` | `long-text` variant | JSON syntax highlighting in display + validation on save |
+| `location` | `short-text` variant | City/country text input (simplified for prototype) |
+| `ref` | New | Linked record badge display + `<Combobox>` searching linked table |
+| `refs` | New | Multiple record badges + multi-select `<Combobox>` |
+
+**Effort:** ~1 day. Most are thin wrappers around existing tablecn cell types with display formatting changes. Only `color`, `ref`, and `refs` need truly new edit widgets.
 
 ---
 
@@ -68,11 +141,12 @@ Build a fully interactive CRM table experience inside `src/ploy-app` with AI age
     ┌────────────▼──────┐    ┌────────▼──────────┐
     │   Table UI        │    │   Korra Panel      │
     │                   │    │                    │
-    │   sadmann7/       │    │   Vercel AI SDK    │
-    │   shadcn-table    │    │   useChat()        │
-    │   + cell editors  │    │   onToolCall →     │
-    │   + column ops    │    │     Zustand action │
+    │   tablecn         │    │   Vercel AI SDK    │
+    │   data-grid       │    │   useChat()        │
+    │   + 11 custom     │    │   onToolCall →     │
+    │     cell types    │    │     Zustand action │
     │   + row detail    │    │                    │
+    │   + board view    │    │                    │
     └───────────────────┘    └────────────────────┘
 ```
 
@@ -80,18 +154,18 @@ Build a fully interactive CRM table experience inside `src/ploy-app` with AI age
 
 ## Styling Control
 
-**You own every pixel.** Here's why:
+**You own every pixel.** tablecn uses the shadcn registry model — source files are copied into your project, not installed as a dependency. You can:
 
-- **shadcn/ui** copies component source files into `src/components/ui/`. They're your files — edit freely.
-- **sadmann7/shadcn-table** is a reference/starting point — you copy the patterns, not install a package.
-- **Cell renderers** are plain React components you write. Each one is a `.tsx` file styled with Tailwind + your design tokens.
-- **TanStack Table** is headless — it never renders anything. Every `<td>`, every cell, every color is your code.
-- **Design tokens** flow through Tailwind's config (`tailwind.config.ts`) and CSS variables. All shadcn components reference these variables.
+- Modify any cell variant's display or edit component
+- Change colors, typography, spacing, animations
+- Add new cell variants by following the existing pattern
+- Override any tablecn component with your own
+- All styling uses Tailwind + your CSS variable design tokens
 
-Example of styling control in a cell:
+Example of customizing a cell variant:
 
 ```tsx
-// You write this. Every class, every color, every interaction is yours.
+// This is YOUR file in YOUR project. Modify freely.
 function StatusCell({ value, options }) {
   const option = options.find(o => o.value === value)
   return (
@@ -108,13 +182,14 @@ function StatusCell({ value, options }) {
 
 ---
 
-## Phase 1: Data Layer + Basic Table
+## Phase 1: Foundation
 
 ### 1.1 — Scaffold
 - [ ] Next.js app in `src/ploy-app`
 - [ ] Tailwind config with design tokens (colors, typography, spacing, radii)
 - [ ] Install shadcn/ui, configure with your tokens
-- [ ] Install Zustand, @faker-js/faker, TanStack Table
+- [ ] Install tablecn data-grid via shadcn registry: `pnpm dlx shadcn@latest add "@diceui/data-table"`
+- [ ] Install Zustand, @faker-js/faker
 
 ### 1.2 — Zustand Store
 - [ ] Define store with state shape (rows, schema, filters, sorts, views, auditLog)
@@ -123,114 +198,103 @@ function StatusCell({ value, options }) {
 - [ ] Wrap every action with audit logging (who, what, when, diff)
 
 ### 1.3 — Faker Seed Script
-- [ ] Generate schema for "Sales Pipeline" CRM with all 20 field types
+- [ ] Generate schema for "Sales Pipeline" CRM with all 20 field types:
+  - text: Company Name, Contact Name, Notes
+  - rich_text: Description
+  - number: Employee Count
+  - currency: Deal Size
+  - percent: Win Probability
+  - select: Lead Source (Referral, Website, Cold Call, Event, Partner)
+  - multi_select: Industries (SaaS, Fintech, Healthcare, E-commerce, AI/ML)
+  - status: Stage (New → Contacted → Qualified → Proposal → Negotiation → Closed Won → Closed Lost)
+  - tags: Labels (Hot Lead, Follow Up, Enterprise, SMB, Startup)
+  - date: Last Contacted
+  - datetime: Next Follow Up
+  - email: Contact Email
+  - phone: Contact Phone
+  - url: Website
+  - color: Account Color
+  - json: Custom Metadata
+  - location: Company HQ
+  - checkbox: Has NDA, Verified
+  - ref: Assigned To (→ Team Members table)
+  - refs: Related Deals (→ Deals table)
 - [ ] Generate ~150 leads with realistic data:
   - Weighted status distribution (40% New, 25% Contacted, 15% Qualified, 10% Proposal, 5% Won, 5% Lost)
   - Consistent relationships (contacts belong to companies)
   - 5-8 hand-tuned "hero" rows for demos
   - Temporal coherence (created_at < updated_at < next_followup)
+  - Per-entity-type faker seeds for stability
 - [ ] Generate a small "Team Members" table (10 people) for ref fields
 - [ ] Generate a small "Deals" table (30 deals) for refs fields
 - [ ] Seed on first load if store is empty
 - [ ] "Reset data" button to re-seed
 
-### 1.4 — Basic Table Render
-- [ ] Wire TanStack Table with Zustand store data
-- [ ] Column definitions from schema (one column per field)
-- [ ] Basic cell rendering (plain text for now)
+### 1.4 — Wire tablecn Data Grid
+- [ ] Connect tablecn data-grid to Zustand store data
+- [ ] Map schema fields to tablecn column definitions with appropriate `meta.cell.variant`
+- [ ] Map the 9 built-in field types to tablecn variants
+- [ ] Wire `onDataUpdate` → Zustand `updateCell` action
+- [ ] Wire `onRowsDelete` → Zustand `deleteRows` action
+- [ ] Wire `onRowAdd` → Zustand `addRow` action
+- [ ] Verify inline editing, keyboard nav, copy/paste, undo/redo all work
 - [ ] Horizontal scroll for 20+ columns
 - [ ] Sticky first column (Company Name)
-- [ ] Row selection checkbox column
-- [ ] Field type icon in column headers
 
 ---
 
-## Phase 2: Cell Editors (20 Field Types)
+## Phase 2: Custom Cell Types (11 remaining)
 
-Each field type gets two components: **DisplayCell** (read mode) and **EditCell** (edit mode).
+Extend tablecn's cell variant system to cover all 20 PloyDB field types.
 
-### Cell Editor Registry
+### 2.1 — Number Variants
+- [ ] `currency` — Extend number variant: display with $ and commas ("$12,450.00"), edit as plain number
+- [ ] `percent` — Extend number variant: display with % suffix ("73.2%"), edit with 0-100 range
 
-```
-fieldType → { display: Component, editor: Component, icon: Icon }
-```
+### 2.2 — Choice Variants
+- [ ] `status` — Extend select variant: colored dot + colored badge display, pipeline-stage styling
+- [ ] `tags` — Extend multi-select variant: subtle badge styling, inline "Add tag" input
 
-### 2.1 — Text Fields
-- [ ] `text` — Display: truncated text. Edit: `<Input>` auto-focus, save on blur/Enter, Escape to cancel
-- [ ] `rich_text` — Display: plain text preview. Edit: `<Popover>` with `<Textarea>` (or Tiptap if time permits)
+### 2.3 — Date Variant
+- [ ] `datetime` — Extend date variant: add time picker (hour:minute selector) alongside calendar popover
 
-### 2.2 — Number Fields
-- [ ] `number` — Display: formatted number. Edit: `<Input type="number">`
-- [ ] `currency` — Display: formatted with $ symbol and commas. Edit: `<Input>` with currency mask
-- [ ] `percent` — Display: "73.2%". Edit: `<Input>` with % suffix
+### 2.4 — Contact Variants
+- [ ] `email` — Extend short-text variant: email validation, clickable mailto link in display mode
+- [ ] `phone` — Extend short-text variant: phone formatting, clickable tel: link in display mode
 
-### 2.3 — Choice Fields
-- [ ] `select` — Display: colored `<Badge>`. Edit: shadcn `<Select>` dropdown with colored options
-- [ ] `multi_select` — Display: row of colored badges (overflow as +N). Edit: `<Popover>` with checkbox list
-- [ ] `status` — Display: colored badge with dot indicator. Edit: `<Select>` with status-specific colors
-- [ ] `tags` — Display: row of subtle badges. Edit: `<Popover>` with checkbox list + "Add tag" input
+### 2.5 — New Cell Types (not based on existing variants)
+- [ ] `color` — Display: color swatch circle + hex label. Edit: popover with preset color grid (8-12 colors) + hex input
+- [ ] `json` — Display: `{ ... }` collapsed preview with key count. Edit: popover with monospace textarea + JSON validation feedback
+- [ ] `location` — Display: "San Francisco, CA" text. Edit: text input (simplified)
+- [ ] `ref` — Display: linked record name as clickable badge/chip. Edit: shadcn `<Combobox>` (`<Command>` + `<Popover>`) searching the linked table by name
+- [ ] `refs` — Display: row of record name badges (overflow as +N). Edit: multi-select `<Combobox>` with search
 
-### 2.4 — Date Fields
-- [ ] `date` — Display: formatted date (e.g., "Mar 15, 2026"). Edit: shadcn `<DatePicker>`
-- [ ] `datetime` — Display: formatted date + time. Edit: `<DatePicker>` + time select
-
-### 2.5 — Contact Fields
-- [ ] `email` — Display: clickable mailto link. Edit: `<Input type="email">`
-- [ ] `phone` — Display: formatted phone. Edit: `<Input type="tel">`
-- [ ] `url` — Display: clickable link (show domain only). Edit: `<Input type="url">`
-
-### 2.6 — Media Fields
-- [ ] `color` — Display: color swatch circle. Edit: color picker popover (grid of preset colors + hex input)
-
-### 2.7 — Structured Fields
-- [ ] `json` — Display: `{ ... }` preview. Edit: `<Textarea>` with JSON validation in popover
-- [ ] `location` — Display: city/country text. Edit: `<Input>` (simplified for prototype)
-
-### 2.8 — Logic Fields
-- [ ] `checkbox` — Display AND edit: shadcn `<Checkbox>`, always interactive (no separate edit mode)
-
-### 2.9 — Relation Fields
-- [ ] `ref` — Display: linked record name as badge/chip. Edit: `<Combobox>` (`<Command>` + `<Popover>`) searching the linked table
-- [ ] `refs` — Display: row of record name badges. Edit: multi-select `<Combobox>`
-
-### 2.10 — Edit Interaction Pattern
-- [ ] Click cell → enter edit mode (swap display → editor)
-- [ ] Blur or Enter → save to Zustand store → audit log → exit edit mode
-- [ ] Escape → discard changes → exit edit mode
-- [ ] Tab → save current cell, move to next cell (stretch goal)
-- [ ] Empty cells show subtle "Empty" placeholder
+### 2.6 — Register All Variants
+- [ ] Extend tablecn's cell variant registry to include all 20 types
+- [ ] Map each schema field type to its variant in column definitions
+- [ ] Ensure display formatting, edit widgets, and validation work for all types
 
 ---
 
 ## Phase 3: Column Operations
 
+tablecn provides column resize, reorder, pin, and visibility. We add:
+
 ### 3.1 — Column Header Menu
-- [ ] Dropdown menu on each column header (click or right-click):
-  - Sort ascending
-  - Sort descending
-  - Filter by this column (opens filter popover pre-set to this field)
-  - Hide column
-  - Rename column (inline edit)
+- [ ] Enhanced dropdown menu on each column header:
+  - Sort ascending / descending (tablecn has this)
+  - Filter by this column
+  - Hide column (tablecn has this)
+  - Rename column (inline edit on header)
   - Duplicate column
   - Delete column (with confirmation)
-  - Pin left / Pin right / Unpin
-  - Change field type (dropdown of 20 types)
+  - Pin left / Pin right / Unpin (tablecn has this)
+  - Change field type (dropdown of 20 types — visual type picker)
 
-### 3.2 — Column Resize
-- [ ] Drag handle on column border (TanStack's `getResizeHandler()`)
-- [ ] Double-click handle to auto-fit width
-- [ ] Minimum column width (100px)
-- [ ] Store widths in view config
-
-### 3.3 — Column Reorder
-- [ ] Drag column headers to reorder (dnd-kit + TanStack `columnOrder` state)
-- [ ] Visual drag overlay (ghost of column header)
-- [ ] Drop indicator line between columns
-
-### 3.4 — Add Column
+### 3.2 — Add Column
 - [ ] "+" button as last column header
-- [ ] Opens field type picker → name input → creates column
-- [ ] New column appears at the end
+- [ ] Opens field type picker (icon grid of 20 types) → name input → creates column
+- [ ] New column appears at the end with appropriate default variant
 
 ---
 
@@ -239,88 +303,55 @@ fieldType → { display: Component, editor: Component, icon: Icon }
 ### 4.1 — Add Row
 - [ ] "+" button at bottom of table
 - [ ] Creates empty row, auto-focuses first editable cell
-- [ ] Row appears with default values (empty strings, false for checkbox, etc.)
+- [ ] Row appears with default values
 
-### 4.2 — Row Selection + Bulk Actions
-- [ ] Checkbox column for selection
-- [ ] Shift+click for range select
-- [ ] "Select all" checkbox in header
-- [ ] Floating bulk action bar appears when rows selected:
+### 4.2 — Bulk Actions
+- [ ] tablecn provides row selection — we add a floating bulk action bar:
   - Delete selected (N rows)
   - Set field to value (bulk update)
   - Duplicate selected
 
 ### 4.3 — Row Detail Panel
-- [ ] Expand icon on each row (or click row)
+- [ ] Expand icon on each row (or double-click row)
 - [ ] shadcn `<Sheet>` slides in from right
-- [ ] All fields shown in vertical form layout
-- [ ] Each field editable using the same cell editors
+- [ ] All fields shown in vertical form layout using the same cell editors
 - [ ] Related records (ref/refs) are clickable → navigate to that record
 - [ ] Audit history section at bottom (timeline of changes to this row)
 - [ ] Navigate between rows with up/down arrows while panel is open
 
 ### 4.4 — Row Context Menu
-- [ ] Right-click row → context menu:
+- [ ] Extend tablecn's built-in context menu:
   - Expand row
   - Duplicate row
-  - Copy row
+  - Copy row data
   - Delete row
 
 ---
 
-## Phase 5: Filter, Sort, Group
+## Phase 5: Views + Grouping
 
-### 5.1 — Filter Builder
-- [ ] "Filter" button in toolbar (badge shows active filter count)
-- [ ] Popover with flat list of filter rules
-- [ ] Each rule: `[Field dropdown] [Operator dropdown] [Value input] [Remove button]`
-- [ ] Operators change based on field type:
-  - text: contains, equals, starts with, ends with, is empty
-  - number/currency/percent: =, !=, >, >=, <, <=, is empty
-  - select/status: is, is not, is any of
-  - multi_select/tags: contains, does not contain, is empty
-  - date/datetime: is, before, after, between, is empty
-  - checkbox: is true, is false
-  - email/phone/url: contains, equals, is empty
-  - ref/refs: is, is not, is empty
-- [ ] AND / OR toggle at top (single conjunction for all rules)
-- [ ] "Add filter" button
-- [ ] "Clear all" button
-- [ ] Filters stored in Zustand → TanStack Table applies them
-
-### 5.2 — Sort Builder
-- [ ] "Sort" button in toolbar
-- [ ] Popover with ordered list of sort rules
-- [ ] Each rule: `[Field dropdown] [Asc/Desc toggle] [Remove button]`
-- [ ] Direction labels are type-aware (A→Z / Z→A for text, 1→9 / 9→1 for numbers, Old→New / New→Old for dates)
-- [ ] Drag to reorder sort priority (dnd-kit sortable)
-- [ ] Also: click column header to quick-sort
-
-### 5.3 — Group By
+### 5.1 — Group By
 - [ ] "Group" button in toolbar
 - [ ] Dropdown to select a field (works best with select/status/tags)
 - [ ] Rows grouped into collapsible sections
-- [ ] Section header: group value + count
+- [ ] Section header: group value badge + count
 - [ ] Chevron to toggle collapse/expand
 - [ ] "Hide empty groups" toggle
 
-### 5.4 — Saved Views
+### 5.2 — Saved Views
 - [ ] Tab bar above table: view tabs + "+" button
-- [ ] Each view stores: name, filters, sorts, groupBy, visible columns, column order, column widths
+- [ ] Each view stores: name, type (table/board), filters, sorts, groupBy, visible columns, column order, column widths
 - [ ] Auto-save: changing filters/sorts/columns updates the active view
-- [ ] "+" creates new view (name prompt, optional type: table/board)
+- [ ] "+" creates new view (name prompt, type picker)
 - [ ] Right-click view tab: rename, duplicate, delete
-- [ ] Default views: "All Leads", "My Pipeline", "Hot Leads"
+- [ ] Default views: "All Leads", "My Pipeline" (filtered to assigned=me), "Hot Leads" (filtered to tags contains Hot Lead)
 
 ---
 
 ## Phase 6: Search + Command Palette
 
 ### 6.1 — Search
-- [ ] Search input in toolbar
-- [ ] Filters across all text-type fields (name, email, company, notes, etc.)
-- [ ] Debounced (200ms)
-- [ ] Shows result count
+- [ ] tablecn has built-in search with match navigation — customize styling to match design tokens
 
 ### 6.2 — Command Palette
 - [ ] Cmd+K opens shadcn `<Command>` palette
@@ -328,7 +359,7 @@ fieldType → { display: Component, editor: Component, icon: Icon }
   - **Quick Filters**: "Status is Qualified", "Source is Referral", etc.
   - **Sort**: "Sort by Deal Size", "Sort by Last Contacted"
   - **Views**: "Go to My Pipeline", "Go to Hot Leads"
-  - **Actions**: "Add new row", "Reset data"
+  - **Actions**: "Add new row", "Reset data", "Open Korra"
 - [ ] Fuzzy search across all commands
 
 ---
@@ -336,12 +367,13 @@ fieldType → { display: Component, editor: Component, icon: Icon }
 ## Phase 7: Korra AI Panel
 
 ### 7.1 — Chat UI
-- [ ] Right side panel (collapsible, resizable)
+- [ ] Right side panel (collapsible, resizable via react-resizable-panels)
 - [ ] Chat message list with streaming
 - [ ] Input area with send button
 - [ ] Korra avatar + typing indicator
+- [ ] Sparkle icon toggle button to open/close panel
 
-### 7.2 — Tool Definitions
+### 7.2 — Tool Definitions (Zod schemas)
 - [ ] `editCell` — { rowId, field, value }
 - [ ] `addRow` — { data }
 - [ ] `deleteRows` — { rowIds }
@@ -353,43 +385,53 @@ fieldType → { display: Component, editor: Component, icon: Icon }
 - [ ] `bulkUpdate` — { rowIds[], field, value }
 - [ ] `switchView` — { viewName }
 
-### 7.3 — Tool Execution
+### 7.3 — Tool Execution Bridge
 - [ ] `onToolCall` in useChat → calls corresponding Zustand action
-- [ ] Tool results render as custom components in chat (e.g., "Updated 5 rows" with a mini diff view)
+- [ ] Zustand action → tablecn's `onDataUpdate` / TanStack Table state → UI updates
+- [ ] Tool results render as custom components in chat:
+  - Cell edit → mini diff card (field: old → new)
+  - Bulk update → "Updated N rows" summary with expandable details
+  - Filter applied → filter badge preview
+  - Row added → "Created: [row name]" with link to expand
 
-### 7.4 — Demo Mode
-- [ ] MockLanguageModelV1 for scripted demos (no API key needed)
-- [ ] Pre-scripted flows:
-  - "Enrich leads" → batch updates company info
-  - "Show me hot leads" → applies filter
-  - "Sort by deal size" → applies sort
-  - "Create a follow-up task for stale leads" → bulk updates
-- [ ] Optional: real Claude API for freeform requests
+### 7.4 — Demo Mode (no API key needed)
+- [ ] `MockLanguageModelV1` from `ai/test` swapped at route level
+- [ ] Pre-scripted flows triggered by keyword matching:
+  - "enrich leads" → batch updates company info, website, employee count
+  - "show hot leads" → applies filter (tags contains "Hot Lead")
+  - "sort by deal size" → applies descending sort on currency field
+  - "qualify stale leads" → finds leads with last_contacted > 30 days ago, updates status
+  - "summarize pipeline" → generates text response with deal count/value by stage
+- [ ] Optional: real Claude API via `@ai-sdk/anthropic` for freeform requests (needs ANTHROPIC_API_KEY)
 
 ### 7.5 — AI Trust Signals
-- [ ] Sparkle icon on cells modified by Korra
-- [ ] Subtle background tint on AI-touched rows
-- [ ] "Modified by Korra" badge in row detail panel
-- [ ] Audit log: timeline of Korra's changes with before/after diffs
-- [ ] Accept/revert buttons on AI-modified cells
+- [ ] Sparkle icon (✨) on cells modified by Korra — subtle, not overwhelming
+- [ ] Subtle background tint on AI-touched cells (e.g., faint purple-50)
+- [ ] "Modified by Korra" badge with timestamp in row detail panel
+- [ ] Audit log tab in row detail: timeline of all changes with before/after diffs
+- [ ] Cell-level accept/revert: hover AI-modified cell → "Accept" (removes indicator) or "Revert" (restores old value)
+- [ ] Global "Korra Activity" feed accessible from panel header — recent agent mutations across all rows
 
 ---
 
 ## Phase 8: Board View (Kanban)
 
 ### 8.1 — Board Layout
-- [ ] Toggle between Table and Board view (view type in saved views)
-- [ ] Columns = status field values (New, Contacted, Qualified, etc.)
-- [ ] Cards = rows, showing key fields (name, company, deal size)
-- [ ] Card count per column
+- [ ] View type toggle in view tabs (Table | Board)
+- [ ] Columns = status/select field values (New, Contacted, Qualified, Proposal, etc.)
+- [ ] Cards = rows, showing: Company Name, Contact Name, Deal Size, Tags
+- [ ] Card count per column in header
+- [ ] Color-coded column headers matching status colors
 
 ### 8.2 — Drag & Drop
-- [ ] Drag cards between columns (dnd-kit multi-container)
-- [ ] Dropping in a column updates the status field in Zustand
+- [ ] dnd-kit multi-container sortable
+- [ ] Drag cards between columns → updates status field in Zustand → audit logged
+- [ ] DragOverlay with card preview (slight scale + shadow)
 - [ ] Drag within column to reorder (stretch goal)
 
-### 8.3 — Card Detail
+### 8.3 — Card Interaction
 - [ ] Click card → opens same row detail sheet as table view
+- [ ] Quick-edit badge on card hover (edit deal size, tags without opening detail)
 
 ---
 
@@ -397,47 +439,46 @@ fieldType → { display: Component, editor: Component, icon: Icon }
 
 ### 9.1 — Database List
 - [ ] Grid/list of databases in workspace
-- [ ] Cards showing: name, icon, row count, last modified
+- [ ] Cards showing: name, icon, row count, last modified, field count
 - [ ] Three pre-seeded databases: Sales Pipeline, Team Members, Deals
 
 ### 9.2 — Create Database
 - [ ] "New Database" button
-- [ ] Name input + optional template selection
-- [ ] AI option: "Describe your database" → Korra creates schema
+- [ ] Name input + optional template selection (CRM, Content Calendar, Inventory)
+- [ ] AI option: "Describe your database" → Korra creates schema + seed data
 
 ---
 
 ## Phase 10: Polish
 
 - [ ] Loading skeletons for initial data load
-- [ ] Empty states (no rows, no filter results)
-- [ ] Row count footer ("42 of 150 leads")
-- [ ] Undo last action (Cmd+Z) — pop from audit log, revert
-- [ ] Keyboard shortcuts help modal
+- [ ] Empty states (no rows, no filter results, empty database)
+- [ ] Row count footer ("Showing 42 of 150 leads · 3 filters active")
+- [ ] Keyboard shortcuts help modal (? key)
 - [ ] Responsive: collapse Korra panel on smaller screens
-- [ ] Animations: smooth transitions for filter/sort changes, row additions/deletions
+- [ ] Animations: smooth transitions for filter/sort changes, row additions/deletions, panel open/close
 - [ ] Error states: invalid JSON, invalid URL, required field empty
+- [ ] "Reset data" button in settings/toolbar
 
 ---
 
 ## Parallel Worktree Strategy
 
-These can be built independently in parallel worktrees:
+| Worktree | Phases | Effort | Dependencies |
+|---|---|---|---|
+| **A: Foundation** | 1.1, 1.2, 1.3, 1.4 | ~4-6 hrs | None (do this first) |
+| **B: Custom Cell Types** | 2.1–2.6 | ~4-6 hrs | Needs Phase 1 |
+| **C: Column + Row Ops** | 3.1–3.2, 4.1–4.4 | ~3-4 hrs | Needs Phase 1 |
+| **D: Views + Grouping** | 5.1–5.2 | ~3-4 hrs | Needs Phase 1 |
+| **E: Search + Cmd Palette** | 6.1–6.2 | ~2-3 hrs | Needs Phase 1 |
+| **F: Korra Panel** | 7.1–7.5 | ~6-8 hrs | Needs Phase 1 + Phase 2 |
+| **G: Board View** | 8.1–8.3 | ~4-6 hrs | Needs Phase 1 |
+| **H: Database Home** | 9.1–9.2 | ~2-3 hrs | Needs Phase 1 |
+| **I: Polish** | 10 | ~4-6 hrs | Needs everything else |
 
-| Worktree | Phases | Dependencies |
-|---|---|---|
-| **A: Foundation** | 1.1, 1.2, 1.3, 1.4 | None (do this first) |
-| **B: Cell Editors** | 2.1–2.10 | Needs Phase 1 complete |
-| **C: Column Ops** | 3.1–3.4 | Needs Phase 1 complete |
-| **D: Row Ops** | 4.1–4.4 | Needs Phase 1 complete |
-| **E: Filter/Sort/Group** | 5.1–5.4 | Needs Phase 1 complete |
-| **F: Search + Cmd Palette** | 6.1–6.2 | Needs Phase 1 complete |
-| **G: Korra Panel** | 7.1–7.5 | Needs Phase 1 + some cell editors |
-| **H: Board View** | 8.1–8.3 | Needs Phase 1 complete |
-| **I: Database Home** | 9.1–9.2 | Needs Phase 1 complete |
-| **J: Polish** | 10 | Needs everything else |
+**Phase 1 (Foundation) must complete first.** Then B–H can run in parallel. Phase I (Polish) runs last.
 
-**Phase 1 (Foundation) must be done first.** After that, B through I can run in parallel.
+**Total estimated effort: ~30-45 hours** (fits comfortably in a 3-day sprint with focus time)
 
 ---
 
@@ -448,8 +489,11 @@ src/ploy-app/
 ├── app/                          # Next.js app router pages
 │   ├── layout.tsx
 │   ├── page.tsx                  # Database home
+│   ├── api/
+│   │   └── chat/
+│   │       └── route.ts          # Vercel AI SDK endpoint (or mock)
 │   └── [dbId]/
-│       └── page.tsx              # Table/Board view
+│       └── page.tsx              # Table/Board view + Korra panel
 │
 ├── components/
 │   ├── ui/                       # shadcn/ui primitives (your files, full control)
@@ -464,45 +508,36 @@ src/ploy-app/
 │   │   ├── badge.tsx
 │   │   └── ...
 │   │
-│   ├── table/                    # Table view components
-│   │   ├── data-table.tsx        # Main table (TanStack + shadcn)
-│   │   ├── table-toolbar.tsx     # Filter, sort, group, search buttons
-│   │   ├── column-header.tsx     # Header with menu, resize, sort indicator
-│   │   ├── column-header-menu.tsx
-│   │   ├── add-column.tsx
-│   │   ├── add-row.tsx
-│   │   ├── bulk-actions.tsx
-│   │   └── view-tabs.tsx
+│   ├── data-grid/                # tablecn data-grid (copied via registry, fully owned)
+│   │   ├── data-grid.tsx         # Main grid component
+│   │   ├── data-grid-cells.tsx   # Built-in 9 cell variants
+│   │   ├── data-grid-column-header.tsx
+│   │   ├── data-grid-filter-menu.tsx
+│   │   ├── data-grid-sort-menu.tsx
+│   │   ├── data-grid-view-menu.tsx
+│   │   └── ...
 │   │
-│   ├── cells/                    # Cell editor registry (20 types)
-│   │   ├── cell-renderer.tsx     # Routes fieldType → display/edit component
-│   │   ├── text-cell.tsx
-│   │   ├── rich-text-cell.tsx
-│   │   ├── number-cell.tsx
+│   ├── cells/                    # Custom cell variants (11 PloyDB-specific)
 │   │   ├── currency-cell.tsx
 │   │   ├── percent-cell.tsx
-│   │   ├── select-cell.tsx
-│   │   ├── multi-select-cell.tsx
 │   │   ├── status-cell.tsx
 │   │   ├── tags-cell.tsx
-│   │   ├── date-cell.tsx
 │   │   ├── datetime-cell.tsx
 │   │   ├── email-cell.tsx
 │   │   ├── phone-cell.tsx
-│   │   ├── url-cell.tsx
 │   │   ├── color-cell.tsx
 │   │   ├── json-cell.tsx
 │   │   ├── location-cell.tsx
-│   │   ├── checkbox-cell.tsx
 │   │   ├── ref-cell.tsx
 │   │   └── refs-cell.tsx
 │   │
-│   ├── filters/                  # Filter/Sort/Group UI
-│   │   ├── filter-builder.tsx
-│   │   ├── filter-rule.tsx
-│   │   ├── sort-builder.tsx
-│   │   ├── group-selector.tsx
-│   │   └── operators.ts          # Field type → operator mapping
+│   ├── table/                    # Table view extensions
+│   │   ├── table-toolbar.tsx     # Toolbar with filter/sort/group/search/view buttons
+│   │   ├── column-header-menu.tsx # Enhanced column header dropdown
+│   │   ├── add-column.tsx        # Field type picker + name input
+│   │   ├── add-row.tsx
+│   │   ├── bulk-actions.tsx      # Floating bar for selected rows
+│   │   └── view-tabs.tsx         # Saved view tab bar
 │   │
 │   ├── row-detail/               # Row detail side panel
 │   │   ├── row-detail-sheet.tsx
@@ -516,30 +551,31 @@ src/ploy-app/
 │   │   └── board-card.tsx
 │   │
 │   ├── korra/                    # AI agent panel
-│   │   ├── korra-panel.tsx
-│   │   ├── chat-messages.tsx
+│   │   ├── korra-panel.tsx       # Resizable right panel shell
+│   │   ├── chat-messages.tsx     # Message list with streaming
 │   │   ├── tool-results.tsx      # Custom components for tool call results
-│   │   └── demo-scripts.ts       # Pre-scripted demo flows
+│   │   ├── ai-trust-signals.tsx  # Sparkle indicators, accept/revert controls
+│   │   └── demo-scripts.ts      # Pre-scripted demo flows for MockModel
 │   │
 │   └── database-home/            # Database listing
 │       ├── database-grid.tsx
 │       └── create-database.tsx
 │
 ├── store/                        # Zustand store
-│   ├── index.ts                  # Main store definition
+│   ├── index.ts                  # Main store definition with persist middleware
 │   ├── actions.ts                # All mutation actions
-│   ├── audit.ts                  # Audit logging middleware
-│   └── types.ts                  # TypeScript types for schema, rows, views
+│   ├── audit.ts                  # Audit logging wrapper (who, what, when, diff)
+│   └── types.ts                  # TypeScript types for schema, rows, views, audit entries
 │
 ├── data/                         # Seed data
-│   ├── seed.ts                   # Faker seed script
-│   ├── schema.ts                 # CRM field definitions (20 types)
-│   └── hero-rows.ts              # Hand-crafted demo rows
+│   ├── seed.ts                   # Faker seed script (per-entity-type seeds)
+│   ├── schema.ts                 # CRM field definitions (20 types with options)
+│   └── hero-rows.ts              # Hand-crafted demo rows for presentations
 │
 ├── lib/                          # Utilities
-│   ├── field-types.ts            # Field type registry (icon, operators, default value)
+│   ├── field-types.ts            # Field type registry (icon, operators, default value, variant mapping)
 │   ├── formatters.ts             # Display formatters (currency, date, phone, etc.)
-│   └── ai-tools.ts              # Vercel AI SDK tool definitions for Korra
+│   └── ai-tools.ts              # Vercel AI SDK tool definitions (Zod schemas) for Korra
 │
 └── styles/
     └── tokens.css                # Design system CSS variables
@@ -551,11 +587,13 @@ src/ploy-app/
 
 After all phases, the prototype should:
 
-1. **Render a full CRM table** with 150+ rows and 20 field types, all styled with your design tokens
-2. **Inline edit any cell** by clicking — appropriate editor for each field type
-3. **Filter, sort, group** with visual builders — field-type-aware operators
-4. **Save and switch between views** (table + board)
-5. **Korra panel** can edit cells, add/remove rows and columns, apply filters, sort — all via chat
-6. **AI trust signals** — see what Korra changed, when, with diffs
-7. **Persist across page refresh** — all data and view configs survive reload
-8. **Full styling control** — everything matches your design system, nothing looks like a generic library
+1. **Render a full CRM table** with 150+ rows and all 20 field types, styled with your design tokens
+2. **Inline edit any cell** by clicking — appropriate editor for each field type, with keyboard nav, copy/paste, undo/redo
+3. **Filter, sort, group** with type-aware operators and collapsible groups
+4. **Save and switch between views** — named presets with different filters/sorts/columns (table + board)
+5. **Korra panel** can edit cells, add/remove rows and columns, apply filters, sort — all via chat, with scripted demos
+6. **AI trust signals** — sparkle icons on AI-modified cells, audit timeline, cell-level accept/revert
+7. **Persist across page refresh** — all data, view configs, and audit history survive reload
+8. **Full styling control** — everything matches your design system, no generic library aesthetics
+9. **Board view** — kanban with drag-and-drop that updates the underlying data
+10. **Database home** — navigate between multiple databases in the workspace
