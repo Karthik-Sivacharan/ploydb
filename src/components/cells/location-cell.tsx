@@ -162,14 +162,13 @@ export function LocationCell<TData>({
           )}
         />
       ) : (
-        <span
-          data-slot="grid-cell-content"
-          className="flex items-center gap-1.5 truncate"
-        >
-          {displayValue && (
-            <MapPin className="text-muted-foreground h-3 w-3 shrink-0" />
-          )}
-          {displayValue}
+        <span data-slot="grid-cell-content" className="truncate">
+          <span className="inline-flex items-center gap-1.5">
+            {displayValue && (
+              <MapPin className="text-muted-foreground h-3 w-3 shrink-0" />
+            )}
+            {displayValue}
+          </span>
         </span>
       )}
     </DataGridCellWrapper>

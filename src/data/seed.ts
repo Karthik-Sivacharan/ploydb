@@ -24,7 +24,7 @@ export interface CrmRow {
   contactEmail: string;
   contactPhone: string;
   companyHq: string;
-  accountColor: string;
+  accountColor: string[];
   customMetadata: string;
   nextFollowUp: string;
   assignedTo: RefRecord | null;
@@ -94,7 +94,7 @@ const heroRows: CrmRow[] = [
     contactEmail: "jane.doe@acme.com",
     contactPhone: "+1 (415) 555-0123",
     companyHq: "San Francisco, CA",
-    accountColor: "#3b82f6",
+    accountColor: ["#3b82f6", "#6366f1"],
     customMetadata: '{"source":"referral","score":92,"tier":"enterprise"}',
     nextFollowUp: "2026-04-10T14:30:00.000Z",
     assignedTo: { id: "tm-1", name: "Sarah Chen" },
@@ -120,7 +120,7 @@ const heroRows: CrmRow[] = [
     contactEmail: "mike@techvault.io",
     contactPhone: "+1 (650) 555-0456",
     companyHq: "Austin, TX",
-    accountColor: "#8b5cf6",
+    accountColor: ["#8b5cf6", "#06b6d4", "#22c55e"],
     customMetadata: '{"source":"website","score":74,"tier":"mid-market"}',
     nextFollowUp: "2026-04-15T10:00:00.000Z",
     assignedTo: { id: "tm-2", name: "Marcus Johnson" },
@@ -143,7 +143,7 @@ const heroRows: CrmRow[] = [
     contactEmail: "sarah@globalsync.dev",
     contactPhone: "+1 (212) 555-0789",
     companyHq: "New York, NY",
-    accountColor: "#22c55e",
+    accountColor: ["#22c55e", "#eab308"],
     customMetadata: '{"source":"event","score":68,"tier":"smb"}',
     nextFollowUp: "2026-04-08T09:15:00.000Z",
     assignedTo: { id: "tm-3", name: "Emily Rodriguez" },
@@ -166,7 +166,7 @@ const heroRows: CrmRow[] = [
     contactEmail: "alex@novapay.com",
     contactPhone: "+1 (312) 555-0321",
     companyHq: "Chicago, IL",
-    accountColor: "#f97316",
+    accountColor: ["#f97316", "#ef4444", "#ec4899"],
     customMetadata: '{"source":"partner","score":55,"tier":"enterprise"}',
     nextFollowUp: "2026-04-20T16:45:00.000Z",
     assignedTo: { id: "tm-4", name: "David Kim" },
@@ -193,7 +193,7 @@ const heroRows: CrmRow[] = [
     contactEmail: "founders@dataforge.ai",
     contactPhone: "+1 (510) 555-0654",
     companyHq: "Seattle, WA",
-    accountColor: "#6366f1",
+    accountColor: ["#6366f1"],
     customMetadata: '{"source":"cold_call","score":38,"tier":"startup"}',
     nextFollowUp: "2026-04-05T11:30:00.000Z",
     assignedTo: null,
@@ -221,7 +221,7 @@ export function generateSeedData(): CrmRow[] {
     contactEmail: faker.internet.email(),
     contactPhone: faker.phone.number(),
     companyHq: `${faker.location.city()}, ${faker.location.state({ abbreviated: true })}`,
-    accountColor: faker.helpers.arrayElement(PRESET_COLORS),
+    accountColor: faker.helpers.arrayElements(PRESET_COLORS, faker.number.int({ min: 1, max: 3 })),
     customMetadata: JSON.stringify({
       source: faker.helpers.arrayElement(["web", "referral", "event", "cold_call"]),
       score: faker.number.int({ min: 10, max: 100 }),
