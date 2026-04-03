@@ -15,6 +15,8 @@ A design project — fully interactive CRM table experience with AI agent (Korra
 - **Table Engine:** TanStack Table v8 (bundled inside tablecn's `useDataGrid` hook)
 - **Virtualization:** TanStack Virtual (bundled inside tablecn)
 - **Data:** React `useState` + @faker-js/faker — no persistence, refresh = reset
+- **AI Chat:** Vercel AI SDK (`ai` package) — `useChat`, message rendering, tool calls
+- **AI Model:** `MockLanguageModelV1` (demo, no API key) → `@ai-sdk/anthropic` (later, real Claude)
 - **Icons:** Lucide React (`lucide-react`)
 - **Dark Mode:** next-themes (class-based)
 - **Animation:** Motion (Framer Motion) — cell transitions, micro-interactions
@@ -22,8 +24,7 @@ A design project — fully interactive CRM table experience with AI agent (Korra
 ### Not Used
 - No Zustand (React state is enough)
 - No localStorage / persistence
-- No API routes / backend
-- No Vercel AI SDK (Korra is scripted UI demo)
+- No real LLM API key needed (MockModel for demo, real Claude optional later)
 
 ## CRITICAL: shadcn Style = "default" (Radix)
 
