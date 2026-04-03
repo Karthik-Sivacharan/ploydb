@@ -4,18 +4,12 @@ import * as React from "react";
 import { format, parseISO } from "date-fns";
 import { DataGridCellWrapper } from "@/components/data-grid/data-grid-cell-wrapper";
 import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverAnchor,
   PopoverContent,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type { DataGridCellProps } from "@/types/data-grid";
 
 function formatDatetimeForDisplay(value: string): string {
@@ -28,20 +22,11 @@ function formatDatetimeForDisplay(value: string): string {
   }
 }
 
-function parseHour12(date: Date): { hour12: number; minutes: number; ampm: "AM" | "PM" } {
-  const h = date.getHours();
-  const m = date.getMinutes();
-  const ampm = h >= 12 ? "PM" : "AM";
-  const hour12 = h % 12 || 12;
-  // Snap minutes to nearest quarter
-  const snapped = [0, 15, 30, 45].reduce((prev, curr) =>
-    Math.abs(curr - m) < Math.abs(prev - m) ? curr : prev
-  );
-  return { hour12, minutes: snapped, ampm };
+function getTimeString(date: Date): string {
+  const h = String(date.getHours()).padStart(2, "0");
+  const m = String(date.getMinutes()).padStart(2, "0");
+  return `${h}:${m}`;
 }
-
-const HOURS = Array.from({ length: 12 }, (_, i) => i + 1);
-const MINUTES = [0, 15, 30, 45];
 
 export function DatetimeCell<TData>({
   cell,
@@ -75,41 +60,38 @@ export function DatetimeCell<TData>({
     }
   }, [value]);
 
-  const timeParts = React.useMemo(() => {
-    if (!parsedDate) return { hour12: 12, minutes: 0, ampm: "PM" as const };
-    return parseHour12(parsedDate);
-  }, [parsedDate]);
+  const timeValue = React.useMemo(
+    () => (parsedDate ? getTimeString(parsedDate) : "12:00"),
+    [parsedDate],
+  );
 
-  const buildIsoString = React.useCallback(
-    (date: Date, hour12: number, minutes: number, ampm: "AM" | "PM") => {
+  const updateDateTime = React.useCallback(
+    (date: Date, time: string) => {
+      const [h, m] = time.split(":").map(Number);
       const d = new Date(date);
-      let h = hour12 % 12;
-      if (ampm === "PM") h += 12;
-      d.setHours(h, minutes, 0, 0);
-      return d.toISOString();
+      d.setHours(h, m, 0, 0);
+      const iso = d.toISOString();
+      setValue(iso);
+      tableMeta?.onDataUpdate?.({ rowIndex, columnId, value: iso });
     },
-    [],
+    [tableMeta, rowIndex, columnId],
   );
 
   const onDateSelect = React.useCallback(
     (date: Date | undefined) => {
       if (!date || readOnly) return;
-      const iso = buildIsoString(date, timeParts.hour12, timeParts.minutes, timeParts.ampm);
-      setValue(iso);
-      tableMeta?.onDataUpdate?.({ rowIndex, columnId, value: iso });
+      updateDateTime(date, timeValue);
     },
-    [tableMeta, rowIndex, columnId, readOnly, timeParts, buildIsoString],
+    [readOnly, timeValue, updateDateTime],
   );
 
-  const onTimeChange = React.useCallback(
-    (hour12: number, minutes: number, ampm: "AM" | "PM") => {
+  const onTimeInputChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       if (readOnly) return;
       const base = parsedDate ?? new Date();
-      const iso = buildIsoString(base, hour12, minutes, ampm);
-      setValue(iso);
-      tableMeta?.onDataUpdate?.({ rowIndex, columnId, value: iso });
+      updateDateTime(base, e.target.value);
     },
-    [tableMeta, rowIndex, columnId, readOnly, parsedDate, buildIsoString],
+    [readOnly, parsedDate, updateDateTime],
   );
 
   const onOpenChange = React.useCallback(
@@ -176,60 +158,13 @@ export function DatetimeCell<TData>({
               selected={parsedDate ?? undefined}
               onSelect={onDateSelect}
             />
-            <div className="flex items-center gap-2 border-t px-3 py-2">
-              <Select
-                value={String(timeParts.hour12)}
-                onValueChange={(v) =>
-                  onTimeChange(Number(v), timeParts.minutes, timeParts.ampm)
-                }
-              >
-                <SelectTrigger size="sm" className="w-[70px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {HOURS.map((h) => (
-                    <SelectItem key={h} value={String(h)}>
-                      {h}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span className="text-sm text-muted-foreground">:</span>
-              <Select
-                value={String(timeParts.minutes)}
-                onValueChange={(v) =>
-                  onTimeChange(timeParts.hour12, Number(v), timeParts.ampm)
-                }
-              >
-                <SelectTrigger size="sm" className="w-[70px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {MINUTES.map((m) => (
-                    <SelectItem key={m} value={String(m)}>
-                      {String(m).padStart(2, "0")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={timeParts.ampm}
-                onValueChange={(v) =>
-                  onTimeChange(
-                    timeParts.hour12,
-                    timeParts.minutes,
-                    v as "AM" | "PM",
-                  )
-                }
-              >
-                <SelectTrigger size="sm" className="w-[70px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="AM">AM</SelectItem>
-                  <SelectItem value="PM">PM</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="border-t px-3 py-2">
+              <Input
+                type="time"
+                value={timeValue}
+                onChange={onTimeInputChange}
+                className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+              />
             </div>
           </PopoverContent>
         )}
