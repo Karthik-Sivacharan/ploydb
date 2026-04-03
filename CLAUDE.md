@@ -9,27 +9,21 @@ A fully interactive CRM table experience with AI agent (Korra) integration. Fron
 ## Tech Stack
 - **Framework:** Next.js (App Router)
 - **Language:** TypeScript
-- **Styling:** Tailwind CSS 4.x with OKLCH design tokens
-- **Components:** shadcn/ui (base-nova style, Base UI primitives)
-- **Table Engine:** TanStack Table v8 (headless)
+- **Styling:** Tailwind CSS 4.x (default shadcn theme — custom design system deferred)
+- **Components:** shadcn/ui (**default** style, Radix primitives — NOT base-nova)
+- **Data Grid:** tablecn / Dice UI data-grid (`@diceui/data-grid`) — installed via shadcn registry
+- **Table Engine:** TanStack Table v8 (bundled inside tablecn)
 - **Data Store:** Zustand + persist middleware (localStorage)
 - **Mock Data:** @faker-js/faker
 - **AI Chat:** Vercel AI SDK (`useChat`)
-- **Drag & Drop:** dnd-kit
-- **Icons:** Lucide (`lucide-react`) for shadcn defaults + Hugeicons (`@hugeicons/react` + `@hugeicons/core-free-icons`) for custom UI
+- **Icons:** Lucide React (`lucide-react`)
 - **Dark Mode:** next-themes (class-based)
 - **Variants:** class-variance-authority (cva)
 - **Animation:** Motion (Framer Motion)
-- **Fonts:** Clash Grotesk (brand) + Geist Mono (code)
 
-## Design System
-This project shares the Ploy design token system. All tokens are in `src/app/globals.css`:
-- **Colors:** OKLch color space, 11-step scales (purple, neutral, green, red, amber)
-- **Semantic tokens:** Light/dark mode via CSS custom properties
-- **Glass effects:** Surface translucency, backdrop blurs, glow shadows
-- **Motion:** Duration + easing tokens
-- **Typography:** Caption through heading-xl scale
-- **Radius:** Derived from base `--radius` variable
+## CRITICAL: shadcn Style Must Be "default" (Radix)
+
+The tablecn data-grid requires Radix primitive APIs (PopoverAnchor, SelectTrigger/Content/Item, CommandInput/List, DropdownMenuTrigger/Content, etc.). Do NOT use `base-nova` style. When initializing shadcn, choose **default** style. The `components.json` must have `"style": "default"`.
 
 ## Coding Conventions
 
@@ -45,23 +39,19 @@ This project shares the Ploy design token system. All tokens are in `src/app/glo
 ### Component Rules
 - **Server Components by default** — no `'use client'` unless needed for interactivity
 - **`'use client'` boundary as low as possible** — keep it on leaf components
-- Composition over inheritance (Card/CardHeader/CardBody pattern)
+- Composition over inheritance
 
 ### State Management
 - Zustand for all shared state (rows, schema, filters, sorts, views, audit log)
 - Every mutation logs to auditLog[] with `{ who: 'human' | 'korra', action, timestamp, diff }`
 - Never mutate state — always create new copies
+- **Rows must be flat objects** (not nested `{ id, data: {} }`) for tablecn compatibility
 
 ### Styling Rules
-- **Never use raw Tailwind colors** (e.g., `bg-blue-500`) — always semantic tokens (`bg-primary`, `bg-muted`)
-- Use CSS variables for all design tokens
+- Use default shadcn theme for now (custom design system deferred to later phase)
+- Use semantic tokens (`bg-primary`, `bg-muted`) not raw colors (`bg-blue-500`)
 - Use `cn()` utility for conditional class merging
 - Use `cva()` for component variants
-
-### Icons
-- Lucide for shadcn/ui component internals (configured in components.json)
-- Hugeicons for custom UI elements and feature icons
-- All custom icons registered in a central icon registry
 
 ### Code Quality
 - Functions < 50 lines

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Build a fully interactive CRM table experience inside `src/ploy-app` with AI agent (Korra) integration. All frontend, no real backend. Data persists across page refresh via Zustand + localStorage.
+Build a fully interactive CRM table experience with AI agent (Korra) integration. All frontend, no real backend. Data persists across page refresh via Zustand + localStorage.
 
 ---
 
@@ -11,22 +11,93 @@ Build a fully interactive CRM table experience inside `src/ploy-app` with AI age
 | Layer | Tool | Purpose |
 |---|---|---|
 | Framework | Next.js (App Router) | App scaffold |
-| Styling | Tailwind CSS + Design Tokens | Full styling control |
-| Components | shadcn/ui (Radix primitives) | Inputs, selects, popovers, sheets, dialogs, calendar, command palette |
-| Data Grid | tablecn data-grid (`@diceui/data-table`) | Editable spreadsheet grid with 9 built-in cell types, filtering, sorting, column ops, keyboard nav, copy/paste, undo/redo |
+| Styling | Tailwind CSS 4.x | Default shadcn theme (customize later) |
+| Components | shadcn/ui (**default** style, Radix primitives) | Inputs, selects, popovers, sheets, dialogs, calendar, command palette |
+| Data Grid | tablecn data-grid (`@diceui/data-grid`) | Editable spreadsheet grid with 9 built-in cell types, filtering, sorting, column ops, keyboard nav, copy/paste, undo/redo |
 | Table Engine | TanStack Table v8 | Headless state management (bundled inside tablecn) |
 | Virtualization | TanStack Virtual | Row virtualization for 150+ rows (bundled inside tablecn) |
 | Data Store | Zustand + persist middleware | Shared state for rows, filters, sorts, views. Persists to localStorage |
 | Mock Data | @faker-js/faker | Seed 150 CRM rows with all 20 field types |
 | AI Chat | Vercel AI SDK (`useChat`) | Korra panel — `onToolCall` calls Zustand actions |
-| Chat UI | @assistant-ui/react OR custom shadcn | Message list, streaming, tool result rendering |
-| Drag & Drop | dnd-kit | Column reordering (tablecn has this), kanban board view |
+| Chat UI | Custom shadcn components | Message list, streaming, tool result rendering |
+| Drag & Drop | dnd-kit | Kanban board view (tablecn handles column reorder internally) |
+| Icons | Lucide React | All icons |
+| Dark Mode | next-themes (class-based) | Light/dark toggle |
+| Animation | Motion (Framer Motion) | Transitions and micro-interactions |
+
+---
+
+## Bootstrap from Scratch
+
+### Step 0 — Create Next.js App
+
+```bash
+npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --turbopack
+```
+
+This creates the Next.js scaffold with TypeScript, Tailwind CSS 4, ESLint, App Router, `src/` directory, and `@/*` import alias.
+
+### Step 1 — Initialize shadcn/ui (default/Radix style)
+
+```bash
+npx shadcn@latest init
+```
+
+When prompted:
+- Style: **Default** (NOT base-nova — we need Radix primitives for tablecn compatibility)
+- Base color: **Neutral**
+- CSS variables: **Yes**
+
+This creates `components.json` and sets up the shadcn registry.
+
+### Step 2 — Install shadcn components needed by tablecn
+
+tablecn's data-grid depends on these shadcn components. Install them BEFORE the data-grid:
+
+```bash
+npx shadcn@latest add badge button calendar checkbox command dialog dropdown-menu input popover scroll-area select separator skeleton textarea tooltip
+```
+
+### Step 3 — Install tablecn data-grid
+
+```bash
+npx shadcn@latest add https://diceui.com/r/data-grid.json
+```
+
+This copies data-grid source files into your project (components, hooks, lib, types). You own them fully.
+
+**IMPORTANT:** After install, verify these files exist:
+- `src/components/data-grid/data-grid.tsx` (main component)
+- `src/components/data-grid/data-grid-cell-variants.tsx` (9 built-in cell types)
+- `src/hooks/use-data-grid.ts` (main hook)
+- `src/lib/data-grid.ts` (utilities)
+- `src/types/data-grid.ts` (type definitions)
+
+**IMPORTANT:** The data-grid files may import from a barrel like `@/components/data-grid/data-grid` for utilities and types. These imports need to be fixed to point to:
+- Functions (`flexRender`, `getCellKey`, etc.) → `@/lib/data-grid`
+- Types (`DataGridCellProps`, `CellUpdate`, etc.) → `@/types/data-grid`
+
+### Step 4 — Install remaining dependencies
+
+```bash
+npm install zustand @faker-js/faker date-fns lucide-react next-themes motion class-variance-authority clsx tailwind-merge
+```
+
+### Step 5 — Install additional shadcn components for the app
+
+```bash
+npx shadcn@latest add card sheet tabs table toggle switch label accordion avatar
+```
+
+### Step 6 — Verify data-grid works
+
+Create a minimal page that renders the data-grid with hardcoded sample data to verify everything works before wiring up Zustand. It should look like the demo at https://tablecn.com/data-grid-live.
 
 ---
 
 ## What tablecn Data Grid Gives Us for Free
 
-tablecn (formerly sadmann7/shadcn-table) is installed via shadcn registry — source files copied into your project, full styling control. It provides:
+tablecn is installed via shadcn registry — source files copied into your project, full styling control. It provides:
 
 ### Built-in Cell Types (9 of 20)
 
@@ -69,13 +140,48 @@ tablecn (formerly sadmann7/shadcn-table) is installed via shadcn registry — so
 - `onCellEditingStart(rowIndex, columnId)` / `onCellEditingStop()` — enter/exit edit mode
 - Filter/sort state settable via TanStack Table's `setColumnFilters` / `setSorting`
 
+### Data Shape Requirement
+
+**IMPORTANT:** tablecn expects **flat row objects** where `row[columnId]` returns the value directly. Do NOT use nested `{ id, data: { field: value } }` shape. Use flat rows like:
+
+```ts
+{ _id: "1", companyName: "Acme Corp", dealSize: 50000, status: "qualified", ... }
+```
+
+If Zustand stores rows differently, flatten before passing to DataGrid and unflatten in callbacks.
+
+### Column Definition Pattern
+
+```ts
+{
+  id: "fieldName",
+  accessorKey: "fieldName",  // or accessorFn for computed values
+  meta: {
+    label: "Field Label",
+    cell: { variant: "short-text" }  // or "number", "select", etc.
+  }
+}
+```
+
+For select/multi-select variants, pass options in meta:
+```ts
+meta: {
+  label: "Status",
+  cell: {
+    variant: "select",
+    options: [
+      { value: "new", label: "New", icon: CircleIcon },
+      { value: "qualified", label: "Qualified", icon: CheckCircleIcon },
+    ]
+  }
+}
+```
+
 ---
 
 ## What We Still Build (11 custom cell types + everything else)
 
 ### Custom Cell Variants (extending tablecn's 9 built-in types)
-
-These are wrappers/extensions of existing tablecn variants:
 
 | PloyDB Field | Based On | What We Add |
 |---|---|---|
@@ -92,7 +198,7 @@ These are wrappers/extensions of existing tablecn variants:
 | `ref` | New | Linked record badge display + `<Combobox>` searching linked table |
 | `refs` | New | Multiple record badges + multi-select `<Combobox>` |
 
-**Effort:** ~1 day. Most are thin wrappers around existing tablecn cell types with display formatting changes. Only `color`, `ref`, and `refs` need truly new edit widgets.
+To add custom variants, extend the switch statement in `data-grid-cell.tsx` and add to the `CellOpts` union type in `types/data-grid.ts`.
 
 ---
 
@@ -105,7 +211,7 @@ These are wrappers/extensions of existing tablecn variants:
 │  state:                                                  │
 │    databases[]        — list of databases                │
 │    activeDbId         — currently viewed database        │
-│    rows[]             — records for active database      │
+│    rows[]             — flat records for active db       │
 │    schema[]           — field definitions (name, type,   │
 │                         options, required, unique)       │
 │    views[]            — saved view presets               │
@@ -152,47 +258,20 @@ These are wrappers/extensions of existing tablecn variants:
 
 ---
 
-## Styling Control
-
-**You own every pixel.** tablecn uses the shadcn registry model — source files are copied into your project, not installed as a dependency. You can:
-
-- Modify any cell variant's display or edit component
-- Change colors, typography, spacing, animations
-- Add new cell variants by following the existing pattern
-- Override any tablecn component with your own
-- All styling uses Tailwind + your CSS variable design tokens
-
-Example of customizing a cell variant:
-
-```tsx
-// This is YOUR file in YOUR project. Modify freely.
-function StatusCell({ value, options }) {
-  const option = options.find(o => o.value === value)
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium"
-      style={{ backgroundColor: option.color + '20', color: option.color }}
-    >
-      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: option.color }} />
-      {option.label}
-    </span>
-  )
-}
-```
-
----
-
 ## Phase 1: Foundation
 
-### 1.1 — Scaffold
-- [ ] Next.js app in `src/ploy-app`
-- [ ] Tailwind config with design tokens (colors, typography, spacing, radii)
-- [ ] Install shadcn/ui, configure with your tokens
-- [ ] Install tablecn data-grid via shadcn registry: `pnpm dlx shadcn@latest add "@diceui/data-table"`
-- [ ] Install Zustand, @faker-js/faker
+### 1.1 — Scaffold (follow Bootstrap steps 0-5 above)
+- [ ] Create Next.js app with `create-next-app`
+- [ ] Init shadcn/ui with **default** style (Radix primitives)
+- [ ] Install shadcn components needed by tablecn
+- [ ] Install tablecn data-grid via registry
+- [ ] Fix any import path issues in data-grid files
+- [ ] Install remaining deps (zustand, faker, date-fns, lucide, next-themes, motion)
+- [ ] Install additional shadcn components for the app
+- [ ] Verify data-grid renders with hardcoded sample data
 
 ### 1.2 — Zustand Store
-- [ ] Define store with state shape (rows, schema, filters, sorts, views, auditLog)
+- [ ] Define store with state shape (rows as flat objects, schema, filters, sorts, views, auditLog)
 - [ ] Implement all actions (updateCell, addRow, deleteRows, etc.)
 - [ ] Add `persist` middleware → localStorage (survives refresh)
 - [ ] Wrap every action with audit logging (who, what, when, diff)
@@ -219,27 +298,20 @@ function StatusCell({ value, options }) {
   - checkbox: Has NDA, Verified
   - ref: Assigned To (→ Team Members table)
   - refs: Related Deals (→ Deals table)
-- [ ] Generate ~150 leads with realistic data:
-  - Weighted status distribution (40% New, 25% Contacted, 15% Qualified, 10% Proposal, 5% Won, 5% Lost)
-  - Consistent relationships (contacts belong to companies)
-  - 5-8 hand-tuned "hero" rows for demos
-  - Temporal coherence (created_at < updated_at < next_followup)
-  - Per-entity-type faker seeds for stability
-- [ ] Generate a small "Team Members" table (10 people) for ref fields
-- [ ] Generate a small "Deals" table (30 deals) for refs fields
+- [ ] Generate ~150 leads with realistic data (weighted status distribution, hero rows, temporal coherence)
+- [ ] Generate "Team Members" table (10 people) and "Deals" table (30 deals)
 - [ ] Seed on first load if store is empty
 - [ ] "Reset data" button to re-seed
 
 ### 1.4 — Wire tablecn Data Grid
-- [ ] Connect tablecn data-grid to Zustand store data
-- [ ] Map schema fields to tablecn column definitions with appropriate `meta.cell.variant`
+- [ ] Connect data-grid to Zustand store data (flat rows)
+- [ ] Map schema fields to column definitions with appropriate `meta.cell.variant`
 - [ ] Map the 9 built-in field types to tablecn variants
-- [ ] Wire `onDataUpdate` → Zustand `updateCell` action
-- [ ] Wire `onRowsDelete` → Zustand `deleteRows` action
-- [ ] Wire `onRowAdd` → Zustand `addRow` action
+- [ ] Wire `onDataUpdate` → Zustand `updateCell` (resolve rowIndex to rowId)
+- [ ] Wire `onRowsDelete` → Zustand `deleteRows`
+- [ ] Wire `onRowAdd` → Zustand `addRow`
 - [ ] Verify inline editing, keyboard nav, copy/paste, undo/redo all work
-- [ ] Horizontal scroll for 20+ columns
-- [ ] Sticky first column (Company Name)
+- [ ] Verify it looks and behaves like https://tablecn.com/data-grid-live
 
 ---
 
@@ -266,13 +338,13 @@ Extend tablecn's cell variant system to cover all 20 PloyDB field types.
 - [ ] `color` — Display: color swatch circle + hex label. Edit: popover with preset color grid (8-12 colors) + hex input
 - [ ] `json` — Display: `{ ... }` collapsed preview with key count. Edit: popover with monospace textarea + JSON validation feedback
 - [ ] `location` — Display: "San Francisco, CA" text. Edit: text input (simplified)
-- [ ] `ref` — Display: linked record name as clickable badge/chip. Edit: shadcn `<Combobox>` (`<Command>` + `<Popover>`) searching the linked table by name
+- [ ] `ref` — Display: linked record name as clickable badge/chip. Edit: shadcn `<Combobox>` searching linked table
 - [ ] `refs` — Display: row of record name badges (overflow as +N). Edit: multi-select `<Combobox>` with search
 
 ### 2.6 — Register All Variants
-- [ ] Extend tablecn's cell variant registry to include all 20 types
+- [ ] Extend `CellOpts` union in `types/data-grid.ts`
+- [ ] Add cases to switch in `data-grid-cell.tsx`
 - [ ] Map each schema field type to its variant in column definitions
-- [ ] Ensure display formatting, edit widgets, and validation work for all types
 
 ---
 
@@ -289,12 +361,11 @@ tablecn provides column resize, reorder, pin, and visibility. We add:
   - Duplicate column
   - Delete column (with confirmation)
   - Pin left / Pin right / Unpin (tablecn has this)
-  - Change field type (dropdown of 20 types — visual type picker)
+  - Change field type (dropdown of 20 types)
 
 ### 3.2 — Add Column
 - [ ] "+" button as last column header
-- [ ] Opens field type picker (icon grid of 20 types) → name input → creates column
-- [ ] New column appears at the end with appropriate default variant
+- [ ] Opens field type picker → name input → creates column
 
 ---
 
@@ -303,7 +374,6 @@ tablecn provides column resize, reorder, pin, and visibility. We add:
 ### 4.1 — Add Row
 - [ ] "+" button at bottom of table
 - [ ] Creates empty row, auto-focuses first editable cell
-- [ ] Row appears with default values
 
 ### 4.2 — Bulk Actions
 - [ ] tablecn provides row selection — we add a floating bulk action bar:
@@ -312,288 +382,155 @@ tablecn provides column resize, reorder, pin, and visibility. We add:
   - Duplicate selected
 
 ### 4.3 — Row Detail Panel
-- [ ] Expand icon on each row (or double-click row)
-- [ ] shadcn `<Sheet>` slides in from right
-- [ ] All fields shown in vertical form layout using the same cell editors
-- [ ] Related records (ref/refs) are clickable → navigate to that record
-- [ ] Audit history section at bottom (timeline of changes to this row)
-- [ ] Navigate between rows with up/down arrows while panel is open
+- [ ] Expand icon or double-click row → shadcn `<Sheet>` from right
+- [ ] All fields in vertical form layout using same cell editors
+- [ ] Audit history section at bottom
+- [ ] Navigate between rows with up/down arrows
 
 ### 4.4 — Row Context Menu
-- [ ] Extend tablecn's built-in context menu:
-  - Expand row
-  - Duplicate row
-  - Copy row data
-  - Delete row
+- [ ] Extend tablecn's built-in context menu: Expand, Duplicate, Copy, Delete
 
 ---
 
 ## Phase 5: Views + Grouping
 
 ### 5.1 — Group By
-- [ ] "Group" button in toolbar
-- [ ] Dropdown to select a field (works best with select/status/tags)
-- [ ] Rows grouped into collapsible sections
-- [ ] Section header: group value badge + count
-- [ ] Chevron to toggle collapse/expand
-- [ ] "Hide empty groups" toggle
+- [ ] "Group" button → dropdown → collapsible sections with header + count
 
 ### 5.2 — Saved Views
-- [ ] Tab bar above table: view tabs + "+" button
-- [ ] Each view stores: name, type (table/board), filters, sorts, groupBy, visible columns, column order, column widths
-- [ ] Auto-save: changing filters/sorts/columns updates the active view
-- [ ] "+" creates new view (name prompt, type picker)
-- [ ] Right-click view tab: rename, duplicate, delete
-- [ ] Default views: "All Leads", "My Pipeline" (filtered to assigned=me), "Hot Leads" (filtered to tags contains Hot Lead)
+- [ ] Tab bar: view tabs + "+" button
+- [ ] Each view stores: name, type, filters, sorts, groupBy, visible columns, column order, widths
+- [ ] Default views: "All Leads", "My Pipeline", "Hot Leads"
 
 ---
 
 ## Phase 6: Search + Command Palette
 
 ### 6.1 — Search
-- [ ] tablecn has built-in search with match navigation — customize styling to match design tokens
+- [ ] tablecn has built-in search — customize styling
 
 ### 6.2 — Command Palette
-- [ ] Cmd+K opens shadcn `<Command>` palette
-- [ ] Groups:
-  - **Quick Filters**: "Status is Qualified", "Source is Referral", etc.
-  - **Sort**: "Sort by Deal Size", "Sort by Last Contacted"
-  - **Views**: "Go to My Pipeline", "Go to Hot Leads"
-  - **Actions**: "Add new row", "Reset data", "Open Korra"
-- [ ] Fuzzy search across all commands
+- [ ] Cmd+K opens shadcn `<Command>` palette with quick filters, sort, views, actions
 
 ---
 
 ## Phase 7: Korra AI Panel
 
 ### 7.1 — Chat UI
-- [ ] Right side panel (collapsible, resizable via react-resizable-panels)
-- [ ] Chat message list with streaming
-- [ ] Input area with send button
-- [ ] Korra avatar + typing indicator
-- [ ] Sparkle icon toggle button to open/close panel
+- [ ] Right side panel (collapsible, resizable)
+- [ ] Chat message list with streaming + Korra avatar
 
 ### 7.2 — Tool Definitions (Zod schemas)
-- [ ] `editCell` — { rowId, field, value }
-- [ ] `addRow` — { data }
-- [ ] `deleteRows` — { rowIds }
-- [ ] `addColumn` — { name, type, options }
-- [ ] `removeColumn` — { field }
-- [ ] `applyFilter` — { filters[] }
-- [ ] `applySort` — { sorts[] }
-- [ ] `setGroupBy` — { field }
-- [ ] `bulkUpdate` — { rowIds[], field, value }
-- [ ] `switchView` — { viewName }
+- [ ] editCell, addRow, deleteRows, addColumn, removeColumn, applyFilter, applySort, setGroupBy, bulkUpdate, switchView
 
 ### 7.3 — Tool Execution Bridge
-- [ ] `onToolCall` in useChat → calls corresponding Zustand action
-- [ ] Zustand action → tablecn's `onDataUpdate` / TanStack Table state → UI updates
-- [ ] Tool results render as custom components in chat:
-  - Cell edit → mini diff card (field: old → new)
-  - Bulk update → "Updated N rows" summary with expandable details
-  - Filter applied → filter badge preview
-  - Row added → "Created: [row name]" with link to expand
+- [ ] `onToolCall` → Zustand actions → table updates
+- [ ] Tool results as custom chat components
 
 ### 7.4 — Demo Mode (no API key needed)
-- [ ] `MockLanguageModelV1` from `ai/test` swapped at route level
-- [ ] Pre-scripted flows triggered by keyword matching:
-  - "enrich leads" → batch updates company info, website, employee count
-  - "show hot leads" → applies filter (tags contains "Hot Lead")
-  - "sort by deal size" → applies descending sort on currency field
-  - "qualify stale leads" → finds leads with last_contacted > 30 days ago, updates status
-  - "summarize pipeline" → generates text response with deal count/value by stage
-- [ ] Optional: real Claude API via `@ai-sdk/anthropic` for freeform requests (needs ANTHROPIC_API_KEY)
+- [ ] `MockLanguageModelV1` with pre-scripted flows
 
 ### 7.5 — AI Trust Signals
-- [ ] Sparkle icon (✨) on cells modified by Korra — subtle, not overwhelming
-- [ ] Subtle background tint on AI-touched cells (e.g., faint purple-50)
-- [ ] "Modified by Korra" badge with timestamp in row detail panel
-- [ ] Audit log tab in row detail: timeline of all changes with before/after diffs
-- [ ] Cell-level accept/revert: hover AI-modified cell → "Accept" (removes indicator) or "Revert" (restores old value)
-- [ ] Global "Korra Activity" feed accessible from panel header — recent agent mutations across all rows
+- [ ] Sparkle icon on AI-modified cells, audit timeline, accept/revert
 
 ---
 
 ## Phase 8: Board View (Kanban)
 
-### 8.1 — Board Layout
-- [ ] View type toggle in view tabs (Table | Board)
-- [ ] Columns = status/select field values (New, Contacted, Qualified, Proposal, etc.)
-- [ ] Cards = rows, showing: Company Name, Contact Name, Deal Size, Tags
-- [ ] Card count per column in header
-- [ ] Color-coded column headers matching status colors
-
-### 8.2 — Drag & Drop
-- [ ] dnd-kit multi-container sortable
-- [ ] Drag cards between columns → updates status field in Zustand → audit logged
-- [ ] DragOverlay with card preview (slight scale + shadow)
-- [ ] Drag within column to reorder (stretch goal)
-
-### 8.3 — Card Interaction
-- [ ] Click card → opens same row detail sheet as table view
-- [ ] Quick-edit badge on card hover (edit deal size, tags without opening detail)
+- [ ] View type toggle (Table | Board)
+- [ ] Columns = status values, cards = rows
+- [ ] dnd-kit drag between columns → updates status
 
 ---
 
 ## Phase 9: Database Home
 
-### 9.1 — Database List
-- [ ] Grid/list of databases in workspace
-- [ ] Cards showing: name, icon, row count, last modified, field count
-- [ ] Three pre-seeded databases: Sales Pipeline, Team Members, Deals
-
-### 9.2 — Create Database
-- [ ] "New Database" button
-- [ ] Name input + optional template selection (CRM, Content Calendar, Inventory)
-- [ ] AI option: "Describe your database" → Korra creates schema + seed data
+- [ ] Grid of databases (Sales Pipeline, Team Members, Deals)
+- [ ] "New Database" button with AI schema generation option
 
 ---
 
 ## Phase 10: Polish
 
-- [ ] Loading skeletons for initial data load
-- [ ] Empty states (no rows, no filter results, empty database)
-- [ ] Row count footer ("Showing 42 of 150 leads · 3 filters active")
-- [ ] Keyboard shortcuts help modal (? key)
-- [ ] Responsive: collapse Korra panel on smaller screens
-- [ ] Animations: smooth transitions for filter/sort changes, row additions/deletions, panel open/close
-- [ ] Error states: invalid JSON, invalid URL, required field empty
-- [ ] "Reset data" button in settings/toolbar
+- [ ] Loading skeletons, empty states, row count footer
+- [ ] Keyboard shortcuts help modal
+- [ ] Animations, error states, "Reset data" button
 
 ---
 
 ## Parallel Worktree Strategy
 
-| Worktree | Phases | Effort | Dependencies |
-|---|---|---|---|
-| **A: Foundation** | 1.1, 1.2, 1.3, 1.4 | ~4-6 hrs | None (do this first) |
-| **B: Custom Cell Types** | 2.1–2.6 | ~4-6 hrs | Needs Phase 1 |
-| **C: Column + Row Ops** | 3.1–3.2, 4.1–4.4 | ~3-4 hrs | Needs Phase 1 |
-| **D: Views + Grouping** | 5.1–5.2 | ~3-4 hrs | Needs Phase 1 |
-| **E: Search + Cmd Palette** | 6.1–6.2 | ~2-3 hrs | Needs Phase 1 |
-| **F: Korra Panel** | 7.1–7.5 | ~6-8 hrs | Needs Phase 1 + Phase 2 |
-| **G: Board View** | 8.1–8.3 | ~4-6 hrs | Needs Phase 1 |
-| **H: Database Home** | 9.1–9.2 | ~2-3 hrs | Needs Phase 1 |
-| **I: Polish** | 10 | ~4-6 hrs | Needs everything else |
+| Worktree | Phases | Dependencies |
+|---|---|---|
+| **A: Foundation** | 1.1–1.4 | None (do this first) |
+| **B: Custom Cell Types** | 2.1–2.6 | Needs Phase 1 |
+| **C: Column + Row Ops** | 3.1–3.2, 4.1–4.4 | Needs Phase 1 |
+| **D: Views + Grouping** | 5.1–5.2 | Needs Phase 1 |
+| **E: Search + Cmd Palette** | 6.1–6.2 | Needs Phase 1 |
+| **F: Korra Panel** | 7.1–7.5 | Needs Phase 1 + Phase 2 |
+| **G: Board View** | 8.1–8.3 | Needs Phase 1 |
+| **H: Database Home** | 9.1–9.2 | Needs Phase 1 |
+| **I: Polish** | 10 | Needs everything else |
 
-**Phase 1 (Foundation) must complete first.** Then B–H can run in parallel. Phase I (Polish) runs last.
-
-**Total estimated effort: ~30-45 hours** (fits comfortably in a 3-day sprint with focus time)
+**Phase 1 (Foundation) must complete first.** Then B–H can run in parallel.
 
 ---
 
 ## File Structure
 
 ```
-src/ploy-app/
-├── app/                          # Next.js app router pages
+src/
+├── app/
 │   ├── layout.tsx
-│   ├── page.tsx                  # Database home
-│   ├── api/
-│   │   └── chat/
-│   │       └── route.ts          # Vercel AI SDK endpoint (or mock)
-│   └── [dbId]/
-│       └── page.tsx              # Table/Board view + Korra panel
+│   ├── page.tsx                  # Main table view (start simple, add routing later)
+│   ├── globals.css               # Default shadcn theme (customize later)
+│   └── api/
+│       └── chat/
+│           └── route.ts          # Vercel AI SDK endpoint (or mock)
 │
 ├── components/
-│   ├── ui/                       # shadcn/ui primitives (your files, full control)
-│   │   ├── button.tsx
-│   │   ├── input.tsx
-│   │   ├── select.tsx
-│   │   ├── popover.tsx
-│   │   ├── command.tsx
-│   │   ├── sheet.tsx
-│   │   ├── calendar.tsx
-│   │   ├── checkbox.tsx
-│   │   ├── badge.tsx
-│   │   └── ...
+│   ├── ui/                       # shadcn/ui primitives (Radix-based, your files)
 │   │
 │   ├── data-grid/                # tablecn data-grid (copied via registry, fully owned)
-│   │   ├── data-grid.tsx         # Main grid component
-│   │   ├── data-grid-cells.tsx   # Built-in 9 cell variants
+│   │   ├── data-grid.tsx
+│   │   ├── data-grid-cell-variants.tsx
+│   │   ├── data-grid-cell-wrapper.tsx
+│   │   ├── data-grid-cell.tsx
 │   │   ├── data-grid-column-header.tsx
-│   │   ├── data-grid-filter-menu.tsx
-│   │   ├── data-grid-sort-menu.tsx
-│   │   ├── data-grid-view-menu.tsx
-│   │   └── ...
+│   │   ├── data-grid-context-menu.tsx
+│   │   ├── data-grid-paste-dialog.tsx
+│   │   ├── data-grid-row.tsx
+│   │   └── data-grid-search.tsx
 │   │
 │   ├── cells/                    # Custom cell variants (11 PloyDB-specific)
-│   │   ├── currency-cell.tsx
-│   │   ├── percent-cell.tsx
-│   │   ├── status-cell.tsx
-│   │   ├── tags-cell.tsx
-│   │   ├── datetime-cell.tsx
-│   │   ├── email-cell.tsx
-│   │   ├── phone-cell.tsx
-│   │   ├── color-cell.tsx
-│   │   ├── json-cell.tsx
-│   │   ├── location-cell.tsx
-│   │   ├── ref-cell.tsx
-│   │   └── refs-cell.tsx
 │   │
-│   ├── table/                    # Table view extensions
-│   │   ├── table-toolbar.tsx     # Toolbar with filter/sort/group/search/view buttons
-│   │   ├── column-header-menu.tsx # Enhanced column header dropdown
-│   │   ├── add-column.tsx        # Field type picker + name input
-│   │   ├── add-row.tsx
-│   │   ├── bulk-actions.tsx      # Floating bar for selected rows
-│   │   └── view-tabs.tsx         # Saved view tab bar
+│   ├── table/                    # Table view extensions (toolbar, add-column, bulk-actions)
 │   │
 │   ├── row-detail/               # Row detail side panel
-│   │   ├── row-detail-sheet.tsx
-│   │   ├── field-form.tsx
-│   │   ├── audit-timeline.tsx
-│   │   └── related-records.tsx
 │   │
 │   ├── board/                    # Kanban board view
-│   │   ├── board-view.tsx
-│   │   ├── board-column.tsx
-│   │   └── board-card.tsx
 │   │
 │   ├── korra/                    # AI agent panel
-│   │   ├── korra-panel.tsx       # Resizable right panel shell
-│   │   ├── chat-messages.tsx     # Message list with streaming
-│   │   ├── tool-results.tsx      # Custom components for tool call results
-│   │   ├── ai-trust-signals.tsx  # Sparkle indicators, accept/revert controls
-│   │   └── demo-scripts.ts      # Pre-scripted demo flows for MockModel
 │   │
 │   └── database-home/            # Database listing
-│       ├── database-grid.tsx
-│       └── create-database.tsx
+│
+├── hooks/                        # tablecn hooks + custom hooks
+│   └── use-data-grid.ts          # Main data-grid hook (from tablecn)
 │
 ├── store/                        # Zustand store
-│   ├── index.ts                  # Main store definition with persist middleware
-│   ├── actions.ts                # All mutation actions
-│   ├── audit.ts                  # Audit logging wrapper (who, what, when, diff)
-│   └── types.ts                  # TypeScript types for schema, rows, views, audit entries
+│   ├── index.ts
+│   └── types.ts
 │
 ├── data/                         # Seed data
-│   ├── seed.ts                   # Faker seed script (per-entity-type seeds)
-│   ├── schema.ts                 # CRM field definitions (20 types with options)
-│   └── hero-rows.ts              # Hand-crafted demo rows for presentations
+│   ├── seed.ts
+│   ├── schema.ts
+│   └── hero-rows.ts
 │
 ├── lib/                          # Utilities
-│   ├── field-types.ts            # Field type registry (icon, operators, default value, variant mapping)
-│   ├── formatters.ts             # Display formatters (currency, date, phone, etc.)
-│   └── ai-tools.ts              # Vercel AI SDK tool definitions (Zod schemas) for Korra
+│   ├── utils.ts                  # cn() helper
+│   ├── data-grid.ts              # tablecn utilities (from registry)
+│   └── field-types.ts            # Field type registry
 │
-└── styles/
-    └── tokens.css                # Design system CSS variables
+└── types/
+    └── data-grid.ts              # tablecn type definitions (from registry)
 ```
-
----
-
-## Success Criteria
-
-After all phases, the prototype should:
-
-1. **Render a full CRM table** with 150+ rows and all 20 field types, styled with your design tokens
-2. **Inline edit any cell** by clicking — appropriate editor for each field type, with keyboard nav, copy/paste, undo/redo
-3. **Filter, sort, group** with type-aware operators and collapsible groups
-4. **Save and switch between views** — named presets with different filters/sorts/columns (table + board)
-5. **Korra panel** can edit cells, add/remove rows and columns, apply filters, sort — all via chat, with scripted demos
-6. **AI trust signals** — sparkle icons on AI-modified cells, audit timeline, cell-level accept/revert
-7. **Persist across page refresh** — all data, view configs, and audit history survive reload
-8. **Full styling control** — everything matches your design system, no generic library aesthetics
-9. **Board view** — kanban with drag-and-drop that updates the underlying data
-10. **Database home** — navigate between multiple databases in the workspace
