@@ -121,24 +121,20 @@ export function StatusCell<TData>({
             size="sm"
             className="size-full items-start border-none p-0 shadow-none focus-visible:ring-0 dark:bg-transparent [&_svg]:hidden"
           >
-            {displayLabel ? (
-              <Badge
-                variant="secondary"
-                className="whitespace-pre-wrap px-1.5 py-px"
-                style={{
-                  backgroundColor: displayColor + "15",
-                  color: displayColor,
-                }}
-              >
-                <span
-                  className="mr-1 inline-block size-2 shrink-0 rounded-full"
-                  style={{ backgroundColor: displayColor }}
-                />
-                <SelectValue />
-              </Badge>
-            ) : (
-              <SelectValue />
-            )}
+            <Badge
+              variant="secondary"
+              className="w-fit whitespace-pre-wrap px-1.5 py-px"
+              style={{
+                backgroundColor: displayColor + "15",
+                color: displayColor,
+              }}
+            >
+              <span
+                className="mr-1 inline-block size-2 shrink-0 rounded-full"
+                style={{ backgroundColor: displayColor }}
+              />
+              {displayLabel}
+            </Badge>
           </SelectTrigger>
           <SelectContent
             data-grid-cell-editor=""

@@ -1,9 +1,8 @@
 "use client";
 
-import { ChevronDown, Folder, Table2, HelpCircle, Bell, Sparkles } from "lucide-react";
+import { ChevronDown, Folder, Table2, HelpCircle, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -42,11 +41,6 @@ export function Navbar() {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
-        <Badge variant="secondary" className="gap-1 px-2 py-1 text-xs">
-          <Sparkles className="h-3 w-3" />
-          250 credits
-        </Badge>
-
         <Button variant="ghost" size="icon" className="h-8 w-8">
           <HelpCircle className="h-4 w-4" />
         </Button>

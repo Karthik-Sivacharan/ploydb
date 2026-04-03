@@ -111,10 +111,10 @@ export function DataGrid<TData>({
         data-slot="grid"
         tabIndex={0}
         ref={dataGridRef}
-        className="relative grid select-none overflow-auto rounded-md border focus:outline-none"
+        className="relative grid select-none overflow-auto focus:outline-none"
         style={{
           ...columnSizeVars,
-          maxHeight: `${height}px`,
+          ...(height ? { maxHeight: `${height}px` } : {}),
         }}
         onContextMenu={onDataGridContextMenu}
       >

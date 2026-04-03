@@ -3085,8 +3085,15 @@ function useDataGrid<TData>({
 
       const relatedTarget = event.relatedTarget;
 
+      // If relatedTarget is null, check if the actual click target is inside
+      // the grid (e.g., column header dropdown triggers don't receive focus
+      // but are still inside the grid container)
+      if (!relatedTarget) {
+        return;
+      }
+
       const isFocusMovingOutsideGrid =
-        !relatedTarget || !currentContainer.contains(relatedTarget as Node);
+        !currentContainer.contains(relatedTarget as Node);
 
       const isFocusMovingToPopover = getIsInPopover(relatedTarget);
 

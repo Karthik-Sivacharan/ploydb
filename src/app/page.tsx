@@ -22,7 +22,7 @@ export default function Home() {
     <div className="flex h-screen flex-col">
       <Navbar />
       <main className="flex-1 overflow-hidden">
-        <DataGrid {...dataGrid} className="h-full" />
+        <DataGrid {...dataGrid} height={0} className="h-full" />
       </main>
     </div>
   );
