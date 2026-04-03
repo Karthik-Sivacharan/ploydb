@@ -108,19 +108,18 @@ export default function Home() {
       .catch(() => {
         // API unavailable — fall back to demo data
         setDataSource("demo");
+        loadDemoData();
       });
   }, []);
 
   // ─── Load demo (faker) data ───────────────────────────────────────────
-  React.useEffect(() => {
-    if (dataSource !== "demo") return;
-
+  const loadDemoData = React.useCallback(() => {
     const seedData = generateSeedData() as unknown as FlatRow[];
     setColumns(fakerColumns as unknown as ColumnDef<FlatRow>[]);
     setData(seedData);
     setLoading(false);
     setError(null);
-  }, [dataSource]);
+  }, []);
 
   // ─── Load API data when active DB changes ─────────────────────────────
   React.useEffect(() => {
@@ -265,6 +264,7 @@ export default function Home() {
     if (value === DEMO_SOURCE_ID) {
       setDataSource("demo");
       setActiveDbId(null);
+      loadDemoData();
     } else {
       setDataSource("api");
       setActiveDbId(value);
