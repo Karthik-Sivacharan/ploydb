@@ -47,7 +47,7 @@ import type {
   SelectionState,
 } from "@/types/data-grid";
 
-const DEFAULT_ROW_HEIGHT = "short";
+const DEFAULT_ROW_HEIGHT = "medium";
 const OVERSCAN = 6;
 const VIEWPORT_OFFSET = 1;
 const HORIZONTAL_PAGE_SIZE = 5;
@@ -2188,7 +2188,7 @@ function useDataGrid<TData>({
     tableRef.current = table;
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: columnSizingInfo and columnSizing are used for calculating the column size vars
+  // biome-ignore lint/correctness/useExhaustiveDependencies: columnSizingInfo, columnSizing, and column count are used for calculating the column size vars
   const columnSizeVars = React.useMemo(() => {
     const headers = table.getFlatHeaders();
     const colSizes: { [key: string]: number } = {};
@@ -2197,7 +2197,7 @@ function useDataGrid<TData>({
       colSizes[`--col-${header.column.id}-size`] = header.column.getSize();
     }
     return colSizes;
-  }, [table.getState().columnSizingInfo, table.getState().columnSizing]);
+  }, [table.getState().columnSizingInfo, table.getState().columnSizing, table.getAllColumns().length]);
 
   const isFirefox = React.useSyncExternalStore(
     React.useCallback(() => () => {}, []),
