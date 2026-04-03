@@ -13,6 +13,18 @@ import {
   ShortTextCell,
   UrlCell,
 } from "@/components/data-grid/data-grid-cell-variants";
+import { CurrencyCell } from "@/components/cells/currency-cell";
+import { PercentCell } from "@/components/cells/percent-cell";
+import { EmailCell } from "@/components/cells/email-cell";
+import { PhoneCell } from "@/components/cells/phone-cell";
+import { LocationCell } from "@/components/cells/location-cell";
+import { StatusCell } from "@/components/cells/status-cell";
+import { TagsCell } from "@/components/cells/tags-cell";
+import { ColorCell } from "@/components/cells/color-cell";
+import { JsonCell } from "@/components/cells/json-cell";
+import { DatetimeCell } from "@/components/cells/datetime-cell";
+import { RefCell } from "@/components/cells/ref-cell";
+import { RefsCell } from "@/components/cells/refs-cell";
 import type { DataGridCellProps } from "@/types/data-grid";
 
 export const DataGridCell = React.memo(DataGridCellImpl, (prev, next) => {
@@ -90,6 +102,42 @@ function DataGridCellImpl<TData>({
       break;
     case "file":
       Comp = FileCell;
+      break;
+    case "currency":
+      Comp = CurrencyCell;
+      break;
+    case "percent":
+      Comp = PercentCell;
+      break;
+    case "email":
+      Comp = EmailCell;
+      break;
+    case "phone":
+      Comp = PhoneCell;
+      break;
+    case "location":
+      Comp = LocationCell;
+      break;
+    case "status":
+      Comp = StatusCell;
+      break;
+    case "tags":
+      Comp = TagsCell;
+      break;
+    case "color":
+      Comp = ColorCell;
+      break;
+    case "json":
+      Comp = JsonCell;
+      break;
+    case "datetime":
+      Comp = DatetimeCell;
+      break;
+    case "ref":
+      Comp = RefCell;
+      break;
+    case "refs":
+      Comp = RefsCell;
       break;
 
     default:

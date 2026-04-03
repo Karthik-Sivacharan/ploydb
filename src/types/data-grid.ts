@@ -47,6 +47,27 @@ export type CellOpts =
       maxFiles?: number;
       accept?: string;
       multiple?: boolean;
+    }
+  | { variant: "currency"; currencyCode?: string }
+  | { variant: "percent" }
+  | { variant: "email" }
+  | { variant: "phone" }
+  | { variant: "location" }
+  | {
+      variant: "status";
+      options: Array<{ value: string; label: string; color: string }>;
+    }
+  | { variant: "tags"; options: Array<{ value: string; label: string }> }
+  | { variant: "color" }
+  | { variant: "json" }
+  | { variant: "datetime" }
+  | {
+      variant: "ref";
+      refRecords: Array<{ id: string; name: string }>;
+    }
+  | {
+      variant: "refs";
+      refRecords: Array<{ id: string; name: string }>;
     };
 
 export interface CellUpdate {
