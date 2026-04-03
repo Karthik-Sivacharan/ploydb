@@ -38,9 +38,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DataGridSkeleton } from "@/components/ui/data-grid-skeleton";
+import { createSelectColumn } from "@/lib/select-column";
 import type { ColumnDef } from "@tanstack/react-table";
 
 type FlatRow = Record<string, unknown>;
+
+// Shared select column — prepended to every column set (API and demo)
+const selectColumn = createSelectColumn<FlatRow>();
 
 /** Only mounts once columns are loaded, so useDataGrid always sees real columns. */
 function DataGridWithToolbar({
@@ -60,6 +64,10 @@ function DataGridWithToolbar({
     onDataChange,
     enableSearch: true,
     enablePaste: true,
+    enableRowSelection: true,
+    initialState: {
+      columnPinning: { left: ["select"] },
+    },
   });
 
   return (
@@ -74,9 +82,7 @@ function DataGridWithToolbar({
           </>,
           toolbarSlot.current,
         )}
-      <div className="flex-1 overflow-hidden">
-        <DataGrid {...dataGrid} height={0} className="h-full" />
-      </div>
+      <DataGrid {...dataGrid} height={0} className="h-full" />
     </>
   );
 }
@@ -115,7 +121,7 @@ export default function Home() {
   // ─── Load demo (faker) data ───────────────────────────────────────────
   const loadDemoData = React.useCallback(() => {
     const seedData = generateSeedData() as unknown as FlatRow[];
-    setColumns(fakerColumns as unknown as ColumnDef<FlatRow>[]);
+    setColumns([selectColumn, ...(fakerColumns as unknown as ColumnDef<FlatRow>[])]);
     setData(seedData);
     setLoading(false);
     setError(null);
@@ -180,7 +186,7 @@ export default function Home() {
           apiRowToFlat(r, activeDb!.schema, refRecordsMap)
         );
 
-        setColumns(cols);
+        setColumns([selectColumn, ...cols]);
         setData(flatRows);
         setLoading(false);
       } catch (err) {
