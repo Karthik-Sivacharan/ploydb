@@ -92,7 +92,9 @@ export function StatusCell<TData>({
 
   const currentOption = optionByValue.get(value);
   const displayLabel = currentOption?.label ?? value;
-  const displayColor = currentOption?.color ?? "#64748b";
+  // Fallback must be hex since we use hex alpha trick (color + "15") for tinted backgrounds
+  const FALLBACK_STATUS_COLOR = "#737373";
+  const displayColor = currentOption?.color ?? FALLBACK_STATUS_COLOR;
 
   return (
     <DataGridCellWrapper<TData>

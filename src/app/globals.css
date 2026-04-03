@@ -47,6 +47,10 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
+  /* Search highlight tokens */
+  --color-search-match: var(--search-match);
+  --color-search-match-active: var(--search-match-active);
+
   /* Motion design system — easing curves */
   --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
   --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
@@ -85,6 +89,8 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
+  --search-match: oklch(0.905 0.081 95.277);
+  --search-match-active: oklch(0.828 0.119 74.013);
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -120,6 +126,8 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
+  --search-match: oklch(0.414 0.112 45.904 / 30%);
+  --search-match-active: oklch(0.555 0.163 48.998 / 50%);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
