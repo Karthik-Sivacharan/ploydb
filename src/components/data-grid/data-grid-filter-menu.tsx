@@ -497,8 +497,7 @@ function DataGridFilterItem<TData>({
         >
           <SelectTrigger
             aria-controls={operatorListboxId}
-            size="sm"
-            className="w-32 rounded lowercase"
+            className="h-9 w-32 rounded lowercase"
           >
             <div className="truncate">
               <SelectValue />

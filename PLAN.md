@@ -387,7 +387,7 @@ function handleToolCall(toolCall) {
 
 ---
 
-## Phase 2.5: Grid Toolbar (Filter, Sort, View, Row Height)
+## Phase 2.5: Grid Toolbar (Filter, Sort, View, Row Height) ✅
 
 tablecn provides these as separate registry components. Install and wire to table instance.
 
@@ -399,12 +399,34 @@ npx shadcn@latest add "https://tablecn.com/r/data-grid-view-menu.json"
 npx shadcn@latest add "https://tablecn.com/r/data-grid-row-height-menu.json"
 ```
 
-### Wire up
-- [ ] Import all 4 menu components
-- [ ] Add toolbar div above DataGrid in page.tsx
-- [ ] Pass `table` instance to each: `<DataGridFilterMenu table={table} />`
-- [ ] Verify filter, sort, view toggle, row height all work
-- [ ] Fix any import path issues (same barrel fix pattern as data-grid)
+### Wire up ✅
+- [x] Import all 4 menu components
+- [x] Add toolbar div above DataGrid in page.tsx
+- [x] Pass `table` instance to each: `<DataGridFilterMenu table={table} />`
+- [x] Verify filter, sort, view toggle, row height all work
+- [x] Fix any import path issues (same barrel fix pattern as data-grid)
+
+---
+
+## Phase 2.7: Home Dashboard (Entry Point)
+
+The workspace home screen. Chat-first interface that proves PloyDB is part of the workspace, not a separate app. Korra navigates to the right database for you.
+
+### 2.7.1 — Layout
+- [ ] Full-screen chat layout (Korra chat centered, like ChatGPT home)
+- [ ] Left sidebar showing workspace items (databases: Contacts, Companies, Deals, Content, Categories, Media + documents, assets)
+- [ ] Connected sources section below chat (Google Sheets, Airtable icons — already synced)
+
+### 2.7.2 — Starter Templates
+- [ ] Template cards below the chat input: "Prioritize stale leads", "Clean up contacts", "Analyze deal pipeline", "Audit content status"
+- [ ] Clicking a template populates the chat with that prompt
+- [ ] One template triggers the happy path demo flow
+
+### 2.7.3 — Transition to Table View
+- [ ] When user sends a message or clicks a template, Korra responds and opens the relevant database
+- [ ] Sidebar item highlights as Korra selects it
+- [ ] Smooth transition animation: full-screen chat → split view (table left + chat panel right)
+- [ ] Chat history carries over to the right panel seamlessly
 
 ---
 
@@ -439,11 +461,13 @@ The AI collaboration surface is the core differentiator. This is what makes Ploy
 - [ ] Mock model with pre-scripted responses for the happy path demo (no API key needed)
 - [ ] Later: swap mock for real Claude via `@ai-sdk/anthropic`
 
-### 3.5 — Pre-Scripted Happy Path Demo
-The demo flow follows our prototype story — a client directory:
-- [ ] **"Show me enterprise clients in healthcare we haven't campaigned to in 90 days"** → Korra applies nested filters → table updates
-- [ ] **"Add a Client Health column based on engagement and last campaign date"** → Ploybook/Skill tags appear → dry-run preview on 5 rows → user approves → Korra fills 200 rows
-- [ ] **"Change all At Risk clients' owner to Sarah and tag them Q2 Priority"** → edit summary card → diff view available
+### 3.5 — Pre-Scripted Happy Path Demo (Contacts table)
+The demo flow follows Happy Path v2 — prioritizing stale leads:
+- [ ] **Step 0:** User clicks "Prioritize stale leads" template on home → Korra: "I see 960 contacts in your CRM. I'll open that up." → transition to split view with Contacts table
+- [ ] **Step 1:** Korra filters: Tags contains "lead" + Last Contacted > 60 days → table narrows
+- [ ] **Step 2:** "I'll add a Priority column based on title seniority and company size" → Ploybook tag appears → dry-run on 5 rows → approve → Korra fills all rows with wave animation
+- [ ] **Step 3:** User corrects a cell → badge flips to "You" → "Do this for all healthcare contacts" → bulk update → edit summary card with diff
+- [ ] **Step 4:** Click row → side panel with audit trail showing Korra + User edits
 
 ---
 
@@ -503,8 +527,9 @@ Trust is built into the table itself, not just the chat panel.
 
 ## Priority Order
 
-1. **Phase 3 (Korra Panel)** — the differentiator, the soul of the prototype
-2. **Phase 4 (Trust Signals)** — makes the table feel AI-native
+1. **Phase 2.7 (Home Dashboard)** — the entry point, proves PloyDB is part of the workspace
+2. **Phase 3 (Korra Panel)** — the differentiator, the soul of the prototype
+3. **Phase 4 (Trust Signals)** — makes the table feel AI-native
 3. **Phase 5 (Row Detail)** — completes the happy path (review what AI did)
 4. **Phase 6 (Column Ops)** — supports the "add a column" moment in the flow
 5. **Phase 7 (Polish)** — only if time permits

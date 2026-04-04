@@ -69,7 +69,7 @@ export function DataGridRowHeightMenu<TData>({
       onValueChange={onRowHeightChange}
       disabled={disabled}
     >
-      <SelectTrigger size="sm" className="h-9 w-fit text-sm [&_svg:nth-child(2)]:hidden">
+      <SelectTrigger className="h-9 w-fit text-sm [&_svg:nth-child(2)]:hidden">
         <SelectValue placeholder="Row height">
           <span className="flex items-center gap-2">
             <selectedRowHeight.icon className="size-4" />
