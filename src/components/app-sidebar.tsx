@@ -2,20 +2,26 @@
 
 import * as React from "react"
 import {
-  Bot,
-  Database,
+  Bell,
+  BookOpen,
+  FileText,
   Globe,
-  Hexagon,
   House,
+  Image,
   Moon,
-  Plug,
+  Palette,
+  Rows3,
+  Settings,
+  Sparkles,
   Sun,
 } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
+import { NavResources } from "@/components/nav-resources"
 import { NavUser } from "@/components/nav-user"
+import { WorkspaceSwitcher } from "@/components/workspace-switcher"
+import { Separator } from "@/components/ui/separator"
 import {
   Sidebar,
   SidebarContent,
@@ -33,52 +39,67 @@ const data = {
     email: "karthik@ploy.app",
     avatar: "",
   },
+  workspaces: [
+    { name: "My Workspace", plan: "Pro" },
+  ],
   navMain: [
     {
-      title: "Home",
+      title: "Overview",
       url: "#",
       icon: House,
       isActive: true,
-      items: [],
     },
     {
-      title: "Agents",
+      title: "Ploys",
       url: "#",
-      icon: Bot,
-      items: [
-        { title: "Web Designer", url: "#" },
-        { title: "Data Studio", url: "#" },
-      ],
+      icon: Sparkles,
     },
     {
-      title: "Connected Apps",
-      url: "#",
-      icon: Plug,
-      items: [],
-    },
-  ],
-  ploybooks: [
-    {
-      name: "Web Design Audit",
+      title: "Sites",
       url: "#",
       icon: Globe,
     },
     {
-      name: "Client Health Assessment",
+      title: "Records",
       url: "#",
-      icon: Database,
-    },
-    {
-      name: "Lead Prioritization",
-      url: "#",
-      icon: Database,
-    },
-    {
-      name: "Deal Pipeline Review",
-      url: "#",
-      icon: Database,
+      icon: Rows3,
     },
   ],
+  resources: [
+    {
+      name: "Design System",
+      url: "#",
+      icon: Palette,
+    },
+    {
+      name: "Assets",
+      url: "#",
+      icon: Image,
+    },
+    {
+      name: "Documents",
+      url: "#",
+      icon: FileText,
+    },
+    {
+      name: "Ploybooks",
+      url: "#",
+      icon: BookOpen,
+    },
+  ],
+}
+
+function SidebarNotifications() {
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SidebarMenuButton tooltip="Notifications">
+          <Bell />
+          <span>Notifications</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
 }
 
 function SidebarThemeToggle() {
@@ -104,31 +125,34 @@ function SidebarThemeToggle() {
   )
 }
 
+function SidebarSettings() {
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SidebarMenuButton tooltip="Settings">
+          <Settings />
+          <span>Settings</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  )
+}
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="/">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <Hexagon className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Ploy</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <WorkspaceSwitcher workspaces={data.workspaces} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.ploybooks} />
+        <NavResources resources={data.resources} />
       </SidebarContent>
       <SidebarFooter>
+        <SidebarNotifications />
         <SidebarThemeToggle />
+        <SidebarSettings />
+        <Separator className="mx-2 w-auto" />
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />

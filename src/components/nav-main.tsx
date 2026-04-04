@@ -34,7 +34,7 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <SidebarGroupLabel className="sr-only">Navigation</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) =>
           item.items && item.items.length > 0 ? (
