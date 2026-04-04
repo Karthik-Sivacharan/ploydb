@@ -10,6 +10,7 @@ import {
   SendHorizontal,
   Loader2,
 } from "lucide-react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
@@ -51,6 +52,18 @@ function isStreaming(status: ChatStatus): boolean {
   return status === "streaming" || status === "submitted"
 }
 
+// ─── Korra Avatar ───────────────────────────────────────────────────
+
+function KorraAvatar() {
+  return (
+    <Avatar className="mt-0.5 size-6 shrink-0">
+      <AvatarFallback className="bg-sky-100 text-[10px] font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">
+        KO
+      </AvatarFallback>
+    </Avatar>
+  )
+}
+
 // ─── Message Bubble ──────────────────────────────────────────────────
 
 function MessageBubble({ message, streaming }: { message: UIMessage; streaming: boolean }) {
@@ -61,11 +74,7 @@ function MessageBubble({ message, streaming }: { message: UIMessage; streaming: 
   return (
     <div className={cn("flex gap-2.5", isUser ? "justify-end" : "justify-start")}>
       {/* Korra avatar */}
-      {!isUser && (
-        <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
-          <Sparkles className="size-3.5 text-primary" />
-        </div>
-      )}
+      {!isUser && <KorraAvatar />}
 
       <div
         className={cn(
@@ -245,9 +254,7 @@ export function KorraChat({ variant, chat, onFirstMessage }: KorraChatProps) {
               ))}
               {streaming && messages[messages.length - 1]?.role === "user" && (
                 <div className="flex gap-2.5">
-                  <div className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <Sparkles className="size-3.5 text-primary" />
-                  </div>
+                  <KorraAvatar />
                   <div className="rounded-2xl bg-muted/60 px-3.5 py-2">
                     <TypingIndicator />
                   </div>

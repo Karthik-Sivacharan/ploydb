@@ -322,3 +322,15 @@ export const presets = {
  * ```
  */
 export const noMotion: Transition = { duration: 0 };
+
+// ============================================================================
+// 6. LAYOUT TIMING — delays for sequencing heavy mount after CSS transitions
+// ============================================================================
+
+/**
+ * Delay (in ms) before mounting the split-view data grid after collapsing
+ * the sidebar. The sidebar CSS transition is 200ms (`duration-200`), but the
+ * grid mount triggers expensive layout work that can cause jank if it overlaps.
+ * 450ms = 200ms animation + 250ms settling buffer.
+ */
+export const SIDEBAR_COLLAPSE_DELAY_MS = 450;
