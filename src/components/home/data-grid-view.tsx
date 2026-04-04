@@ -37,6 +37,8 @@ import {
 import { DataGridSkeleton } from "@/components/ui/data-grid-skeleton"
 import { createSelectColumn } from "@/lib/select-column"
 import type { ColumnDef } from "@tanstack/react-table"
+import type { GridHandle, AddColumnOptions } from "@/types/grid-handle"
+import type { CellSelectOption } from "@/types/data-grid"
 
 type FlatRow = Record<string, unknown>
 
@@ -48,12 +50,16 @@ function DataGridWithToolbar({
   data,
   columns,
   onDataChange,
+  onAddColumn,
   toolbarSlot,
+  gridRef,
 }: {
   data: FlatRow[]
   columns: ColumnDef<FlatRow>[]
   onDataChange: (updater: FlatRow[] | ((prev: FlatRow[]) => FlatRow[])) => void
+  onAddColumn: (options: AddColumnOptions) => void
   toolbarSlot: React.RefObject<HTMLDivElement | null>
+  gridRef?: React.RefObject<GridHandle | null>
 }) {
   const dataGrid = useDataGrid<FlatRow>({
     data,
@@ -66,6 +72,17 @@ function DataGridWithToolbar({
       columnPinning: { left: ["select"] },
     },
   })
+
+  // Expose grid APIs for Korra tool calls via imperative handle
+  React.useImperativeHandle(gridRef, () => ({
+    table: dataGrid.table,
+    updateCells: (updates) => dataGrid.tableMeta.onDataUpdate?.(updates),
+    deleteRows: (indices) => dataGrid.tableMeta.onRowsDelete?.(indices),
+    addRow: (row) => onDataChange((prev) => [...prev, row]),
+    addColumn: onAddColumn,
+    setDataAndColumns: () => {}, // handled at DataGridView level
+    getData: () => data,
+  }), [dataGrid.table, dataGrid.tableMeta, onDataChange, onAddColumn, data])
 
   return (
     <>
@@ -86,7 +103,11 @@ function DataGridWithToolbar({
 
 type DataSource = "api" | "demo"
 
-export function DataGridView() {
+export function DataGridView({
+  gridRef,
+}: {
+  gridRef?: React.RefObject<GridHandle | null>
+}) {
   const toolbarSlotRef = React.useRef<HTMLDivElement | null>(null)
   const [dataSource, setDataSource] = React.useState<DataSource>("api")
   const [databases, setDatabases] = React.useState<DatabaseRecord[]>([])
@@ -247,6 +268,38 @@ export function DataGridView() {
     [dataSource, activeDbId, activeDb]
   )
 
+  // ─── Add column handler (for Korra addColumn tool) ───────────────────
+  const handleAddColumn = React.useCallback(
+    (opts: AddColumnOptions) => {
+      const meta: Record<string, unknown> = { label: opts.name }
+
+      // Build cell config based on column type
+      const cellConfig: Record<string, unknown> = { variant: opts.type }
+
+      // For option-based types, map options to CellSelectOption format
+      if (opts.options && ["select", "multi-select", "status", "tags"].includes(opts.type)) {
+        cellConfig.options = opts.options.map((o) => ({
+          value: o.value,
+          label: o.label,
+          ...(o.color ? { color: o.color } : {}),
+        })) satisfies CellSelectOption[]
+      }
+
+      meta.cell = cellConfig
+
+      const newCol: ColumnDef<FlatRow> = {
+        id: opts.id,
+        accessorKey: opts.id,
+        header: opts.name,
+        size: 150,
+        meta,
+      }
+
+      setColumns((prev) => [...prev, newCol])
+    },
+    []
+  )
+
   // ─── Picker change handler ────────────────────────────────────────────
   function handlePickerChange(value: string) {
     if (value === DEMO_SOURCE_ID) {
@@ -316,7 +369,9 @@ export function DataGridView() {
             data={data}
             columns={columns}
             onDataChange={handleDataChange}
+            onAddColumn={handleAddColumn}
             toolbarSlot={toolbarSlotRef}
+            gridRef={gridRef}
           />
         ) : null}
       </div>

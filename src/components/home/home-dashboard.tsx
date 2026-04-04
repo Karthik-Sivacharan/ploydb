@@ -1,7 +1,8 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import { useChat } from "@ai-sdk/react"
+import { createToolCallHandler } from "@/lib/tool-handler"
 import { AnimatePresence, motion } from "motion/react"
 import {
   FileText,
@@ -15,6 +16,7 @@ import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { KorraChat } from "@/components/home/korra-chat"
 import { DataGridView } from "@/components/home/data-grid-view"
+import type { GridHandle } from "@/types/grid-handle"
 
 const TEMPLATES = [
   {
@@ -56,8 +58,14 @@ export function HomeDashboard() {
   const [showTemplates, setShowTemplates] = useState(true)
   const { setOpen } = useSidebar()
 
+  // Grid handle for Korra tool calls to manipulate the table
+  const gridRef = useRef<GridHandle>(null)
+
+  // Tool call handler bridges AI tool calls → grid APIs
+  const onToolCall = useMemo(() => createToolCallHandler(gridRef), [])
+
   // Single useChat instance shared across both layouts
-  const chat = useChat()
+  const chat = useChat({ onToolCall })
 
   const switchToSplit = useCallback(() => {
     // Disable sidebar transition so collapse is instant (no animation to fight)
@@ -104,7 +112,7 @@ export function HomeDashboard() {
         >
           {/* Data grid takes remaining space */}
           <div className="min-w-0 flex-1 overflow-hidden">
-            <DataGridView />
+            <DataGridView gridRef={gridRef} />
           </div>
 
           {/* Chat panel on the right — fixed width, same useChat instance */}

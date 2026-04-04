@@ -1,5 +1,6 @@
 import { streamText } from "ai"
 import { MockLanguageModelV3 } from "ai/test"
+import { korraTools } from "@/lib/ai-tools"
 
 const SCRIPTED_RESPONSES = [
   "I see your CRM data. Let me take a look at what we're working with — 150 contacts across various stages. What would you like me to help with?",
@@ -58,6 +59,7 @@ export async function POST() {
   const result = streamText({
     model,
     messages: [{ role: "user", content: "hello" }],
+    tools: korraTools,
   })
 
   return result.toUIMessageStreamResponse()
