@@ -108,8 +108,10 @@ type DataSource = "api" | "demo"
 
 export function DataGridView({
   gridRef,
+  initialSlug = "contacts",
 }: {
   gridRef?: React.RefObject<GridHandle | null>
+  initialSlug?: string
 }) {
   const toolbarSlotRef = React.useRef<HTMLDivElement | null>(null)
   const [dataSource, setDataSource] = React.useState<DataSource>("api")
@@ -127,8 +129,8 @@ export function DataGridView({
     listDatabases()
       .then((dbs) => {
         setDatabases(dbs)
-        const companies = dbs.find((d) => d.slug === "companies")
-        setActiveDbId(companies?.id ?? dbs[0]?.id ?? null)
+        const initial = dbs.find((d) => d.slug === initialSlug)
+        setActiveDbId(initial?.id ?? dbs[0]?.id ?? null)
       })
       .catch(() => {
         setDataSource("demo")
