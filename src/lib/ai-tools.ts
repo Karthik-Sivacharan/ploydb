@@ -35,6 +35,7 @@ const columnOptionSchema = z.object({
 
 const filterSchema = z.object({
   columnId: z.string().describe("Column ID to filter on"),
+  operator: z.string().optional().describe("Filter operator — e.g. contains, equals, before, after, isEmpty"),
   value: z.unknown().describe("Filter value — type depends on column"),
 });
 
