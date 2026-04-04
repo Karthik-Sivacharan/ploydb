@@ -168,11 +168,18 @@ export const DEMO_STEPS: DemoStep[] = [
 // State management — simple module-level counter
 // ---------------------------------------------------------------------------
 
+const FALLBACK_STEP: DemoStep = {
+  step: -1,
+  response:
+    "That covers the priority analysis! Is there anything else you'd like me to help with — cleaning up duplicates, analyzing your pipeline, or something else?",
+  toolCalls: [],
+}
+
 let currentStep = 0
 
-/** Get the next demo step. Advances the internal counter. Returns null when all steps are exhausted. */
-export function getNextDemoStep(): DemoStep | null {
-  if (currentStep >= DEMO_STEPS.length) return null
+/** Get the next demo step. Advances the internal counter. Returns a fallback when all steps are exhausted. */
+export function getNextDemoStep(): DemoStep {
+  if (currentStep >= DEMO_STEPS.length) return FALLBACK_STEP
   const step = DEMO_STEPS[currentStep]!
   currentStep++
   return step
