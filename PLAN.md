@@ -578,6 +578,7 @@ Trust is built into the table itself, not just the chat panel.
 ## Phase 7: Polish + Stretch
 
 - [ ] Motion animations (cell edit glow, row add/delete, filter transitions, Korra activity pulse)
+- [ ] Korra personality animations — waterbending/spirit-world-inspired effects (particles, glows, shaders) to give the AI agent Korra's character from The Legend of Korra. See `docs/korra-animation-research.md` for full research, color palette, library picks.
 - [ ] Loading skeletons, empty states
 - [ ] Row count footer
 - [ ] Dark mode toggle

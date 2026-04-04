@@ -94,9 +94,6 @@ Full-screen chat centered in SidebarInset with template cards below input. Selec
 - [ ] MockModel for pre-scripted demo responses
 - [ ] Tool call bridge to data grid (editCells, filterBy, sortBy, etc.)
 
-### Korra Personality Animations (Nice-to-Have)
-- [ ] Subtle waterbending/spirit-world-inspired animations (particles, glows, shaders) to give the AI agent Korra's personality from The Legend of Korra — see `docs/korra-animation-research.md`
-
 ### Routing
 - [ ] Wire sidebar nav items to actual views (currently all `#`)
 - [ ] Breadcrumb updates based on active view
