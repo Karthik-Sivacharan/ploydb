@@ -7,9 +7,9 @@ import { HomeDashboard } from "@/components/home/home-dashboard"
 
 export default function Page() {
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-svh !min-h-0">
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="overflow-hidden">
         <HomeDashboard />
       </SidebarInset>
     </SidebarProvider>

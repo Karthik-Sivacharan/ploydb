@@ -267,7 +267,7 @@ function DataGridRowImpl<TData>({
           >
             {typeof cell.column.columnDef.header === "function" ? (
               <div
-                className={cn("size-full px-3 py-1.5", {
+                className={cn("flex size-full items-center justify-center px-3 py-1.5", {
                   "bg-primary/10": isRowSelected,
                 })}
               >

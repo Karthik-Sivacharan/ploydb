@@ -1,11 +1,9 @@
 "use client"
 
 import { useCallback, useState } from "react"
-import { useRouter } from "next/navigation"
 import {
   Database,
   FileText,
-  Image,
   Sparkles,
   Users,
   Building2,
@@ -25,8 +23,10 @@ import {
   PromptInputActionMenuItem,
 } from "@/components/ai-elements/prompt-input"
 import { Badge } from "@/components/ui/badge"
-import { SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
+import { ChatPanel } from "@/components/home/chat-panel"
+import { DataGridView } from "@/components/home/data-grid-view"
 
 const TEMPLATES = [
   {
@@ -70,31 +70,59 @@ const CONNECTED_SOURCES = [
   { name: "Notion", color: "bg-foreground" },
 ]
 
+type View = "home" | "split"
+
 export function HomeDashboard() {
-  const router = useRouter()
+  const [view, setView] = useState<View>("home")
   const [showTemplates, setShowTemplates] = useState(true)
+  const { setOpen } = useSidebar()
+
+  const switchToSplit = useCallback(() => {
+    setOpen(false) // collapse sidebar to icon mode
+    setView("split")
+  }, [setOpen])
 
   const handleSubmit = useCallback(
     (message: { text: string }) => {
-      // For now, navigate to database view
-      // Phase 3 will add the animated transition + Korra chat
       if (message.text.trim()) {
-        router.push("/database")
+        switchToSplit()
       }
     },
-    [router]
+    [switchToSplit]
   )
 
   const handleTemplateClick = useCallback(
-    (prompt: string) => {
-      // Phase 3: send to Korra + animate transition
-      // For now, navigate to database
-      void prompt
-      router.push("/database")
+    (_prompt: string) => {
+      switchToSplit()
     },
-    [router]
+    [switchToSplit]
   )
 
+  const handleChatSubmit = useCallback(
+    (_message: { text: string }) => {
+      // Phase 3: send to Korra via useChat
+    },
+    []
+  )
+
+  // ─── Split view: data grid + chat panel ───────────────────────────────
+  if (view === "split") {
+    return (
+      <div className="flex h-full overflow-hidden">
+        {/* Data grid takes remaining space — min-w-0 prevents flex child overflow */}
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <DataGridView />
+        </div>
+
+        {/* Chat panel on the right — fixed width */}
+        <div className="flex h-full w-[380px] min-w-[380px] max-w-[380px] flex-col">
+          <ChatPanel onSubmit={handleChatSubmit} />
+        </div>
+      </div>
+    )
+  }
+
+  // ─── Home view: centered chat ─────────────────────────────────────────
   return (
     <div className="flex h-full flex-col">
       {/* Minimal header with sidebar trigger */}
@@ -199,7 +227,7 @@ export function HomeDashboard() {
               {DATABASES.map((db) => (
                 <button
                   key={db.name}
-                  onClick={() => router.push("/database")}
+                  onClick={switchToSplit}
                   className="flex items-center gap-2.5 rounded-lg border border-border/40 px-3 py-2.5 text-left transition-colors hover:border-border hover:bg-accent/50"
                 >
                   <db.icon className="size-4 text-muted-foreground" />

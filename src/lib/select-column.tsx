@@ -28,16 +28,18 @@ export function createSelectColumn<TData>(): ColumnDef<TData> {
     enableHiding: false,
 
     header: ({ table }: HeaderContext<TData, unknown>) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(checked) =>
-          table.toggleAllPageRowsSelected(!!checked)
-        }
-        aria-label="Select all"
-      />
+      <div className="flex items-center justify-center">
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(checked) =>
+            table.toggleAllPageRowsSelected(!!checked)
+          }
+          aria-label="Select all"
+        />
+      </div>
     ),
 
     cell: ({ row, table }: CellContext<TData, unknown>) => {
