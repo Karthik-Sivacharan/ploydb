@@ -108,7 +108,7 @@ type DataSource = "api" | "demo"
 
 export function DataGridView({
   gridRef,
-  initialSlug = "contacts",
+  initialSlug,
 }: {
   gridRef?: React.RefObject<GridHandle | null>
   initialSlug?: string
@@ -129,7 +129,7 @@ export function DataGridView({
     listDatabases()
       .then((dbs) => {
         setDatabases(dbs)
-        const initial = dbs.find((d) => d.slug === initialSlug)
+        const initial = initialSlug ? dbs.find((d) => d.slug === initialSlug) : null
         setActiveDbId(initial?.id ?? dbs[0]?.id ?? null)
       })
       .catch(() => {

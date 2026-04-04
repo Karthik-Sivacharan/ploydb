@@ -16,7 +16,12 @@ import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { KorraChat } from "@/components/home/korra-chat"
 import { DataGridView } from "@/components/home/data-grid-view"
+import { DEMO_STEPS } from "@/data/demo-scripts"
 import type { GridHandle } from "@/types/grid-handle"
+
+// Derive initial database from step 0's openDatabase tool call
+const openDbCall = DEMO_STEPS[0]?.toolCalls.find((tc) => tc.name === "openDatabase")
+const INITIAL_DB_SLUG = (openDbCall?.args?.slug as string) ?? "contacts"
 
 const TEMPLATES = [
   {
@@ -168,7 +173,7 @@ export function HomeDashboard() {
                 Test Add Column
               </button>
             </div>
-            <DataGridView gridRef={gridRef} />
+            <DataGridView gridRef={gridRef} initialSlug={INITIAL_DB_SLUG} />
           </div>
 
           {/* Chat panel on the right — fixed width, same useChat instance */}
