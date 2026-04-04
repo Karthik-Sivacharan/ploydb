@@ -61,8 +61,8 @@ export const DEMO_STEPS: DemoStep[] = [
         name: "filterBy",
         args: {
           filters: [
-            { columnId: "labels", value: "Follow Up" },
-            { columnId: "lastContacted", value: "2026-02-01" },
+            { columnId: "labels", operator: "contains", value: "Follow Up" },
+            { columnId: "lastContacted", operator: "contains", value: "2026-02-01" },
           ],
         },
       },

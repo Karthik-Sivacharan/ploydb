@@ -112,6 +112,62 @@ export function HomeDashboard() {
         >
           {/* Data grid takes remaining space */}
           <div className="min-w-0 flex-1 overflow-hidden">
+            {/* DEBUG: test grid filter directly */}
+            <div className="flex gap-2 border-b bg-yellow-50 px-4 py-1 dark:bg-yellow-950">
+              <button
+                className="rounded bg-blue-500 px-2 py-0.5 text-xs text-white"
+                onClick={() => {
+                  const grid = gridRef.current
+                  if (!grid) { console.log("DEBUG: gridRef is null"); return }
+                  console.log("DEBUG: table columns", grid.table.getAllColumns().map(c => c.id))
+                  console.log("DEBUG: applying filter on labels")
+                  grid.table.setColumnFilters([
+                    { id: "labels", value: { operator: "contains", value: "Follow Up" } },
+                  ])
+                }}
+              >
+                Test Filter
+              </button>
+              <button
+                className="rounded bg-gray-500 px-2 py-0.5 text-xs text-white"
+                onClick={() => {
+                  gridRef.current?.table.setColumnFilters([])
+                }}
+              >
+                Clear Filters
+              </button>
+              <button
+                className="rounded bg-green-500 px-2 py-0.5 text-xs text-white"
+                onClick={() => {
+                  const grid = gridRef.current
+                  if (!grid) return
+                  console.log("DEBUG: sorting by dealSize desc")
+                  grid.table.setSorting([{ id: "dealSize", desc: true }])
+                }}
+              >
+                Test Sort
+              </button>
+              <button
+                className="rounded bg-purple-500 px-2 py-0.5 text-xs text-white"
+                onClick={() => {
+                  const grid = gridRef.current
+                  if (!grid) return
+                  console.log("DEBUG: adding Priority column")
+                  grid.addColumn({
+                    id: "priority",
+                    name: "Priority",
+                    type: "select",
+                    options: [
+                      { value: "High", label: "High", color: "#ef4444" },
+                      { value: "Medium", label: "Medium", color: "#f59e0b" },
+                      { value: "Low", label: "Low", color: "#22c55e" },
+                    ],
+                  })
+                }}
+              >
+                Test Add Column
+              </button>
+            </div>
             <DataGridView gridRef={gridRef} />
           </div>
 

@@ -38,7 +38,7 @@ import { DataGridSkeleton } from "@/components/ui/data-grid-skeleton"
 import { createSelectColumn } from "@/lib/select-column"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { GridHandle, AddColumnOptions } from "@/types/grid-handle"
-import type { CellSelectOption } from "@/types/data-grid"
+import type { CellSelectOption, CellOpts } from "@/types/data-grid"
 
 type FlatRow = Record<string, unknown>
 
@@ -271,31 +271,77 @@ export function DataGridView({
   // ─── Add column handler (for Korra addColumn tool) ───────────────────
   const handleAddColumn = React.useCallback(
     (opts: AddColumnOptions) => {
-      const meta: Record<string, unknown> = { label: opts.name }
+      // Build cell config matching the CellOpts union shape exactly
+      // so tablecn cell variants can narrow on `variant` at runtime.
+      let cellConfig: CellOpts = { variant: "short-text" }
 
-      // Build cell config based on column type
-      const cellConfig: Record<string, unknown> = { variant: opts.type }
-
-      // For option-based types, map options to CellSelectOption format
       if (opts.options && ["select", "multi-select", "status", "tags"].includes(opts.type)) {
-        cellConfig.options = opts.options.map((o) => ({
+        const mappedOptions = opts.options.map((o) => ({
           value: o.value,
           label: o.label,
           ...(o.color ? { color: o.color } : {}),
         })) satisfies CellSelectOption[]
-      }
 
-      meta.cell = cellConfig
+        switch (opts.type) {
+          case "select":
+            cellConfig = { variant: "select", options: mappedOptions }
+            break
+          case "multi-select":
+            cellConfig = { variant: "multi-select", options: mappedOptions }
+            break
+          case "status":
+            cellConfig = {
+              variant: "status",
+              options: mappedOptions.map((o) => ({
+                value: o.value,
+                label: o.label,
+                color: o.color ?? "#64748b",
+              })),
+            }
+            break
+          case "tags":
+            cellConfig = { variant: "tags", options: mappedOptions }
+            break
+        }
+      } else {
+        // Map type string to known CellOpts variants
+        const simpleVariants: Record<string, CellOpts> = {
+          "short-text": { variant: "short-text" },
+          "long-text": { variant: "long-text" },
+          number: { variant: "number" },
+          checkbox: { variant: "checkbox" },
+          date: { variant: "date" },
+          url: { variant: "url" },
+          currency: { variant: "currency" },
+          percent: { variant: "percent" },
+          email: { variant: "email" },
+          phone: { variant: "phone" },
+          location: { variant: "location" },
+          color: { variant: "color" },
+          json: { variant: "json" },
+          datetime: { variant: "datetime" },
+        }
+        cellConfig = simpleVariants[opts.type] ?? { variant: "short-text" }
+      }
 
       const newCol: ColumnDef<FlatRow> = {
         id: opts.id,
         accessorKey: opts.id,
         header: opts.name,
         size: 150,
-        meta,
+        meta: {
+          label: opts.name,
+          cell: cellConfig,
+        },
       }
 
       setColumns((prev) => [...prev, newCol])
+
+      // Force DataGridRow memo to re-render by creating new row object
+      // references. The memo compares `row.original` by reference — if
+      // only columns change but data stays the same, rows skip re-render
+      // and the new column's cells never mount.
+      setData((prev) => prev.map((row) => ({ ...row })))
     },
     []
   )

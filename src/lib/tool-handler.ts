@@ -67,10 +67,17 @@ export function createToolCallHandler(
         const filters = args.filters as Array<{
           columnId: string
           value: unknown
+          operator?: string
         }>
-        // Map to TanStack Table ColumnFilter format: { id, value }
+        // Map to tablecn FilterValue format: { operator, value }
         grid!.table.setColumnFilters(
-          filters.map((f) => ({ id: f.columnId, value: f.value }))
+          filters.map((f) => ({
+            id: f.columnId,
+            value: {
+              operator: f.operator ?? "contains",
+              value: f.value,
+            },
+          }))
         )
         return
       }

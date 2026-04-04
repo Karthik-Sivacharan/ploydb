@@ -43,6 +43,7 @@ export async function POST() {
             const tc = toolCalls[t]
             const toolCallId = `call-${stepIndex}-${t}`
 
+            // Stream tool input progressively
             controller.enqueue({
               type: "tool-input-start" as const,
               id: toolCallId,
@@ -56,6 +57,14 @@ export async function POST() {
             controller.enqueue({
               type: "tool-input-end" as const,
               id: toolCallId,
+            })
+            // Emit tool-call so streamText → toUIMessageStream produces
+            // a tool-input-available event, which triggers onToolCall
+            controller.enqueue({
+              type: "tool-call" as const,
+              toolCallId,
+              toolName: tc.name,
+              input: JSON.stringify(tc.args),
             })
           }
 
