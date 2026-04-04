@@ -1,31 +1,17 @@
 "use client"
 
 import { useCallback, useState } from "react"
+import { useChat } from "@ai-sdk/react"
 import {
-  Database,
   FileText,
   Sparkles,
   Users,
-  Building2,
   HandshakeIcon,
-  Tag,
-  Film,
 } from "lucide-react"
-import {
-  PromptInput,
-  PromptInputTextarea,
-  PromptInputFooter,
-  PromptInputTools,
-  PromptInputSubmit,
-  PromptInputActionMenu,
-  PromptInputActionMenuTrigger,
-  PromptInputActionMenuContent,
-  PromptInputActionMenuItem,
-} from "@/components/ai-elements/prompt-input"
 import { Badge } from "@/components/ui/badge"
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
-import { ChatPanel } from "@/components/home/chat-panel"
+import { KorraChat } from "@/components/home/korra-chat"
 import { DataGridView } from "@/components/home/data-grid-view"
 
 const TEMPLATES = [
@@ -55,19 +41,10 @@ const TEMPLATES = [
   },
 ]
 
-const DATABASES = [
-  { name: "Contacts", icon: Users, count: 960 },
-  { name: "Companies", icon: Building2, count: 180 },
-  { name: "Deals", icon: HandshakeIcon, count: 520 },
-  { name: "Content", icon: FileText, count: 850 },
-  { name: "Categories", icon: Tag, count: 40 },
-  { name: "Media", icon: Film, count: 1250 },
-]
-
 const CONNECTED_SOURCES = [
-  { name: "Google Sheets", color: "bg-green-500" },
-  { name: "Airtable", color: "bg-blue-500" },
-  { name: "Notion", color: "bg-foreground" },
+  { name: "Google Sheets", iconUrl: "https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/idKa2XnbFY.svg?c=1bxid64Mup7aczewSAYMX&t=1755572735234" },
+  { name: "Google Analytics", iconUrl: "https://cdn.brandfetch.io/idYpJMnlBx/w/192/h/192/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1768155572893" },
+  { name: "Figma", iconUrl: "https://cdn.brandfetch.io/idZHcZ_i7F/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1729268241679" },
 ]
 
 type View = "home" | "split"
@@ -77,46 +54,38 @@ export function HomeDashboard() {
   const [showTemplates, setShowTemplates] = useState(true)
   const { setOpen } = useSidebar()
 
+  // Single useChat instance shared across both layouts
+  const chat = useChat()
+
   const switchToSplit = useCallback(() => {
     setOpen(false) // collapse sidebar to icon mode
     setView("split")
   }, [setOpen])
 
-  const handleSubmit = useCallback(
-    (message: { text: string }) => {
-      if (message.text.trim()) {
-        switchToSplit()
-      }
-    },
-    [switchToSplit]
-  )
+  const handleFirstMessage = useCallback(() => {
+    switchToSplit()
+  }, [switchToSplit])
 
   const handleTemplateClick = useCallback(
-    (_prompt: string) => {
+    (prompt: string) => {
+      chat.sendMessage({ text: prompt })
       switchToSplit()
     },
-    [switchToSplit]
-  )
-
-  const handleChatSubmit = useCallback(
-    (_message: { text: string }) => {
-      // Phase 3: send to Korra via useChat
-    },
-    []
+    [chat, switchToSplit]
   )
 
   // ─── Split view: data grid + chat panel ───────────────────────────────
   if (view === "split") {
     return (
       <div className="flex h-full overflow-hidden">
-        {/* Data grid takes remaining space — min-w-0 prevents flex child overflow */}
+        {/* Data grid takes remaining space */}
         <div className="min-w-0 flex-1 overflow-hidden">
           <DataGridView />
         </div>
 
-        {/* Chat panel on the right — fixed width */}
+        {/* Chat panel on the right — fixed width, same useChat instance */}
         <div className="flex h-full w-[380px] min-w-[380px] max-w-[380px] flex-col">
-          <ChatPanel onSubmit={handleChatSubmit} />
+          <KorraChat variant="panel" chat={chat} />
         </div>
       </div>
     )
@@ -145,45 +114,25 @@ export function HomeDashboard() {
             </p>
           </div>
 
-          {/* Prompt Input */}
-          <PromptInput onSubmit={handleSubmit} className="[&_[data-slot=input-group]]:rounded-xl [&_[data-slot=input-group]]:border-border/50">
-            <PromptInputTextarea placeholder="Ask Korra..." className="min-h-28" />
-            <PromptInputFooter className="border-t border-border/30 pt-2">
-              <PromptInputTools>
-                <PromptInputActionMenu>
-                  <PromptInputActionMenuTrigger tooltip="Ploybooks">
-                    <Database className="size-4" />
-                    <span className="text-sm">Ploybooks</span>
-                  </PromptInputActionMenuTrigger>
-                  <PromptInputActionMenuContent>
-                    <PromptInputActionMenuItem>
-                      <Sparkles className="size-4" />
-                      Lead Prioritization
-                    </PromptInputActionMenuItem>
-                    <PromptInputActionMenuItem>
-                      <Users className="size-4" />
-                      Client Health Assessment
-                    </PromptInputActionMenuItem>
-                    <PromptInputActionMenuItem>
-                      <HandshakeIcon className="size-4" />
-                      Deal Pipeline Review
-                    </PromptInputActionMenuItem>
-                  </PromptInputActionMenuContent>
-                </PromptInputActionMenu>
-              </PromptInputTools>
-              <PromptInputSubmit />
-            </PromptInputFooter>
-          </PromptInput>
+          {/* Chat input (and messages if any) */}
+          <KorraChat
+            variant="home"
+            chat={chat}
+            onFirstMessage={handleFirstMessage}
+          />
 
           {/* Connected Sources */}
           <div className="flex items-center justify-center gap-2">
             <span className="text-xs text-muted-foreground">Connected:</span>
             {CONNECTED_SOURCES.map((source) => (
-              <Badge key={source.name} variant="secondary" className="gap-1.5 text-xs">
-                <span className={`size-2 rounded-full ${source.color}`} />
+              <Badge key={source.name} variant="secondary" className="gap-1.5 py-1.5 text-xs">
+                <img src={source.iconUrl} alt={source.name} width={16} height={16} className="size-4 object-contain" />
                 {source.name}
               </Badge>
             ))}
+            <Badge variant="outline" className="cursor-pointer py-1.5 text-xs text-muted-foreground hover:text-foreground">
+              +
+            </Badge>
           </div>
 
           {/* Template Cards */}
@@ -219,28 +168,6 @@ export function HomeDashboard() {
               </div>
             </div>
           )}
-
-          {/* Databases overview */}
-          <div className="space-y-3">
-            <span className="text-sm text-muted-foreground">Your databases</span>
-            <div className="grid grid-cols-3 gap-2">
-              {DATABASES.map((db) => (
-                <button
-                  key={db.name}
-                  onClick={switchToSplit}
-                  className="flex items-center gap-2.5 rounded-lg border border-border/40 px-3 py-2.5 text-left transition-colors hover:border-border hover:bg-accent/50"
-                >
-                  <db.icon className="size-4 text-muted-foreground" />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium">{db.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {db.count.toLocaleString()} rows
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>

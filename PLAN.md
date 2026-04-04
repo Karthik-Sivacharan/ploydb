@@ -453,6 +453,7 @@ The AI collaboration surface is the core differentiator. This is what makes Ploy
 - [ ] Diff view shows before/after per cell, grouped by row
 
 ### 3.4 — Tool Definitions + Mock Model
+- [ ] `openDatabase` — navigate to a database → triggers sidebar highlight + transition to split view
 - [ ] `editCells` — batch cell updates → `tableMeta.onDataUpdate()`
 - [ ] `addColumn` — add a new column with type/options → updates column definitions
 - [ ] `filterBy` — apply filters → `table.setColumnFilters()`
@@ -462,12 +463,72 @@ The AI collaboration surface is the core differentiator. This is what makes Ploy
 - [ ] Later: swap mock for real Claude via `@ai-sdk/anthropic`
 
 ### 3.5 — Pre-Scripted Happy Path Demo (Contacts table)
-The demo flow follows Happy Path v2 — prioritizing stale leads:
-- [ ] **Step 0:** User clicks "Prioritize stale leads" template on home → Korra: "I see 960 contacts in your CRM. I'll open that up." → transition to split view with Contacts table
-- [ ] **Step 1:** Korra filters: Tags contains "lead" + Last Contacted > 60 days → table narrows
-- [ ] **Step 2:** "I'll add a Priority column based on title seniority and company size" → Ploybook tag appears → dry-run on 5 rows → approve → Korra fills all rows with wave animation
-- [ ] **Step 3:** User corrects a cell → badge flips to "You" → "Do this for all healthcare contacts" → bulk update → edit summary card with diff
-- [ ] **Step 4:** Click row → side panel with audit trail showing Korra + User edits
+
+The demo is **scripted theater** — looks real but every response is pre-written. No real AI. The Vercel AI SDK's `MockLanguageModelV1` plays exact responses. No matter what the user types, we match to the next step in the sequence.
+
+#### How it works
+
+A step counter advances on each user message. Every message — whether they click a template or type freeform — triggers the next scripted response + tool calls.
+
+```ts
+// demo-scripts.ts
+const DEMO_STEPS = [
+  {
+    step: 0,
+    response: "I see 960 contacts in your CRM. Let me open that up and help you prioritize.",
+    toolCalls: [{ name: "openDatabase", args: { slug: "contacts" } }],
+    // Triggers: sidebar highlight + transition from home to split view
+  },
+  {
+    step: 1,
+    response: "Filtering to leads you haven't contacted in 60+ days...",
+    toolCalls: [{ name: "filterBy", args: { filters: [
+      { field: "fld_tags", op: "contains", value: "lead" },
+      { field: "fld_last_contacted", op: "lt", value: "60_days_ago" }
+    ]}}],
+    // Triggers: table filters, rows fade out
+  },
+  {
+    step: 2,
+    response: "I'll add a Priority column based on their title seniority and company size.",
+    ploybook: "Contact Prioritization",
+    dryRun: true, // Shows preview card with 5 rows, waits for approve
+    toolCalls: [
+      { name: "addColumn", args: { name: "Priority", type: "select", options: ["High", "Medium", "Low"] } },
+      { name: "editCells", args: { updates: "...all rows with priority values..." } }
+    ],
+    // Triggers: ploybook tag, dry-run card, then on approve → column slides in, cells fill with wave
+  },
+  {
+    step: 3,
+    response: "Done — updated all healthcare contacts to High priority.",
+    toolCalls: [{ name: "editCells", args: { updates: "...healthcare contacts batch..." } }],
+    // Triggers: edit summary card in chat, diff view available on click
+  },
+];
+
+let currentStep = 0;
+
+// No matter what user sends, play the next step
+function getNextResponse() {
+  return DEMO_STEPS[currentStep++];
+}
+```
+
+#### What makes it feel real
+- Streaming text via mock model (characters appear one by one)
+- Short delay (~500ms) before tool calls execute (feels like Korra is "thinking")
+- Animations on the table when changes land (wave fill, row fade, column slide)
+- Dry-run card shows actual data from the current table state
+- Step 4 (row detail) is just a click — no chat message needed
+
+#### Demo steps
+
+- [ ] **Step 0:** User clicks "Prioritize stale leads" template on home → Korra: "I see 960 contacts in your CRM. I'll open that up." → `openDatabase("contacts")` → transition to split view
+- [ ] **Step 1:** Next message → Korra filters: Tags contains "lead" + Last Contacted > 60 days → table narrows
+- [ ] **Step 2:** Next message → "I'll add a Priority column based on title seniority and company size" → Ploybook tag appears → dry-run on 5 rows → approve → Korra fills all rows with wave animation
+- [ ] **Step 3:** Next message → "Do this for all healthcare contacts" → bulk update → edit summary card with diff
+- [ ] **Step 4:** User clicks a row → side panel with audit trail showing Korra + User edits (no chat needed)
 
 ---
 
