@@ -1,11 +1,16 @@
 import { streamText } from "ai"
 import { MockLanguageModelV3 } from "ai/test"
-import { getNextDemoStep, getCurrentStep } from "@/data/demo-scripts"
+import { DEMO_STEPS } from "@/data/demo-scripts"
 import { korraTools } from "@/lib/ai-tools"
 
-export async function POST() {
-  const stepIndex = getCurrentStep()
-  const step = getNextDemoStep()
+export async function POST(req: Request) {
+  const body = await req.json()
+
+  // Client sends messages array — count assistant messages to determine step
+  const messages = body.messages ?? []
+  const stepIndex = messages.filter((m: { role: string }) => m.role === "assistant").length
+
+  const step = DEMO_STEPS[stepIndex] ?? DEMO_STEPS[DEMO_STEPS.length - 1]
   const text = step.response
   const toolCalls = step.toolCalls ?? []
 
