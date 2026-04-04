@@ -51,6 +51,7 @@ function DataGridWithToolbar({
   columns,
   onDataChange,
   onAddColumn,
+  onOpenDatabase,
   toolbarSlot,
   gridRef,
 }: {
@@ -58,6 +59,7 @@ function DataGridWithToolbar({
   columns: ColumnDef<FlatRow>[]
   onDataChange: (updater: FlatRow[] | ((prev: FlatRow[]) => FlatRow[])) => void
   onAddColumn: (options: AddColumnOptions) => void
+  onOpenDatabase: (slug: string) => void
   toolbarSlot: React.RefObject<HTMLDivElement | null>
   gridRef?: React.RefObject<GridHandle | null>
 }) {
@@ -82,7 +84,8 @@ function DataGridWithToolbar({
     addColumn: onAddColumn,
     setDataAndColumns: () => {}, // handled at DataGridView level
     getData: () => data,
-  }), [dataGrid.table, dataGrid.tableMeta, onDataChange, onAddColumn, data])
+    openDatabase: onOpenDatabase,
+  }), [dataGrid.table, dataGrid.tableMeta, onDataChange, onAddColumn, onOpenDatabase, data])
 
   return (
     <>
@@ -346,6 +349,18 @@ export function DataGridView({
     []
   )
 
+  // ─── Open database by slug (for Korra openDatabase tool) ─────────────
+  const handleOpenDatabase = React.useCallback(
+    (slug: string) => {
+      const db = databases.find((d) => d.slug === slug)
+      if (db) {
+        setDataSource("api")
+        setActiveDbId(db.id)
+      }
+    },
+    [databases]
+  )
+
   // ─── Picker change handler ────────────────────────────────────────────
   function handlePickerChange(value: string) {
     if (value === DEMO_SOURCE_ID) {
@@ -416,6 +431,7 @@ export function DataGridView({
             columns={columns}
             onDataChange={handleDataChange}
             onAddColumn={handleAddColumn}
+            onOpenDatabase={handleOpenDatabase}
             toolbarSlot={toolbarSlotRef}
             gridRef={gridRef}
           />

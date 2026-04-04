@@ -61,8 +61,8 @@ export const DEMO_STEPS: DemoStep[] = [
         name: "filterBy",
         args: {
           filters: [
-            { columnId: "labels", operator: "contains", value: "Follow Up" },
-            { columnId: "lastContacted", operator: "contains", value: "2026-02-01" },
+            { columnId: "fld_tags", operator: "contains", value: "lead" },
+            { columnId: "fld_last_contacted", operator: "contains", value: "2026-02-01" },
           ],
         },
       },
@@ -148,14 +148,14 @@ export const DEMO_STEPS: DemoStep[] = [
   {
     step: 4,
     response:
-      "Here are your high-priority leads sorted by deal size. I'd recommend starting outreach with the top 5 \u2014 they have the largest potential value and haven't been contacted in over 90 days.",
+      "Here are your high-priority leads sorted by last contacted date. I'd recommend starting outreach with the ones at the top \u2014 they haven't been contacted in over 90 days.",
     toolCalls: [
       {
         name: "sortBy",
         args: {
           sorts: [
             { columnId: "priority", desc: false },
-            { columnId: "dealSize", desc: true },
+            { columnId: "fld_last_contacted", desc: false },
           ],
         },
       },

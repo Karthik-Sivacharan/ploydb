@@ -30,13 +30,13 @@ export function createToolCallHandler(
 
     switch (toolName) {
       case "openDatabase": {
-        // The view switch to split mode is already handled by the
-        // first-message callback in HomeDashboard. This tool call
-        // is a no-op on the client — the transition happens before
-        // tool calls arrive.
         const slug = args.slug as string
-        if (process.env.NODE_ENV === "development") {
-          console.log("[Korra tool] openDatabase:", slug)
+        // Grid ref may not be available yet (view is still transitioning).
+        // If available, switch to the API database. The view switch to
+        // split mode is already handled by HomeDashboard's first-message
+        // callback before tool calls arrive.
+        if (grid) {
+          grid.openDatabase(slug)
         }
         return
       }

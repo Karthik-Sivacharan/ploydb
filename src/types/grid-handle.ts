@@ -32,4 +32,6 @@ export interface GridHandle {
   setDataAndColumns: (data: FlatRow[], columns: import("@tanstack/react-table").ColumnDef<FlatRow>[]) => void
   /** Current row data */
   getData: () => FlatRow[]
+  /** Switch to an API database by slug */
+  openDatabase: (slug: string) => void
 }
