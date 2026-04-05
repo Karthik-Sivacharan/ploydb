@@ -25,14 +25,14 @@ interface DataGridSkeletonProps {
 
 export function DataGridSkeleton({
   columns = 6,
-  rows = 12,
+  rows = 14,
   rowHeight = 56,
   className,
 }: DataGridSkeletonProps) {
   return (
     <div className={cn("flex flex-col overflow-hidden", className)}>
       {/* Header row */}
-      <div className="flex border-b bg-muted/30">
+      <div className="flex shrink-0 border-b bg-muted/30">
         {Array.from({ length: columns }, (_, colIdx) => (
           <div
             key={colIdx}
@@ -46,31 +46,35 @@ export function DataGridSkeleton({
         ))}
       </div>
 
-      {/* Data rows */}
-      {Array.from({ length: rows }, (_, rowIdx) => (
-        <div
-          key={rowIdx}
-          className="flex border-b"
-          style={{ height: rowHeight }}
-        >
-          {Array.from({ length: columns }, (_, colIdx) => (
-            <div
-              key={colIdx}
-              className={cn(
-                "flex shrink-0 items-center border-r px-3",
-                COL_WIDTHS[colIdx % COL_WIDTHS.length],
-              )}
-            >
-              <Skeleton
+      {/* Data rows + spacer fills remaining height */}
+      <div className="flex flex-1 flex-col">
+        {Array.from({ length: rows }, (_, rowIdx) => (
+          <div
+            key={rowIdx}
+            className="flex shrink-0 border-b"
+            style={{ height: rowHeight }}
+          >
+            {Array.from({ length: columns }, (_, colIdx) => (
+              <div
+                key={colIdx}
                 className={cn(
-                  "h-3.5",
-                  CELL_WIDTHS[(rowIdx + colIdx) % CELL_WIDTHS.length],
+                  "flex shrink-0 items-center border-r px-3",
+                  COL_WIDTHS[colIdx % COL_WIDTHS.length],
                 )}
-              />
-            </div>
-          ))}
-        </div>
-      ))}
+              >
+                <Skeleton
+                  className={cn(
+                    "h-3.5",
+                    CELL_WIDTHS[(rowIdx + colIdx) % CELL_WIDTHS.length],
+                  )}
+                />
+              </div>
+            ))}
+          </div>
+        ))}
+        {/* Fill remaining space below rows */}
+        <div className="flex-1" />
+      </div>
     </div>
   );
 }
