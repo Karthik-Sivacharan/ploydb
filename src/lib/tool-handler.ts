@@ -146,17 +146,20 @@ export function createToolCallHandler(
         const targetCols = new Set(updates.map((u) => u.columnId))
         const hasGenerating = [...targetCols].some((c) => generatingColumns.has(c))
 
-        // Capture previous values before update for attribution
+        // Capture previous values before update for attribution.
+        // Use the table's visible row model (not raw data) because
+        // rowIndex in updates refers to visible/filtered row order.
         const prevValues: Array<{ rowId: string; columnId: string; prevValue: unknown }> = []
         if (grid!.recordCellEdit) {
-          const data = grid!.getData()
+          const visibleRows = grid!.table.getRowModel().rows
           for (const u of updates) {
-            const row = data[u.rowIndex]
+            const row = visibleRows[u.rowIndex]
             if (row) {
+              const original = row.original as Record<string, unknown>
               prevValues.push({
-                rowId: row._id as string,
+                rowId: original._id as string,
                 columnId: u.columnId,
-                prevValue: row[u.columnId],
+                prevValue: original[u.columnId],
               })
             }
           }
@@ -275,17 +278,20 @@ export function createToolCallHandler(
           })
             .then((res) => res.json())
             .then(({ updates: emailUpdates }) => {
-              // Record attribution before applying updates
+              // Record attribution before applying updates.
+              // Use visible row model (not raw data) because rowIndex
+              // refers to visible/filtered row order.
               if (grid!.recordCellEdit) {
-                const data = grid!.getData()
+                const visibleRows = grid!.table.getRowModel().rows
                 for (const u of emailUpdates as Array<{ rowIndex: number; columnId: string; value: unknown }>) {
-                  const row = data[u.rowIndex]
+                  const row = visibleRows[u.rowIndex]
                   if (row) {
+                    const original = row.original as Record<string, unknown>
                     grid!.recordCellEdit!(
-                      row._id as string,
+                      original._id as string,
                       u.columnId,
                       u.value,
-                      row[u.columnId],
+                      original[u.columnId],
                       "korra",
                       undefined,
                       "Follow-up Draft"
