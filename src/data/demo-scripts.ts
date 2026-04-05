@@ -110,24 +110,25 @@ export const DEMO_STEPS: DemoStep[] = [
         name: "editCells",
         args: {
           updates: [
-            // Simulate enrichment — fill first visible rows with industry + size
-            { rowIndex: 0, columnId: "fld_industry", value: "Technology" },
-            { rowIndex: 0, columnId: "fld_company_size", value: "1000+" },
-            { rowIndex: 1, columnId: "fld_industry", value: "Legal" },
-            { rowIndex: 1, columnId: "fld_company_size", value: "201-1000" },
-            { rowIndex: 2, columnId: "fld_industry", value: "Finance" },
-            { rowIndex: 2, columnId: "fld_company_size", value: "51-200" },
-            { rowIndex: 3, columnId: "fld_industry", value: "Technology" },
-            { rowIndex: 3, columnId: "fld_company_size", value: "1000+" },
-            { rowIndex: 4, columnId: "fld_industry", value: "Consulting" },
-            { rowIndex: 4, columnId: "fld_company_size", value: "11-50" },
-            { rowIndex: 5, columnId: "fld_industry", value: "Retail" },
+            // Enrichment from Companies table (actual data via ref lookup)
+            // Row order matches API: oldest stale leads first
+            { rowIndex: 0, columnId: "fld_industry", value: "Legal" },
+            { rowIndex: 0, columnId: "fld_company_size", value: "201-1000" },      // Dr. Bruce Hermiston @ Kris LLC
+            { rowIndex: 1, columnId: "fld_industry", value: "Technology" },
+            { rowIndex: 1, columnId: "fld_company_size", value: "11-50" },          // Erling Feeney IV @ Torphy Inc
+            { rowIndex: 2, columnId: "fld_industry", value: "Legal" },
+            { rowIndex: 2, columnId: "fld_company_size", value: "201-1000" },       // Belinda Gibson @ Kris LLC
+            { rowIndex: 3, columnId: "fld_industry", value: "Legal" },
+            { rowIndex: 3, columnId: "fld_company_size", value: "51-200" },         // Rhonda Balistreri @ McClure et al
+            { rowIndex: 4, columnId: "fld_industry", value: "Retail" },
+            { rowIndex: 4, columnId: "fld_company_size", value: "1-10" },           // Alvin Gleason @ Beahan
+            { rowIndex: 5, columnId: "fld_industry", value: "Technology" },
             { rowIndex: 5, columnId: "fld_company_size", value: "201-1000" },
-            { rowIndex: 6, columnId: "fld_industry", value: "Technology" },
-            { rowIndex: 6, columnId: "fld_company_size", value: "51-200" },
-            { rowIndex: 7, columnId: "fld_industry", value: "Legal" },
-            { rowIndex: 7, columnId: "fld_company_size", value: "1000+" },
-            { rowIndex: 8, columnId: "fld_industry", value: "Finance" },
+            { rowIndex: 6, columnId: "fld_industry", value: "Finance" },
+            { rowIndex: 6, columnId: "fld_company_size", value: "1000+" },
+            { rowIndex: 7, columnId: "fld_industry", value: "Consulting" },
+            { rowIndex: 7, columnId: "fld_company_size", value: "51-200" },
+            { rowIndex: 8, columnId: "fld_industry", value: "Legal" },
             { rowIndex: 8, columnId: "fld_company_size", value: "201-1000" },
             { rowIndex: 9, columnId: "fld_industry", value: "Technology" },
             { rowIndex: 9, columnId: "fld_company_size", value: "11-50" },
@@ -255,31 +256,31 @@ export const DEMO_STEPS: DemoStep[] = [
               rowIndex: 0,
               columnId: "fld_followup_draft",
               value:
-                "Hi — it's been a while since we last connected. Given the momentum in the Technology sector, I wanted to check in and see how things are going on your end. Would love to find 15 minutes to catch up this week.",
+                "Hi Dr. Hermiston — it's been about 4 months since we last connected. I know things move fast in the legal space, and I wanted to check in on how things are going at Kris LLC. Given your role orchestrating the group's forward strategy, I have a few ideas that might be relevant. Would you have 15 minutes this week to catch up?",
             },
             {
               rowIndex: 1,
               columnId: "fld_followup_draft",
               value:
-                "Hope you're doing well! It's been over two months since our last conversation. I've been thinking about some ideas that might be relevant for your team — would you be open to a quick call?",
+                "Hi Erling — it's been over 4 months since our last conversation. I've been following some interesting developments in the Technology sector that I think could be relevant for Torphy Inc, especially from an infrastructure perspective. Would you be open to a quick call to reconnect?",
             },
             {
               rowIndex: 2,
               columnId: "fld_followup_draft",
               value:
-                "Just wanted to reach out — it's been a few months and I wanted to make sure we're still on your radar. We've had some exciting updates that I think would be valuable for your organization.",
+                "Hi Belinda — I noticed it's been about 120 days since we last spoke. With the changes happening in the legal industry right now, I wanted to reach out and see how the mobility planning side is evolving at Kris LLC. I'd love to hear what you're working on — are you free for a brief chat this week?",
             },
             {
               rowIndex: 3,
               columnId: "fld_followup_draft",
               value:
-                "Hi! I noticed it's been a while since we last spoke. I'd love to reconnect and hear what you've been working on. Are you free for a brief catch-up this week or next?",
+                "Hi Rhonda — it's been a while! I wanted to reconnect and see how things are going at McClure, Murazik and Ziemann. As a Senior Brand Coordinator, you probably have a lot on your plate right now. I have a couple of ideas I'd love to run by you — do you have 15 minutes this week or next?",
             },
             {
               rowIndex: 4,
               columnId: "fld_followup_draft",
               value:
-                "It's been too long! I wanted to check in and see if there's anything we can help with on your end. I have a few ideas I'd love to run by you — do you have 15 minutes this week?",
+                "Hi Alvin — it's been about 4 months since our last conversation. I've been thinking about how research planning is evolving in the retail space and wanted to check in on how things are going at Beahan. Would love to find some time to catch up — are you available this week?",
             },
           ],
         },
