@@ -113,32 +113,36 @@ addColumn({ id: "fld_company_size", name: "Company Size", type: "select", source
 
 ---
 
-### Step 3 — Research Industries + Sort (NEW in V4)
+### Step 3 — Research Industries + Filter to Legal (NEW in V4)
 
 **Trigger:** User says "yes" or sends any message
 
-**Korra says:** "Legal is seeing major regulatory activity right now — new compliance deadlines are pushing companies to re-evaluate vendors. That's 34 contacts worth reaching out to. Sorting them to the top."
+**Korra says:** "Legal is seeing major regulatory activity right now — new compliance deadlines are pushing companies to re-evaluate vendors. That's 34 contacts worth reaching out to. Let me filter to those."
 
 **Tool calls:**
 ```json
 searchNews({ industries: ["Legal", "Technology", "Finance", "Retail", "Consulting"] })
-sortBy({ sorts: [{ columnId: "fld_industry", desc: false }] })
+filterBy({ filters: [
+  { columnId: "fld_tags", operator: "contains", value: "lead" },
+  { columnId: "fld_last_contacted", operator: "before", value: "2026-02-03" },
+  { columnId: "fld_industry", operator: "equals", value: "Legal" }
+]})
 ```
 
 **Visual:**
 1. **Research card appears in chat** — compact card with globe/search icon. Lists the 5 industries being "researched." Each one gets a checkmark after a staggered delay (~400ms each). Card takes ~2s total.
 2. After research card completes, Korra's text streams in with the Legal insight.
-3. Table re-sorts with Legal contacts at the top. Korra attribution badge on sort controls.
+3. Table filters from 130 → 34 rows (Legal contacts only). Korra attribution badge on filter controls.
 
-**Implementation note:** `searchNews` is a fake tool — the handler is a no-op. The research card is rendered in the chat UI whenever it sees a `searchNews` tool call in the message stream. The "insight" about Legal regulatory activity is hardcoded in the demo script response text.
+**Implementation note:** `searchNews` is a fake tool — the handler is a no-op. The research card is rendered in the chat UI whenever it sees a `searchNews` tool call in the message stream. The "insight" about Legal regulatory activity is hardcoded in the demo script response text. The filterBy call preserves existing filters (stale leads) and adds the industry filter on top.
 
 ---
 
-### Step 4 — Add Priority Column (ALL 130 Rows)
+### Step 4 — Add Priority Column (34 Legal Contacts)
 
 **Trigger:** User sends any message
 
-**Korra says:** "Now let me score all 130 leads by priority based on title seniority, company size, and industry activity. Here's a preview of the first 5 rows before I apply it to all."
+**Korra says:** "Now let me score all 34 Legal leads by priority based on title seniority and company size. Here's a preview of the first 5 rows before I apply it to all."
 
 **Ploybook:** "Contact Prioritization"
 **Context tags:** `Contact Prioritization` (ploybook icon)
@@ -151,16 +155,16 @@ addColumn({ id: "fld_priority", name: "Priority", type: "select", source: "ai-ge
   { value: "medium", label: "Medium" },
   { value: "low", label: "Low" }
 ]})
-editCells({ updates: [/* ALL 130 rows — ~30 High, ~50 Medium, ~50 Low */] })
+editCells({ updates: [/* ALL 34 rows — ~8 High, ~13 Medium, ~13 Low */] })
 ```
 
 **Visual:**
 1. Priority column appears with sky-blue generating shimmer + FilePenLine icon (ai-generated styling).
 2. **Dry-run preview card** shows first 5 rows with proposed Priority values. Approve / Reject buttons.
-3. On approve → all 130 rows fill with High/Medium/Low values. Wave animation across cells.
+3. On approve → all 34 rows fill with High/Medium/Low values. Wave animation across cells.
 4. "Contact Prioritization" ploybook tag appears near chat input.
 
-**Distribution:** ~30 High (large companies + senior titles in active industries), ~50 Medium (mid-size or mid-level), ~50 Low (small companies + junior titles). No empty cells.
+**Distribution:** ~8 High (large companies + senior titles), ~13 Medium (mid-size or mid-level), ~13 Low (small companies + junior titles). No empty cells.
 
 ---
 
@@ -172,24 +176,24 @@ editCells({ updates: [/* ALL 130 rows — ~30 High, ~50 Medium, ~50 Low */] })
 
 **Tool calls:**
 ```json
-sortBy({ sorts: [{ columnId: "fld_priority", desc: true }] })
+sortBy({ sorts: [{ columnId: "fld_priority", desc: false }] })
 ```
 
-**Visual:** Table re-sorts — High-priority contacts float to the top. Korra attribution badge on sort. Korra explicitly invites the user to review and make manual corrections.
+**Visual:** Table re-sorts — High-priority contacts float to the top (ascending: "high" < "low" < "medium" alphabetically). Korra attribution badge on sort. Korra explicitly invites the user to review and make manual corrections.
 
 ---
 
-### Step 6 — Acknowledge Manual Edits + Ask About Emails
+### Step 6 — Acknowledge Manual Edit + Ask About Emails
 
-**Trigger:** User manually changes a couple of Low → High in the grid (acquaintances they recognize), then sends a message
+**Trigger:** User manually changes one Low → High in the grid (an acquaintance they recognize), then sends a message
 
-**Korra says:** "Nice catches — I see you bumped a couple to High. Your priority list is looking solid. Want me to draft personalized re-engagement emails for the high-priority ones?"
+**Korra says:** "Good catch — I see you bumped one to High. Your priority list is looking solid. Want me to draft personalized re-engagement emails for the High and Medium priority contacts?"
 
 **Tool calls:** None
 
-**Visual:** No table changes. This is a permission checkpoint — Korra asks before taking the next big action (drafting emails). The user's manual edits are tracked in the cell audit map with "user" attribution.
+**Visual:** No table changes. This is a permission checkpoint — Korra asks before taking the next big action (drafting emails for High + Medium contacts). The user's manual edit is tracked in the cell audit map with "user" attribution.
 
-**Note:** The scripted response assumes the user made manual edits. In a live demo, the presenter manually edits 2-3 cells before sending the next message. If the user doesn't edit anything, the message is slightly off but still works narratively.
+**Note:** The scripted response assumes the user made a manual edit. In a live demo, the presenter manually edits 1 cell before sending the next message. If the user doesn't edit anything, the message is slightly off but still works narratively.
 
 ---
 
@@ -197,7 +201,7 @@ sortBy({ sorts: [{ columnId: "fld_priority", desc: true }] })
 
 **Trigger:** User says "yes" or sends any message
 
-**Korra says:** "Writing follow-up drafts for your high-priority contacts. Each email is personalized with their name, title, company, and the industry context we found."
+**Korra says:** "Writing follow-up drafts for your High and Medium priority contacts. Each email is personalized with their name, title, company, and the regulatory context we found."
 
 **Context tags:** `Personalized Outreach` (ploybook icon)
 

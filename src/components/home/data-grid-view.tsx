@@ -73,7 +73,7 @@ function DataGridWithToolbar({
   cellAuditMap,
   onRecordCellEdit,
   showAuditTrail = true,
-  korraEditFlag,
+  korraEditCount,
 }: {
   data: FlatRow[]
   columns: ColumnDef<FlatRow>[]
@@ -88,7 +88,7 @@ function DataGridWithToolbar({
   cellAuditMap?: CellAuditMap
   onRecordCellEdit?: (rowId: string, columnId: string, value: unknown, prevValue: unknown, actor: CellActor, toolCallId?: string, context?: string) => void
   showAuditTrail?: boolean
-  korraEditFlag?: React.RefObject<boolean>
+  korraEditCount?: React.RefObject<number>
 }) {
   // Track who last changed filters/sorting (Korra vs user)
   const [filterAttr, setFilterAttr] = React.useState<Attribution>("user")
@@ -127,7 +127,7 @@ function DataGridWithToolbar({
   React.useImperativeHandle(gridRef, () => ({
     table: dataGrid.table,
     updateCells: (updates) => {
-      if (korraEditFlag) korraEditFlag.current = true
+      if (korraEditCount) korraEditCount.current++
       dataGrid.tableMeta.onDataUpdate?.(updates)
     },
     deleteRows: (indices) => dataGrid.tableMeta.onRowsDelete?.(indices),
@@ -189,8 +189,10 @@ export function DataGridView({
   const [syncEnabled, setSyncEnabled] = React.useState(true)
   const [generatingColumns, setGeneratingColumns] = React.useState<Set<string>>(new Set())
   const [cellAuditMap, setCellAuditMap] = React.useState<CellAuditMap>(new Map())
-  // Flag: suppress "user" attribution when Korra's tool calls flow through handleDataChange
-  const korraEditFlag = React.useRef(false)
+  // Counter: suppress "user" attribution when Korra's tool calls flow through handleDataChange.
+  // Uses a counter instead of boolean so multiple concurrent Korra edits (e.g. two lookup
+  // columns resolving near-simultaneously) don't lose the flag when the first one is consumed.
+  const korraEditCount = React.useRef(0)
   // Flag: suppress attribution when addColumn spreads rows for re-render
   const addColumnFlag = React.useRef(false)
 
@@ -347,13 +349,22 @@ export function DataGridView({
           typeof updater === "function" ? updater(prev) : updater
 
         // Record user edits for attribution.
-        // Skip when: Korra's tool call triggered this (korraEditFlag) or
+        // Skip when: Korra's tool call triggered this (korraEditCount) or
         // addColumn spread rows for re-render (addColumnFlag).
-        if (korraEditFlag.current) {
-          korraEditFlag.current = false
+        if (korraEditCount.current > 0) {
+          korraEditCount.current--
         } else if (addColumnFlag.current) {
           addColumnFlag.current = false
         } else {
+          // Build set of lookup column IDs — these are linked data, not user edits
+          const lookupColIds = new Set<string>()
+          for (const col of columns) {
+            const meta = (col as { meta?: { source?: string } }).meta
+            if (meta?.source === "lookup") {
+              lookupColIds.add((col as { id?: string }).id ?? "")
+            }
+          }
+
           for (let i = 0; i < next.length; i++) {
             const oldRow = prev[i]
             const newRow = next[i]
@@ -362,6 +373,8 @@ export function DataGridView({
               if (rowId) {
                 for (const key of Object.keys(newRow)) {
                   if (key.startsWith("_")) continue
+                  // Skip lookup columns — they're linked data, not edits
+                  if (lookupColIds.has(key)) continue
                   if (newRow[key] !== oldRow[key]) {
                     recordCellEdit(rowId, key, newRow[key], oldRow[key], "user")
                   }
@@ -413,7 +426,7 @@ export function DataGridView({
         return next
       })
     },
-    [dataSource, activeDbId, activeDb, recordCellEdit]
+    [dataSource, activeDbId, activeDb, columns, recordCellEdit]
   )
 
   // ─── Add column handler (for Korra addColumn tool) ───────────────────
@@ -617,7 +630,7 @@ export function DataGridView({
             cellAuditMap={cellAuditMap}
             onRecordCellEdit={recordCellEdit}
             showAuditTrail={showAuditTrail}
-            korraEditFlag={korraEditFlag}
+            korraEditCount={korraEditCount}
             footerExtra={
               <div className="flex items-center gap-1.5">
                 <Label htmlFor="sync-toggle" className="text-xs text-muted-foreground">

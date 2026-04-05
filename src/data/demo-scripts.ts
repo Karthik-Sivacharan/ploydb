@@ -12,6 +12,8 @@
 //     Retail (23), Consulting (21)
 //   Company sizes: 1-10 (43), 201-1000 (34), 51-200 (31), 11-50 (22)
 //
+// After step 3 filter to Legal: 34 contacts remain for priority scoring.
+//
 // Step counter is client-driven (route.ts counts assistant messages).
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -59,11 +61,13 @@ function generatePriorityUpdates(): Array<{
   columnId: string
   value: string
 }> {
+  // 34 Legal contacts after step 3 filter
+  // ~8 High, ~13 Medium, ~13 Low
   const updates: Array<{ rowIndex: number; columnId: string; value: string }> = []
-  for (let i = 0; i < 130; i++) {
+  for (let i = 0; i < 34; i++) {
     let priority: string
-    if (i < 30) priority = "high"
-    else if (i < 80) priority = "medium"
+    if (i < 8) priority = "high"
+    else if (i < 21) priority = "medium"
     else priority = "low"
     updates.push({ rowIndex: i, columnId: "fld_priority", value: priority })
   }
@@ -129,6 +133,11 @@ export const DEMO_STEPS: DemoStep[] = [
             { value: "Retail", label: "Retail" },
             { value: "Consulting", label: "Consulting" },
           ],
+          lookupConfig: {
+            targetTable: "companies",
+            refField: "fld_company",
+            targetField: "fld_industry",
+          },
         },
       },
       {
@@ -145,20 +154,25 @@ export const DEMO_STEPS: DemoStep[] = [
             { value: "201-1000", label: "201-1000" },
             { value: "1000+", label: "1000+" },
           ],
+          lookupConfig: {
+            targetTable: "companies",
+            refField: "fld_company",
+            targetField: "fld_size",
+          },
         },
       },
     ],
     toolDelay: 800,
   },
 
-  // ── Step 3: Research industries + sort by Legal ────────────────────────
+  // ── Step 3: Research industries + filter to Legal ────────────────────
   // User said "yes" to scanning industries. Korra shows a research loading
   // card (searchNews tool — fake, ~2s animation), then comes back with an
-  // insight about Legal and sorts the table.
+  // insight about Legal and filters to show those 34 contacts.
   {
     step: 3,
     response:
-      "Legal is seeing major regulatory activity right now — new compliance deadlines are pushing companies to re-evaluate vendors. That's 34 contacts worth reaching out to. Sorting them to the top.",
+      "Legal is seeing major regulatory activity right now — new compliance deadlines are pushing companies to re-evaluate vendors. That's 34 contacts worth reaching out to. Let me filter to those.",
     toolCalls: [
       {
         name: "searchNews",
@@ -167,22 +181,26 @@ export const DEMO_STEPS: DemoStep[] = [
         },
       },
       {
-        name: "sortBy",
+        name: "filterBy",
         args: {
-          sorts: [{ columnId: "fld_industry", desc: false }],
+          filters: [
+            { columnId: "fld_tags", operator: "contains", value: "lead" },
+            { columnId: "fld_last_contacted", operator: "before", value: "2026-02-03" },
+            { columnId: "fld_industry", operator: "equals", value: "Legal" },
+          ],
         },
       },
     ],
     toolDelay: 600,
   },
 
-  // ── Step 4: Add Priority column — ALL 130 rows scored ──────────────────
-  // Adds Priority column and fills every row with High/Medium/Low.
+  // ── Step 4: Add Priority column — all 34 Legal contacts scored ──────
+  // Adds Priority column and fills every visible row with High/Medium/Low.
   // No empties. dryRun shows preview of first 5 before applying to all.
   {
     step: 4,
     response:
-      "Now let me score all 130 leads by priority based on title seniority, company size, and industry activity. Here's a preview of the first 5 rows before I apply it to all.",
+      "Now let me score all 34 Legal leads by priority based on title seniority and company size. Here's a preview of the first 5 rows before I apply it to all.",
     ploybook: "Contact Prioritization",
     contextTags: [
       { type: "ploybook", name: "Contact Prioritization", icon: "ploybook" },
@@ -224,32 +242,32 @@ export const DEMO_STEPS: DemoStep[] = [
       {
         name: "sortBy",
         args: {
-          sorts: [{ columnId: "fld_priority", desc: true }],
+          sorts: [{ columnId: "fld_priority", desc: false }],
         },
       },
     ],
     toolDelay: 400,
   },
 
-  // ── Step 6: Acknowledge manual edits + ask about emails ────────────────
-  // Between steps 5 and 6, the user manually changes a couple of Low →
-  // High (contacts they personally know). This step acknowledges that
-  // and asks permission before drafting emails.
+  // ── Step 6: Acknowledge manual edit + ask about emails ──────────────
+  // Between steps 5 and 6, the user manually changes one Low → High
+  // (a contact they personally know). This step acknowledges that
+  // and asks permission before drafting emails for High + Medium.
   {
     step: 6,
     response:
-      "Nice catches — I see you bumped a couple to High. Your priority list is looking solid. Want me to draft personalized re-engagement emails for the high-priority ones?",
+      "Good catch — I see you bumped one to High. Your priority list is looking solid. Want me to draft personalized re-engagement emails for the High and Medium priority contacts?",
     toolCalls: [],
     toolDelay: 0,
   },
 
   // ── Step 7: Draft follow-up emails ─────────────────────────────────────
   // Adds a Follow-up Draft column (long-text, ai-generated) and generates
-  // personalized emails for high-priority contacts.
+  // personalized emails for High + Medium priority contacts.
   {
     step: 7,
     response:
-      "Writing follow-up drafts for your high-priority contacts. Each email is personalized with their name, title, company, and the industry context we found.",
+      "Writing follow-up drafts for your High and Medium priority contacts. Each email is personalized with their name, title, company, and the regulatory context we found.",
     contextTags: [
       { type: "ploybook", name: "Personalized Outreach", icon: "ploybook" },
     ],

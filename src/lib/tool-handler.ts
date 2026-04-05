@@ -1,5 +1,6 @@
 import type { RefObject } from "react"
 import type { GridHandle } from "@/types/grid-handle"
+import { listDatabases, queryRows } from "@/lib/ploydb-api"
 
 const AI_GENERATING_DELAY = 5000
 
@@ -17,6 +18,98 @@ export function createToolCallHandler(
   gridRef: RefObject<GridHandle | null>
 ) {
   const generatingColumns = new Set<string>()
+
+  // Cache for lookup resolution — avoids duplicate API calls when multiple
+  // lookup columns target the same table (e.g. Industry + Company Size both
+  // from Companies). Stores { schema, rows } keyed by table slug.
+  const lookupCache = new Map<string, {
+    schema: import("@/lib/ploydb-api").FieldSchema[]
+    rows: import("@/lib/ploydb-api").RowRecord[]
+  }>()
+
+  // Queue of pending lookup resolutions — processed sequentially to avoid
+  // race conditions where the second updateCells sees stale data.
+  const lookupQueue: Array<{
+    colId: string
+    config: { targetTable: string; refField: string; targetField: string }
+  }> = []
+  let lookupProcessing = false
+
+  async function processLookupQueue() {
+    if (lookupProcessing || lookupQueue.length === 0) return
+    lookupProcessing = true
+
+    while (lookupQueue.length > 0) {
+      const { colId, config } = lookupQueue.shift()!
+      try {
+        // 1. Find and cache the target database
+        let cached = lookupCache.get(config.targetTable)
+        if (!cached) {
+          const databases = await listDatabases()
+          const targetDb = databases.find((db) => db.slug === config.targetTable)
+          if (!targetDb) {
+            console.warn("[Korra lookup] Target table not found:", config.targetTable)
+            continue
+          }
+          const { rows } = await queryRows(targetDb.id, { limit: 1000 })
+          cached = { schema: targetDb.schema, rows }
+          lookupCache.set(config.targetTable, cached)
+        }
+
+        // 2. Build option ID → label map from schema (for select fields)
+        const targetField = cached.schema.find((f) => f.id === config.targetField)
+        const optionMap = new Map<string, string>()
+        if (targetField && targetField.type === "select" && targetField.config?.options) {
+          for (const opt of targetField.config.options as Array<{ id: string; label: string }>) {
+            optionMap.set(opt.id, opt.label)
+          }
+        }
+
+        // 3. Build lookup map: row_id → resolved value
+        const lookupMap = new Map<string, string>()
+        for (const row of cached.rows) {
+          const rawValue = row.properties[config.targetField]
+          if (rawValue != null) {
+            const resolved = optionMap.get(rawValue as string) ?? String(rawValue)
+            lookupMap.set(row.id, resolved)
+          }
+        }
+
+        // 4. For each grid row, resolve via the ref field
+        const grid = gridRef.current
+        if (!grid) continue
+        const data = grid.getData()
+        const updates: Array<{ rowIndex: number; columnId: string; value: string }> = []
+        for (let i = 0; i < data.length; i++) {
+          const refValue = data[i][config.refField]
+          const refId =
+            typeof refValue === "object" && refValue !== null
+              ? (refValue as { id: string }).id
+              : typeof refValue === "string" ? refValue : null
+          if (refId) {
+            const resolved = lookupMap.get(refId)
+            if (resolved) {
+              updates.push({ rowIndex: i, columnId: colId, value: resolved })
+            }
+          }
+        }
+
+        // 5. Fill cells and wait for React to settle
+        if (updates.length > 0) {
+          console.log(`[Korra lookup] Resolved ${updates.length} values for ${colId}`)
+          grid.updateCells(updates)
+          // Wait for React state to settle before processing next lookup
+          await new Promise((r) => setTimeout(r, 50))
+        } else {
+          console.warn(`[Korra lookup] No values resolved for ${colId}`)
+        }
+      } catch (err) {
+        console.error("[Korra lookup] Failed to resolve values:", err)
+      }
+    }
+
+    lookupProcessing = false
+  }
 
   return async ({ toolCall }: { toolCall: { toolCallId: string; toolName: string; input: unknown } }) => {
     const { toolName, input } = toolCall
@@ -138,17 +231,29 @@ export function createToolCallHandler(
             grid!.updateCells(clearUpdates)
           }
         }
+        // Resolve lookup column values from the linked table via API
+        const lookupConfigVal = args.lookupConfig as
+          | { targetTable: string; refField: string; targetField: string }
+          | undefined
+        if (lookupConfigVal) {
+          // Queue the lookup — processed sequentially to avoid race conditions
+          lookupQueue.push({ colId, config: lookupConfigVal })
+          // Let the empty column render first, then start processing
+          setTimeout(() => processLookupQueue(), 100)
+        }
+
         // Start shimmer + AI content generation for follow-up draft column
         if (source === "ai-generated" && colId === "fld_followup_draft") {
           generatingColumns.add(colId)
           grid!.setGeneratingColumn(colId, true)
 
-          // Generate AI content for high-priority contacts only
+          // Generate AI content for high + medium priority contacts
           const rows = grid!.table.getRowModel().rows
           const contacts = rows
             .map((row, i) => {
               const d = row.original as Record<string, unknown>
-              if ((d.fld_priority as string) !== "high") return null
+              const priority = d.fld_priority as string
+              if (priority !== "high" && priority !== "medium") return null
               const name = (d.fld_name as string) ?? (d.fld_first_name as string) ?? "there"
               const company = (d.fld_company_name as string) ?? (d.fld_company as string) ?? "your company"
               const title = (d.fld_title as string) ?? (d.fld_job_title as string) ?? ""

@@ -487,9 +487,9 @@ A step counter advances on each user message. Every message — whether they cli
 - [x] **Step 0:** User clicks "Prioritize stale leads" template → Korra opens Contacts table → transition to split view
 - [x] **Step 1:** Korra filters: Tags "lead" + Last Contacted > 60 days → 130 stale leads
 - [x] **Step 2:** Links Industry + Company Size lookup columns from Companies table (teal tint + Link2 icon). Korra asks: "Want me to scan what's happening in these industries?"
-- [ ] **Step 3:** User says yes → Research card animates (searchNews tool, globe icon, 5 industries ticking off). Korra surfaces insight: "Legal has major regulatory activity." Sorts by industry (Legal to top).
-- [ ] **Step 4:** Adds Priority column (ai-generated, dry-run preview on 5 rows). On approve → fills ALL 130 rows (High/Medium/Low). Ploybook tag appears.
-- [ ] **Step 5:** Sorts by Priority (High first). Korra invites user to review and adjust.
+- [ ] **Step 3:** User says yes → Research card animates (searchNews tool, globe icon, 5 industries ticking off). Korra surfaces insight: "Legal has major regulatory activity." Filters to Legal (34 contacts).
+- [ ] **Step 4:** Adds Priority column (ai-generated, dry-run preview on 5 rows). On approve → fills all 34 rows (High/Medium/Low). Ploybook tag appears.
+- [ ] **Step 5:** Sorts by Priority ascending (High first). Korra invites user to review and adjust.
 - [ ] **Step 6:** User manually bumps a couple Low → High (acquaintances). Sends message → Korra acknowledges: "Nice catches." Asks permission to draft emails.
 - [ ] **Step 7:** Drafts follow-up emails — adds Follow-up Draft column (ai-generated source, sky shimmer + skeleton cells + FilePenLine icon). "Personalized Outreach" ploybook tag appears.
 

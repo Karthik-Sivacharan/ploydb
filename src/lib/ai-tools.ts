@@ -90,6 +90,14 @@ export const korraTools = {
         .enum(["lookup", "ai-generated"])
         .optional()
         .describe("Column data source — lookup for cross-table references, ai-generated for AI-created data"),
+      lookupConfig: z
+        .object({
+          targetTable: z.string().describe("Slug of the target table to look up"),
+          refField: z.string().describe("Ref field on the current table pointing to the target"),
+          targetField: z.string().describe("Field on the target table to read the value from"),
+        })
+        .optional()
+        .describe("Config for lookup columns — resolves values from a linked table"),
     }),
   }),
 
