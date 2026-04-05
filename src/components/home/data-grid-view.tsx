@@ -485,11 +485,25 @@ export function DataGridView({
         cellConfig = simpleVariants[opts.type] ?? { variant: "short-text" }
       }
 
+      // Build custom sort function for select columns — sort by option
+      // order (index in the options array) instead of alphabetical.
+      // This ensures High > Medium > Low, not alphabetical h < l < m.
+      let sortingFn: ColumnDef<FlatRow>["sortingFn"] | undefined
+      if (opts.options && ["select", "status"].includes(opts.type)) {
+        const rankMap = new Map(opts.options.map((o, i) => [o.value, i]))
+        sortingFn = (rowA, rowB, columnId) => {
+          const a = rankMap.get(rowA.getValue(columnId) as string) ?? 999
+          const b = rankMap.get(rowB.getValue(columnId) as string) ?? 999
+          return a - b
+        }
+      }
+
       const newCol: ColumnDef<FlatRow> = {
         id: opts.id,
         accessorKey: opts.id,
         header: opts.name,
         size: 150,
+        ...(sortingFn ? { sortingFn } : {}),
         meta: {
           label: opts.name,
           cell: cellConfig,
