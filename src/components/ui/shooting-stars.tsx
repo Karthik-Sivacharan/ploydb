@@ -34,6 +34,8 @@ export interface ShootingStarsProps {
   starHeight?: number
   /** Maximum stars visible at once */
   maxStars?: number
+  /** Disable animation (stars won't spawn) */
+  disabled?: boolean
 }
 
 export function ShootingStars({
@@ -48,6 +50,7 @@ export function ShootingStars({
   starWidth = 10,
   starHeight = 1,
   maxStars = 1,
+  disabled = false,
 }: ShootingStarsProps) {
   const [stars, setStars] = useState<ShootingStar[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
@@ -93,13 +96,18 @@ export function ShootingStars({
   }, [getRandomStartPoint, minSpeed, maxSpeed, minDelay, maxDelay])
 
   useEffect(() => {
+    if (disabled) {
+      setStars([])
+      return
+    }
+
     const initialDelay = setTimeout(createStar, 100)
 
     return () => {
       clearTimeout(initialDelay)
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [createStar])
+  }, [createStar, disabled])
 
   useEffect(() => {
     const container = containerRef.current

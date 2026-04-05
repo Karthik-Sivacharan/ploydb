@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useMemo, useRef, useState } from "react"
+import { useTheme } from "next-themes"
 import { useChat } from "@ai-sdk/react"
 import { createToolCallHandler } from "@/lib/tool-handler"
 import { AnimatePresence, motion } from "motion/react"
@@ -65,6 +66,7 @@ export function HomeDashboard() {
   const [showTemplates, setShowTemplates] = useState(true)
   const { setOpen } = useSidebar()
   const { setActiveNav } = useNav()
+  const { resolvedTheme } = useTheme()
 
   // Grid handle for Korra tool calls to manipulate the table
   const gridRef = useRef<GridHandle>(null)
@@ -155,8 +157,8 @@ export function HomeDashboard() {
             <span className="text-sm text-muted-foreground">Overview</span>
           </header>
 
-          {/* Spirit energy streaks — subtle ambient background */}
-          <ShootingStars className="flex-1">
+          {/* Spirit energy streaks — subtle ambient background (dark mode only) */}
+          <ShootingStars className="flex-1" disabled={resolvedTheme !== "dark"}>
           {/* Centered chat area */}
           <div className="flex h-full flex-col items-center justify-center px-4 pb-24">
             <div className="w-full max-w-2xl space-y-8">

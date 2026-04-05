@@ -32,9 +32,19 @@ import {
   SelectItem,
   SelectLabel,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Folder, Table2 } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { cn } from "@/lib/utils"
+import { Separator } from "@/components/ui/separator"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { DataGridSkeleton } from "@/components/ui/data-grid-skeleton"
 import { createSelectColumn } from "@/lib/select-column"
 import type { ColumnDef } from "@tanstack/react-table"
@@ -55,6 +65,7 @@ function DataGridWithToolbar({
   onOpenDatabase,
   toolbarSlot,
   gridRef,
+  footerExtra,
 }: {
   data: FlatRow[]
   columns: ColumnDef<FlatRow>[]
@@ -63,6 +74,7 @@ function DataGridWithToolbar({
   onOpenDatabase: (slug: string) => void
   toolbarSlot: React.RefObject<HTMLDivElement | null>
   gridRef?: React.RefObject<GridHandle | null>
+  footerExtra?: React.ReactNode
 }) {
   // Track who last changed filters/sorting (Korra vs user)
   const [filterAttr, setFilterAttr] = React.useState<Attribution>("user")
@@ -129,7 +141,7 @@ function DataGridWithToolbar({
           </>,
           toolbarSlot.current,
         )}
-      <DataGrid {...dataGrid} height={0} className="h-full" />
+      <DataGrid {...dataGrid} height={0} className="h-full" footerExtra={footerExtra} />
     </>
   )
 }
@@ -151,6 +163,7 @@ export function DataGridView({
   const [columns, setColumns] = React.useState<ColumnDef<FlatRow>[]>([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
+  const [syncEnabled, setSyncEnabled] = React.useState(true)
 
   const activeDb = databases.find((db) => db.id === activeDbId) ?? null
 
@@ -429,34 +442,43 @@ export function DataGridView({
         aria-orientation="horizontal"
         className="flex items-center gap-2 border-b px-4 py-2"
       >
-        <Select value={pickerValue} onValueChange={handlePickerChange}>
-          <SelectTrigger className="h-9 w-fit gap-1.5">
-            <SelectValue placeholder="Select database" />
-          </SelectTrigger>
-          <SelectContent>
-            {databases.length > 0 && (
-              <SelectGroup>
-                <SelectLabel>Live API</SelectLabel>
-                {databases.map((db) => (
-                  <SelectItem key={db.id} value={db.id}>
-                    {db.title}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            )}
-            <SelectGroup>
-              <SelectLabel>Demo</SelectLabel>
-              <SelectItem value={DEMO_SOURCE_ID}>
-                CRM Demo (Faker)
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-
-        <span className="text-sm text-muted-foreground">
-          {data.length} rows
-          {dataSource === "demo" && " · in-memory"}
-        </span>
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Folder className="h-3.5 w-3.5" />
+                Q1 Tables
+              </span>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <Select value={pickerValue} onValueChange={handlePickerChange}>
+                <SelectTrigger className="h-auto gap-1.5 border-0 bg-transparent p-0 text-sm font-normal text-foreground shadow-none focus:ring-0">
+                  <Table2 className="h-3.5 w-3.5" />
+                  <span>{activeDb?.title ?? (dataSource === "demo" ? "CRM Demo" : "Select table")}</span>
+                </SelectTrigger>
+                <SelectContent>
+                  {databases.length > 0 && (
+                    <SelectGroup>
+                      <SelectLabel>Live API</SelectLabel>
+                      {databases.map((db) => (
+                        <SelectItem key={db.id} value={db.id}>
+                          {db.title}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  )}
+                  <SelectGroup>
+                    <SelectLabel>Demo</SelectLabel>
+                    <SelectItem value={DEMO_SOURCE_ID}>
+                      CRM Demo (Faker)
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
 
         <div ref={toolbarSlotRef} className="ml-auto flex items-center gap-2" />
 
@@ -492,9 +514,37 @@ export function DataGridView({
             onOpenDatabase={handleOpenDatabase}
             toolbarSlot={toolbarSlotRef}
             gridRef={gridRef}
+            footerExtra={
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="sync-toggle" className="text-xs text-muted-foreground">
+                  Sync
+                </Label>
+                <Switch
+                  id="sync-toggle"
+                  checked={syncEnabled}
+                  onCheckedChange={setSyncEnabled}
+                  className="h-4 w-7 data-[state=checked]:bg-sky-600 [&_span]:size-3 [&_span]:data-[state=checked]:translate-x-3"
+                />
+                <img
+                  src="https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/idKa2XnbFY.svg?c=1bxid64Mup7aczewSAYMX&t=1755572735234"
+                  alt="Google Sheets"
+                  width={14}
+                  height={14}
+                  className="size-3.5 object-contain"
+                />
+                <Separator orientation="vertical" className="h-3" />
+                <span className={cn(
+                  "text-xs",
+                  syncEnabled ? "text-muted-foreground" : "text-amber-500"
+                )}>
+                  Last synced 2m ago
+                </span>
+              </div>
+            }
           />
         ) : null}
       </div>
+
     </div>
   )
 }

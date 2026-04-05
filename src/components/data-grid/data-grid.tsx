@@ -1,6 +1,8 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import * as React from "react";
 import { DataGridColumnHeader } from "@/components/data-grid/data-grid-column-header";
 import { DataGridContextMenu } from "@/components/data-grid/data-grid-context-menu";
@@ -25,6 +27,8 @@ interface DataGridProps<TData>
   dir?: Direction;
   height?: number;
   stretchColumns?: boolean;
+  /** Extra content rendered at the end of the add-row footer */
+  footerExtra?: React.ReactNode;
 }
 
 export function DataGrid<TData>({
@@ -53,6 +57,7 @@ export function DataGrid<TData>({
   height = 600,
   stretchColumns = false,
   adjustLayout = false,
+  footerExtra,
   className,
   ...props
 }: DataGridProps<TData>) {
@@ -272,7 +277,15 @@ export function DataGrid<TData>({
                 <div className="sticky start-0 flex items-center gap-2 px-3 text-muted-foreground">
                   <Plus className="size-3.5" />
                   <span className="text-sm">Add row</span>
+                  <Badge variant="secondary" className="pointer-events-none py-0.5 text-xs">
+                    {rows.length} rows
+                  </Badge>
                 </div>
+                {footerExtra && (
+                  <div className="sticky end-0 ml-auto flex items-center gap-3 px-3">
+                    {footerExtra}
+                  </div>
+                )}
               </div>
             </div>
           </div>
