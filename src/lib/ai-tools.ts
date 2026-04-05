@@ -7,6 +7,7 @@ import { z } from "zod";
  */
 const columnTypeSchema = z.enum([
   "short-text",
+  "long-text",
   "number",
   "select",
   "multi-select",
