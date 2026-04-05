@@ -173,7 +173,7 @@ export function DataGrid<TData>({
                         showEndBorder && header.column.id !== "select",
                       "border-s":
                         showStartBorder && header.column.id !== "select",
-                      "bg-teal-50/60 dark:bg-teal-950/20":
+                      "bg-teal-100/60 dark:bg-teal-900/25":
                         header.column.columnDef.meta?.source === "lookup",
                     })}
                     style={{

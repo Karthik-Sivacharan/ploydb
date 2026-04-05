@@ -381,6 +381,14 @@ export function DataGridView({
       // only columns change but data stays the same, rows skip re-render
       // and the new column's cells never mount.
       setData((prev) => prev.map((row) => ({ ...row })))
+
+      // Scroll to reveal the new column after it renders
+      requestAnimationFrame(() => {
+        const grid = document.querySelector<HTMLElement>('[data-slot="grid"]')
+        if (grid) {
+          grid.scrollTo({ left: grid.scrollWidth, behavior: "smooth" })
+        }
+      })
     },
     []
   )

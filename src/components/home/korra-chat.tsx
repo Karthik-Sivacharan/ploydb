@@ -1,27 +1,40 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import type { UIMessage, ChatStatus } from "ai"
-import {
-  BookOpen,
-  SendHorizontal,
-  Loader2,
-} from "lucide-react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { BookOpen } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import type { ContextTag } from "@/data/demo-scripts"
-import { DEMO_STEPS, getAccumulatedTags } from "@/data/demo-scripts"
+import { getAccumulatedTags } from "@/data/demo-scripts"
+import {
+  Conversation,
+  ConversationContent,
+  ConversationEmptyState,
+  ConversationScrollButton,
+} from "@/components/ai-elements/conversation"
+import {
+  Message,
+  MessageContent,
+  MessageResponse,
+} from "@/components/ai-elements/message"
+import {
+  Reasoning,
+  ReasoningTrigger,
+} from "@/components/ai-elements/reasoning"
+import {
+  PromptInput,
+  PromptInputTextarea,
+  PromptInputFooter,
+  PromptInputTools,
+  PromptInputActionMenu,
+  PromptInputActionMenuTrigger,
+  PromptInputActionMenuContent,
+  PromptInputActionMenuItem,
+  PromptInputSubmit,
+} from "@/components/ai-elements/prompt-input"
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -43,6 +56,9 @@ interface KorraChatProps {
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
+const GOOGLE_SHEETS_ICON =
+  "https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/idKa2XnbFY.svg?c=1bxid64Mup7aczewSAYMX&t=1755572735234"
+
 function getMessageText(message: UIMessage): string {
   return message.parts
     .filter((p): p is { type: "text"; text: string } => p.type === "text")
@@ -50,189 +66,99 @@ function getMessageText(message: UIMessage): string {
     .join("")
 }
 
-function isStreaming(status: ChatStatus): boolean {
-  return status === "streaming" || status === "submitted"
-}
+// ─── Context Tags Row ────────────────────────────────────────────────
 
-// ─── Korra Avatar ───────────────────────────────────────────────────
-
-function KorraAvatar() {
-  return (
-    <Avatar className="mt-0.5 size-6 shrink-0">
-      <AvatarFallback className="bg-sky-100 text-[10px] font-semibold text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">
-        KO
-      </AvatarFallback>
-    </Avatar>
-  )
-}
-
-// ─── Message Bubble ──────────────────────────────────────────────────
-
-function MessageBubble({ message, streaming }: { message: UIMessage; streaming: boolean }) {
-  const isUser = message.role === "user"
-  const text = getMessageText(message)
-  const isAssistantStreaming = !isUser && streaming
+function ContextTagsRow({ tags }: { tags: ContextTag[] }) {
+  if (tags.length === 0) return null
 
   return (
-    <div className={cn("flex gap-2.5", isUser ? "justify-end" : "justify-start")}>
-      {/* Korra avatar */}
-      {!isUser && <KorraAvatar />}
-
-      <div
-        className={cn(
-          "max-w-[85%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed",
-          isUser
-            ? "bg-primary text-primary-foreground"
-            : "bg-muted/60 text-foreground"
-        )}
-      >
-        {text || (isAssistantStreaming && <TypingIndicator />)}
-      </div>
-    </div>
-  )
-}
-
-// ─── Typing Indicator ────────────────────────────────────────────────
-
-function TypingIndicator() {
-  return (
-    <div className="flex items-center gap-1 py-1">
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className="size-1.5 animate-bounce rounded-full bg-muted-foreground/50"
-          style={{ animationDelay: `${i * 150}ms` }}
-        />
+    <div className="flex w-full flex-wrap items-center gap-1.5 border-t border-border/20 px-3 pt-3 pb-1.5">
+      {tags.map((tag) => (
+        <Badge
+          key={tag.name}
+          variant="outline"
+          className={cn(
+            "gap-1.5 py-0.5 text-[11px]",
+            tag.type === "source"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300"
+              : "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950/30 dark:text-sky-300"
+          )}
+        >
+          {tag.icon === "google-sheets" ? (
+            <img
+              src={GOOGLE_SHEETS_ICON}
+              alt="Google Sheets"
+              width={12}
+              height={12}
+              className="size-3 object-contain"
+            />
+          ) : (
+            <BookOpen className="size-3" />
+          )}
+          {tag.name}
+        </Badge>
       ))}
     </div>
   )
 }
 
-// ─── Ploybooks Menu ──────────────────────────────────────────────────
+// ─── Korra Prompt Input ──────────────────────────────────────────────
 
-function PloyBooksMenu() {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-muted-foreground">
-          <BookOpen className="size-3.5" />
-          <span className="text-xs">Ploybooks</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem>
-          <BookOpen className="mr-2 size-4" />
-          Lead Prioritization
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <BookOpen className="mr-2 size-4" />
-          Client Health Assessment
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <BookOpen className="mr-2 size-4" />
-          Deal Pipeline Review
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
-
-// ─── Chat Input ──────────────────────────────────────────────────────
-
-const GOOGLE_SHEETS_ICON =
-  "https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/idKa2XnbFY.svg?c=1bxid64Mup7aczewSAYMX&t=1755572735234"
-
-function ChatInput({
+function KorraPromptInput({
   onSend,
   onStop,
-  loading,
+  status,
   variant,
   contextTags = [],
 }: {
   onSend: (text: string) => void
   onStop: () => void
-  loading: boolean
+  status: ChatStatus
   variant: "home" | "panel"
   contextTags?: ContextTag[]
 }) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [autopilot, setAutopilot] = useState(false)
 
-  const handleSubmit = () => {
-    const text = textareaRef.current?.value.trim()
-    if (!text || loading) return
+  const handleSubmit = ({ text }: { text: string }) => {
+    if (!text.trim()) return
     onSend(text)
-    if (textareaRef.current) textareaRef.current.value = ""
-    resetHeight()
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSubmit()
-    }
-  }
-
-  const resetHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"
-    }
-  }
-
-  const handleInput = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto"
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
-    }
   }
 
   return (
-    <div className="rounded-xl border border-border/50 bg-background">
-      <textarea
-        ref={textareaRef}
+    <PromptInput onSubmit={handleSubmit}>
+      <PromptInputTextarea
         placeholder="Ask Korra..."
-        onKeyDown={handleKeyDown}
-        onInput={handleInput}
-        rows={1}
         className={cn(
-          "w-full resize-none bg-transparent px-3.5 pt-3 pb-1 text-sm outline-none placeholder:text-muted-foreground",
           variant === "home" ? "min-h-[7rem]" : "min-h-[3rem] max-h-[8rem]"
         )}
       />
-      {/* Context tags — only shown when tags exist */}
-      {contextTags.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 border-t border-border/30 px-3 py-1.5">
-          {contextTags.map((tag) => (
-            <Badge
-              key={tag.name}
-              variant="outline"
-              className={cn(
-                "gap-1.5 py-0.5 text-[11px]",
-                tag.type === "source"
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300"
-                  : "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950/30 dark:text-sky-300"
-              )}
-            >
-              {tag.icon === "google-sheets" ? (
-                <img
-                  src={GOOGLE_SHEETS_ICON}
-                  alt="Google Sheets"
-                  width={12}
-                  height={12}
-                  className="size-3 object-contain"
-                />
-              ) : (
-                <BookOpen className="size-3" />
-              )}
-              {tag.name}
-            </Badge>
-          ))}
-        </div>
-      )}
 
-      {/* Actions footer */}
-      <div className="flex items-center justify-between border-t border-border/30 px-2 py-1.5">
-        <PloyBooksMenu />
+      {/* Context tags — only shown when tags exist */}
+      <ContextTagsRow tags={contextTags} />
+
+      <PromptInputFooter>
+        <PromptInputTools>
+          {/* Ploybooks menu */}
+          <PromptInputActionMenu>
+            <PromptInputActionMenuTrigger tooltip="Ploybooks">
+              <BookOpen className="size-4" />
+              <span className="text-sm">Ploybooks</span>
+            </PromptInputActionMenuTrigger>
+            <PromptInputActionMenuContent>
+              <PromptInputActionMenuItem>
+                Lead Prioritization
+              </PromptInputActionMenuItem>
+              <PromptInputActionMenuItem>
+                Client Health Assessment
+              </PromptInputActionMenuItem>
+              <PromptInputActionMenuItem>
+                Deal Pipeline Review
+              </PromptInputActionMenuItem>
+            </PromptInputActionMenuContent>
+          </PromptInputActionMenu>
+        </PromptInputTools>
+
+        {/* Right side: Autopilot toggle + Submit */}
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             <Switch
@@ -248,18 +174,71 @@ function ChatInput({
               Autopilot
             </Label>
           </div>
-          {loading ? (
-            <Button size="icon" variant="ghost" className="size-7" onClick={onStop}>
-              <Loader2 className="size-4 animate-spin" />
-            </Button>
-          ) : (
-            <Button size="icon" variant="ghost" className="size-7" onClick={handleSubmit}>
-              <SendHorizontal className="size-4" />
-            </Button>
-          )}
+          <PromptInputSubmit status={status} onStop={onStop} />
         </div>
-      </div>
-    </div>
+      </PromptInputFooter>
+    </PromptInput>
+  )
+}
+
+// ─── Message List ────────────────────────────────────────────────────
+
+function MessageList({
+  messages,
+  status,
+}: {
+  messages: UIMessage[]
+  status: ChatStatus
+}) {
+  const isStreaming = status === "streaming" || status === "submitted"
+  const lastMsg = messages[messages.length - 1]
+
+  // Show thinking indicator when:
+  // - status is "submitted" and last message is user (waiting for response)
+  // - status is "streaming" but last assistant message has no text yet (response starting)
+  const lastAssistantText =
+    lastMsg?.role === "assistant"
+      ? lastMsg.parts
+          .filter((p): p is { type: "text"; text: string } => p.type === "text")
+          .map((p) => p.text)
+          .join("")
+      : ""
+  const isThinking =
+    (status === "submitted" && lastMsg?.role === "user") ||
+    (status === "streaming" && lastMsg?.role === "assistant" && !lastAssistantText)
+
+  return (
+    <>
+      {messages.map((msg) => {
+        const isLastAssistant =
+          msg === lastMsg && msg.role === "assistant" && isStreaming
+
+        return (
+          <Message from={msg.role} key={msg.id}>
+            <MessageContent>
+              {msg.parts.map((part, i) =>
+                part.type === "text" ? (
+                  <MessageResponse key={i} isAnimating={isLastAssistant}>
+                    {part.text}
+                  </MessageResponse>
+                ) : null
+              )}
+            </MessageContent>
+          </Message>
+        )
+      })}
+
+      {/* Thinking indicator — Reasoning component with shimmer animation */}
+      {isThinking && (
+        <Message from="assistant">
+          <MessageContent>
+            <Reasoning isStreaming>
+              <ReasoningTrigger />
+            </Reasoning>
+          </MessageContent>
+        </Message>
+      )}
+    </>
   )
 }
 
@@ -267,15 +246,7 @@ function ChatInput({
 
 export function KorraChat({ variant, chat, onFirstMessage }: KorraChatProps) {
   const { messages, status, sendMessage, stop } = chat
-  const scrollRef = useRef<HTMLDivElement>(null)
   const hasCalledFirstMessage = useRef(false)
-
-  // Auto-scroll when new messages arrive
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
-  }, [messages, status])
 
   const handleSend = (text: string) => {
     if (!hasCalledFirstMessage.current && onFirstMessage) {
@@ -285,10 +256,9 @@ export function KorraChat({ variant, chat, onFirstMessage }: KorraChatProps) {
     sendMessage({ text })
   }
 
-  const streaming = isStreaming(status)
   const hasMessages = messages.length > 0
 
-  // Derive current demo step from assistant message count (same logic as route.ts)
+  // Derive current demo step from assistant message count
   const assistantCount = messages.filter((m) => m.role === "assistant").length
   const stepIndex = Math.max(0, assistantCount - 1)
   const contextTags = variant === "panel" ? getAccumulatedTags(stepIndex) : []
@@ -302,41 +272,27 @@ export function KorraChat({ variant, chat, onFirstMessage }: KorraChatProps) {
           <span className="text-sm font-medium">Korra</span>
         </div>
 
-        {/* Messages */}
-        <ScrollArea ref={scrollRef} className="flex-1 px-4 py-3">
-          {hasMessages ? (
-            <div className="space-y-3">
-              {messages.map((msg, i) => (
-                <MessageBubble
-                  key={msg.id}
-                  message={msg}
-                  streaming={streaming && i === messages.length - 1 && msg.role === "assistant"}
-                />
-              ))}
-              {streaming && messages[messages.length - 1]?.role === "user" && (
-                <div className="flex gap-2.5">
-                  <KorraAvatar />
-                  <div className="rounded-2xl bg-muted/60 px-3.5 py-2">
-                    <TypingIndicator />
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-muted-foreground">
-                Ask Korra to help with your data
-              </p>
-            </div>
-          )}
-        </ScrollArea>
+        {/* Messages — Conversation provides auto-scroll via use-stick-to-bottom */}
+        <Conversation className="flex-1">
+          <ConversationContent className="gap-4 px-4 py-3">
+            {hasMessages ? (
+              <MessageList messages={messages} status={status} />
+            ) : (
+              <ConversationEmptyState
+                title="Ask Korra to help with your data"
+                description=""
+              />
+            )}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
 
         {/* Input */}
         <div className="shrink-0 p-4 pt-2">
-          <ChatInput
+          <KorraPromptInput
             onSend={handleSend}
             onStop={stop}
-            loading={streaming}
+            status={status}
             variant="panel"
             contextTags={contextTags}
           />
@@ -350,22 +306,16 @@ export function KorraChat({ variant, chat, onFirstMessage }: KorraChatProps) {
     <div className="w-full space-y-4">
       {/* Show messages inline if any exist */}
       {hasMessages && (
-        <div className="max-h-64 space-y-3 overflow-y-auto rounded-xl border border-border/30 p-4">
-          {messages.map((msg, i) => (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              streaming={streaming && i === messages.length - 1 && msg.role === "assistant"}
-            />
-          ))}
+        <div className="max-h-64 space-y-4 overflow-y-auto rounded-xl border border-border/30 p-4">
+          <MessageList messages={messages} status={status} />
         </div>
       )}
 
       {/* Input */}
-      <ChatInput
+      <KorraPromptInput
         onSend={handleSend}
         onStop={stop}
-        loading={streaming}
+        status={status}
         variant="home"
       />
     </div>

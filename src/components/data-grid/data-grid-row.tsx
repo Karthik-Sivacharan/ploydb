@@ -254,12 +254,13 @@ function DataGridRowImpl<TData>({
             aria-colindex={colIndex + 1}
             data-highlighted={isCellFocused ? "" : undefined}
             data-slot="grid-cell"
+            data-source={cell.column.columnDef.meta?.source ?? undefined}
             tabIndex={-1}
             className={cn({
               grow: stretchColumns && columnId !== "select",
               "border-e": showEndBorder && columnId !== "select",
               "border-s": showStartBorder && columnId !== "select",
-              "bg-teal-50/40 dark:bg-teal-950/15":
+              "bg-teal-100/50 dark:bg-teal-900/20":
                 cell.column.columnDef.meta?.source === "lookup",
             })}
             style={{

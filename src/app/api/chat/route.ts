@@ -19,12 +19,15 @@ export async function POST(req: Request) {
   const model = new MockLanguageModelV3({
     doStream: async () => ({
       stream: new ReadableStream({
-        start(controller) {
+        async start(controller) {
           // ─── Stream start ──────────────────────────────────────
           controller.enqueue({
             type: "stream-start" as const,
             warnings: [],
           })
+
+          // Brief pause so the "Thinking..." shimmer is visible
+          await new Promise((r) => setTimeout(r, 800))
 
           // ─── Text content ──────────────────────────────────────
           controller.enqueue({

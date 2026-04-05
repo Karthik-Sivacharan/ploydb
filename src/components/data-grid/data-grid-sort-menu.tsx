@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
+import type { Attribution } from "@/types/grid-handle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,11 +54,13 @@ interface DataGridSortMenuProps<TData>
   extends React.ComponentProps<typeof PopoverContent> {
   table: Table<TData>;
   disabled?: boolean;
+  attribution?: Attribution;
 }
 
 export function DataGridSortMenu<TData>({
   table,
   disabled,
+  attribution = "user",
   ...props
 }: DataGridSortMenuProps<TData>) {
   const dir = useDirection();
@@ -187,7 +190,12 @@ export function DataGridSortMenu<TData>({
             {sorting.length > 0 && (
               <Badge
                 variant="secondary"
-                className="h-5 rounded-sm px-1.5 font-mono font-normal text-xs"
+                className={cn(
+                  "h-5 rounded-sm px-1.5 font-mono font-normal text-xs",
+                  attribution === "korra"
+                    ? "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300"
+                    : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
+                )}
               >
                 {sorting.length}
               </Badge>

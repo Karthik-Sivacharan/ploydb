@@ -6,7 +6,7 @@ import { createToolCallHandler } from "@/lib/tool-handler"
 import { AnimatePresence, motion } from "motion/react"
 import {
   FileText,
-  Sparkles,
+  Target,
   Users,
   HandshakeIcon,
 } from "lucide-react"
@@ -25,7 +25,7 @@ const INITIAL_DB_SLUG = (openDbCall?.args?.slug as string) ?? "contacts"
 
 const TEMPLATES = [
   {
-    icon: Sparkles,
+    icon: Target,
     title: "Prioritize stale leads",
     description: "Find contacts you haven't reached in 60+ days",
     prompt: "Prioritize my stale leads — contacts I haven't reached out to in over 60 days.",
