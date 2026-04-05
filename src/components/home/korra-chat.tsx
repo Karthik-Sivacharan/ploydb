@@ -26,6 +26,7 @@ import {
 } from "@/components/ai-elements/reasoning"
 import { Shimmer } from "@/components/ai-elements/shimmer"
 import { BrainIcon } from "lucide-react"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   PromptInput,
   PromptInputTextarea,
@@ -274,6 +275,11 @@ export function KorraChat({ variant, chat, onFirstMessage }: KorraChatProps) {
       <div className="flex h-full flex-col border-l border-border/40">
         {/* Header */}
         <div className="flex shrink-0 items-center justify-end gap-2 border-b border-border/40 px-4 py-2">
+          <Avatar className="size-7">
+            <AvatarFallback className="bg-sky-100 text-xs font-semibold text-sky-700 dark:bg-sky-900 dark:text-sky-300">
+              KO
+            </AvatarFallback>
+          </Avatar>
           <span className="flex h-9 items-center text-sm font-medium">Korra</span>
         </div>
 
