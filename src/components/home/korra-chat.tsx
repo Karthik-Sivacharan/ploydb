@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import type { ContextTag } from "@/data/demo-scripts"
-import { getAccumulatedTags } from "@/data/demo-scripts"
+import { getAccumulatedTags, AUTO_ADVANCE_PREFIX } from "@/data/demo-scripts"
 import {
   Conversation,
   ConversationContent,
@@ -23,6 +23,7 @@ import {
 import {
   Reasoning,
   ReasoningTrigger,
+  ReasoningContent,
 } from "@/components/ai-elements/reasoning"
 import { Shimmer } from "@/components/ai-elements/shimmer"
 import { BrainIcon } from "lucide-react"
@@ -197,32 +198,53 @@ function MessageList({
   messages: UIMessage[]
   status: ChatStatus
 }) {
-  const isStreaming = status === "streaming" || status === "submitted"
-  const lastMsg = messages[messages.length - 1]
+  // Filter out auto-advance user messages (hidden from UI)
+  const visibleMessages = messages.filter((msg) => {
+    if (msg.role !== "user") return true
+    const text = getMessageText(msg)
+    return !text.startsWith(AUTO_ADVANCE_PREFIX)
+  })
 
-  // Show thinking indicator when:
-  // - status is "submitted" and last message is user (waiting for response)
-  // - status is "streaming" but last assistant message has no text yet (response starting)
+  const isStreaming = status === "streaming" || status === "submitted"
+  const lastMsg = visibleMessages[visibleMessages.length - 1]
+
+  // Show thinking indicator when waiting for response or response is starting.
+  // Check against the ORIGINAL messages (including hidden auto-advance) so the
+  // thinking shimmer shows during auto-advance steps too.
+  const realLastMsg = messages[messages.length - 1]
   const lastAssistantText =
-    lastMsg?.role === "assistant"
-      ? lastMsg.parts
+    realLastMsg?.role === "assistant"
+      ? realLastMsg.parts
           .filter((p): p is { type: "text"; text: string } => p.type === "text")
           .map((p) => p.text)
           .join("")
       : ""
   const isThinking =
-    (status === "submitted" && lastMsg?.role === "user") ||
-    (status === "streaming" && lastMsg?.role === "assistant" && !lastAssistantText)
+    (status === "submitted" && realLastMsg?.role === "user") ||
+    (status === "streaming" && realLastMsg?.role === "assistant" && !lastAssistantText)
 
   return (
     <>
-      {messages.map((msg) => {
+      {visibleMessages.map((msg) => {
         const isLastAssistant =
           msg === lastMsg && msg.role === "assistant" && isStreaming
+
+        // Extract reasoning parts for chain-of-thought display
+        const reasoningParts = msg.parts.filter(
+          (p) => p.type === "reasoning"
+        ) as Array<{ type: "reasoning"; text: string }>
+        const reasoningText = reasoningParts.map((p) => p.text).join("")
+        const hasReasoning = reasoningText.length > 0
 
         return (
           <Message from={msg.role} key={msg.id}>
             <MessageContent>
+              {hasReasoning && (
+                <Reasoning isStreaming={isLastAssistant} defaultOpen={isLastAssistant}>
+                  <ReasoningTrigger />
+                  <ReasoningContent>{reasoningText}</ReasoningContent>
+                </Reasoning>
+              )}
               {msg.parts.map((part, i) =>
                 part.type === "text" ? (
                   <MessageResponse key={i} isAnimating={isLastAssistant}>

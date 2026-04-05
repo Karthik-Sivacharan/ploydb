@@ -13,8 +13,11 @@ export async function POST(req: Request) {
   const step = DEMO_STEPS[stepIndex] ?? DEMO_STEPS[DEMO_STEPS.length - 1]
   const text = step.response
   const toolCalls = step.toolCalls ?? []
+  const thinkingDelay = step.thinkingDelay ?? 800
+  const reasoning = step.reasoning ?? null
 
   const textId = "text-0"
+  const reasoningId = "reasoning-0"
 
   const model = new MockLanguageModelV3({
     doStream: async () => ({
@@ -26,8 +29,32 @@ export async function POST(req: Request) {
             warnings: [],
           })
 
-          // Brief pause so the "Thinking..." shimmer is visible
-          await new Promise((r) => setTimeout(r, 800))
+          // Thinking delay — shows the "Thinking..." shimmer in the UI.
+          // Longer delays make it feel like Korra is analyzing data.
+          await new Promise((r) => setTimeout(r, thinkingDelay))
+
+          // ─── Reasoning / chain of thought (optional) ───────────
+          // Streamed line by line with delays to simulate research.
+          if (reasoning) {
+            controller.enqueue({
+              type: "reasoning-start" as const,
+              id: reasoningId,
+            })
+            const lines = reasoning.split("\n")
+            for (const line of lines) {
+              controller.enqueue({
+                type: "reasoning-delta" as const,
+                id: reasoningId,
+                delta: line + "\n",
+              })
+              // Stagger each line — feels like Korra is working through sources
+              await new Promise((r) => setTimeout(r, 300))
+            }
+            controller.enqueue({
+              type: "reasoning-end" as const,
+              id: reasoningId,
+            })
+          }
 
           // ─── Text content ──────────────────────────────────────
           controller.enqueue({

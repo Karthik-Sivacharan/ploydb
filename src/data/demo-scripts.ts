@@ -1,10 +1,11 @@
-// Happy Path V4 — "Prioritize stale leads"
+// Happy Path V5 — "Prioritize stale leads"
 //
-// 8-step scripted demo (steps 0-7) using live PloyDB API (960 contacts).
+// 9-step scripted demo (steps 0-8) using live PloyDB API (960 contacts).
 // All data comes from the Railway API — no Faker demo data.
 //
-// Lookup columns (Industry, Company Size) resolve via fld_company ref
-// to the Companies table. No hardcoded enrichment data.
+// V5: More conversational flow. Korra explains her thinking, asks permission
+// at each step. Thinking states visible between actions. Step 0 auto-advances
+// into step 1 (analysis). Steps 4+5 from V4 merged into single priority step.
 //
 // Data (as of 2026-04-05):
 //   960 total contacts, 265 tagged "lead", 130 stale (60+ days)
@@ -12,9 +13,10 @@
 //     Retail (23), Consulting (21)
 //   Company sizes: 1-10 (43), 201-1000 (34), 51-200 (31), 11-50 (22)
 //
-// After step 3 filter to Legal: 34 contacts remain for priority scoring.
+// After step 4 filter to Legal: 34 contacts remain for priority scoring.
 //
 // Step counter is client-driven (route.ts counts assistant messages).
+// Auto-advance steps send a hidden "__auto__" user message after completing.
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -46,23 +48,23 @@ export interface DemoStep {
   ploybook?: string
   /** New context tags introduced at this step (accumulate forward) */
   contextTags?: ContextTag[]
-  /** Delay in ms before executing tool calls */
-  toolDelay?: number
+  /** Delay in ms before text starts streaming (shows thinking shimmer). Default 800. */
+  thinkingDelay?: number
+  /** If set, auto-send a hidden message after this many ms to trigger the next step. */
+  autoAdvance?: number
+  /** Reasoning / chain-of-thought text streamed before the main response.
+   *  Shows as an expandable "Thinking..." block with step-by-step reasoning. */
+  reasoning?: string
 }
 
-// ─── Priority distribution for all 130 stale leads ──────────────────────────
-// Weighted: ~30 High, ~50 Medium, ~50 Low
-// High = large companies (201-1000) + senior titles in active industries
-// Medium = mid-size companies (51-200) or mid-level titles
-// Low = small companies (1-10, 11-50) + junior titles
+// ─── Priority distribution for 34 Legal contacts ─────────────────────────────
+// ~8 High, ~13 Medium, ~13 Low
 
 function generatePriorityUpdates(): Array<{
   rowIndex: number
   columnId: string
   value: string
 }> {
-  // 34 Legal contacts after step 3 filter
-  // ~8 High, ~13 Medium, ~13 Low
   const updates: Array<{ rowIndex: number; columnId: string; value: string }> = []
   for (let i = 0; i < 34; i++) {
     let priority: string
@@ -77,22 +79,34 @@ function generatePriorityUpdates(): Array<{
 // ─── Steps ───────────────────────────────────────────────────────────────────
 
 export const DEMO_STEPS: DemoStep[] = [
-  // ── Step 0: Open Contacts table ──────────────────────────────────────────
+  // ── Step 0: Open Contacts table (auto-advances to step 1) ──────────
   {
     step: 0,
     response:
-      "I see 960 contacts in your CRM. Let me open that up and help you prioritize the stale ones.",
+      "I see 960 contacts in your CRM. Let me open that up and take a look.",
     toolCalls: [
       { name: "openDatabase", args: { slug: "contacts" } },
     ],
-    toolDelay: 800,
+    thinkingDelay: 800,
+    autoAdvance: 500,
   },
 
-  // ── Step 1: Filter to stale leads ────────────────────────────────────────
+  // ── Step 1: Analyze + ask about filtering ──────────────────────────
+  // Auto-triggered after step 0. Long thinking delay simulates Korra
+  // analyzing the table before speaking.
   {
     step: 1,
     response:
-      "Filtering to leads you haven't contacted in 60+ days. I can see 130 stale leads that need attention.",
+      "I've been looking through your contacts — 130 of them are tagged as leads but haven't been reached in over 60 days. That's a good place to start. Want me to filter those out?",
+    toolCalls: [],
+    thinkingDelay: 2000,
+  },
+
+  // ── Step 2: Filter + ask about linking ─────────────────────────────
+  {
+    step: 2,
+    response:
+      "Filtered to 130 stale leads. Now, I want to look at data from other tables to prioritize these smarter. I'd like to link Industry and Company Size from your Companies table — that'll give us a clearer picture. Sound good?",
     toolCalls: [
       {
         name: "filterBy",
@@ -104,17 +118,14 @@ export const DEMO_STEPS: DemoStep[] = [
         },
       },
     ],
-    toolDelay: 600,
+    thinkingDelay: 800,
   },
 
-  // ── Step 2: Link lookup columns from Companies table ───────────────────
-  // Adds Industry + Company Size as lookup columns. Values resolve
-  // automatically via each contact's fld_company ref. No editCells needed.
-  // Korra ends with a question — asks permission to research industries.
+  // ── Step 3: Link lookup columns + ask about research ───────────────
   {
-    step: 2,
+    step: 3,
     response:
-      "Linked Industry and Company Size from your Companies table. I can see 5 industries across your stale leads — Legal (34), Technology (27), Finance (25), Retail (23), Consulting (21). Want me to scan what's happening in these industries so we can prioritize smarter?",
+      "Linked Industry and Company Size from your Companies table. I can see 5 industries: Legal (34), Technology (27), Finance (25), Retail (23), Consulting (21). I want to scan these industries online for recent news so we can figure out where the best opportunities are. Does that plan sound good?",
     contextTags: [
       { type: "source", name: "Companies", icon: "google-sheets" },
     ],
@@ -162,17 +173,30 @@ export const DEMO_STEPS: DemoStep[] = [
         },
       },
     ],
-    toolDelay: 800,
+    thinkingDelay: 800,
   },
 
-  // ── Step 3: Research industries + filter to Legal ────────────────────
-  // User said "yes" to scanning industries. Korra shows a research loading
-  // card (searchNews tool — fake, ~2s animation), then comes back with an
-  // insight about Legal and filters to show those 34 contacts.
+  // ── Step 4: Research industries + filter to Legal ──────────────────
+  // User said yes (and possibly mentioned a source). Korra shows chain
+  // of thought during research, then filters to Legal.
   {
-    step: 3,
+    step: 4,
     response:
       "Legal is seeing major regulatory activity right now — new compliance deadlines are pushing companies to re-evaluate vendors. That's 34 contacts worth reaching out to. Let me filter to those.",
+    reasoning: [
+      "Searching Reuters and Bloomberg for Legal sector news...",
+      "→ Found: EU Digital Services Act enforcement deadline Q2 2026",
+      "→ Found: New corporate compliance reporting requirements effective April 2026",
+      "Scanning TechCrunch and Crunchbase for Technology sector...",
+      "→ AI infrastructure spending up 40% YoY, but hiring freeze at mid-market",
+      "Checking Financial Times for Finance sector updates...",
+      "→ Interest rate holds steady — banks tightening vendor budgets",
+      "Reviewing Retail and Consulting trends...",
+      "→ Retail: cautious spending post-holiday season",
+      "→ Consulting: steady demand, no major shifts",
+      "",
+      "**Conclusion:** Legal has the strongest re-engagement signal — regulatory pressure creates urgency for companies to seek new solutions.",
+    ].join("\n"),
     toolCalls: [
       {
         name: "searchNews",
@@ -191,21 +215,29 @@ export const DEMO_STEPS: DemoStep[] = [
         },
       },
     ],
-    toolDelay: 600,
+    thinkingDelay: 800,
   },
 
-  // ── Step 4: Add Priority column — all 34 Legal contacts scored ──────
-  // Adds Priority column and fills every visible row with High/Medium/Low.
-  // No empties. dryRun shows preview of first 5 before applying to all.
+  // ── Step 5: Ask about prioritizing ─────────────────────────────────
+  // No tools — just asks permission before scoring.
   {
-    step: 4,
+    step: 5,
     response:
-      "Now let me score all 34 Legal leads by priority based on title seniority and company size. Here's a preview of the first 5 rows before I apply it to all.",
+      "I'm going to prioritize these 34 Legal contacts by title seniority and company size. Does that sound good?",
+    toolCalls: [],
+    thinkingDelay: 800,
+  },
+
+  // ── Step 6: Add Priority + sort + ask if it looks right ────────────
+  // Combines addColumn + editCells + sortBy in one step.
+  {
+    step: 6,
+    response:
+      "Here's how they stack up — sorted by priority. Take a look, does this feel right?",
     ploybook: "Contact Prioritization",
     contextTags: [
       { type: "ploybook", name: "Contact Prioritization", icon: "ploybook" },
     ],
-    dryRun: true,
     toolCalls: [
       {
         name: "addColumn",
@@ -227,18 +259,6 @@ export const DEMO_STEPS: DemoStep[] = [
           updates: generatePriorityUpdates(),
         },
       },
-    ],
-    toolDelay: 500,
-  },
-
-  // ── Step 5: Sort by Priority (High first) ──────────────────────────────
-  // Korra sorts so High-priority contacts are at the top. Invites the user
-  // to review and adjust — sets up the manual edit moment.
-  {
-    step: 5,
-    response:
-      "Sorting by priority so your high-value contacts are at the top. Take a look — feel free to adjust any that don't look right.",
-    toolCalls: [
       {
         name: "sortBy",
         args: {
@@ -246,26 +266,22 @@ export const DEMO_STEPS: DemoStep[] = [
         },
       },
     ],
-    toolDelay: 400,
+    thinkingDelay: 2000,
   },
 
-  // ── Step 6: Acknowledge manual edit + ask about emails ──────────────
-  // Between steps 5 and 6, the user manually changes one Low → High
-  // (a contact they personally know). This step acknowledges that
-  // and asks permission before drafting emails for High + Medium.
+  // ── Step 7: Acknowledge manual edit + ask about emails ─────────────
+  // User bumped one Low → High, then sent a message.
   {
-    step: 6,
+    step: 7,
     response:
       "Good catch — I see you bumped one to High. Your priority list is looking solid. Want me to draft personalized re-engagement emails for the High and Medium priority contacts?",
     toolCalls: [],
-    toolDelay: 0,
+    thinkingDelay: 800,
   },
 
-  // ── Step 7: Draft follow-up emails ─────────────────────────────────────
-  // Adds a Follow-up Draft column (long-text, ai-generated) and generates
-  // personalized emails for High + Medium priority contacts.
+  // ── Step 8: Draft follow-up emails ─────────────────────────────────
   {
-    step: 7,
+    step: 8,
     response:
       "Writing follow-up drafts for your High and Medium priority contacts. Each email is personalized with their name, title, company, and the regulatory context we found.",
     contextTags: [
@@ -282,7 +298,7 @@ export const DEMO_STEPS: DemoStep[] = [
         },
       },
     ],
-    toolDelay: 1000,
+    thinkingDelay: 800,
   },
 ]
 
@@ -332,3 +348,8 @@ export function getAccumulatedTags(stepIndex: number): ContextTag[] {
   }
   return tags
 }
+
+// ─── Auto-advance prefix ────────────────────────────────────────────────────
+// User messages starting with this prefix are auto-sent by the client
+// after an autoAdvance step. The UI hides them from the message list.
+export const AUTO_ADVANCE_PREFIX = "__auto__"

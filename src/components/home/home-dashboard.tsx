@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTheme } from "next-themes"
 import { useChat } from "@ai-sdk/react"
 import { createToolCallHandler } from "@/lib/tool-handler"
@@ -19,7 +19,7 @@ import { Separator } from "@/components/ui/separator"
 import { useNav } from "@/components/nav-context"
 import { KorraChat } from "@/components/home/korra-chat"
 import { DataGridView } from "@/components/home/data-grid-view"
-import { DEMO_STEPS } from "@/data/demo-scripts"
+import { DEMO_STEPS, AUTO_ADVANCE_PREFIX } from "@/data/demo-scripts"
 import type { GridHandle } from "@/types/grid-handle"
 
 // Derive initial database from step 0's openDatabase tool call
@@ -77,6 +77,28 @@ export function HomeDashboard() {
 
   // Single useChat instance shared across both layouts
   const chat = useChat({ onToolCall })
+
+  // ─── Auto-advance: after certain steps, auto-send next message ────
+  const prevStatusRef = useRef(chat.status)
+  useEffect(() => {
+    const wasStreaming = prevStatusRef.current === "streaming" || prevStatusRef.current === "submitted"
+    const isReady = chat.status === "ready"
+    prevStatusRef.current = chat.status
+
+    if (!wasStreaming || !isReady) return
+
+    // Count assistant messages to determine which step just completed
+    const assistantCount = chat.messages.filter((m) => m.role === "assistant").length
+    const justCompletedStep = DEMO_STEPS[assistantCount - 1]
+
+    if (justCompletedStep?.autoAdvance) {
+      const delay = justCompletedStep.autoAdvance
+      const timer = setTimeout(() => {
+        chat.sendMessage({ text: `${AUTO_ADVANCE_PREFIX} continue` })
+      }, delay)
+      return () => clearTimeout(timer)
+    }
+  }, [chat.status, chat.messages, chat.sendMessage])
 
   const switchToSplit = useCallback(() => {
     // Disable sidebar transition so collapse is instant (no animation to fight)
