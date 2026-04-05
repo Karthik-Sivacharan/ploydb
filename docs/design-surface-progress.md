@@ -1,6 +1,7 @@
 # Design Surface Progress
 
-> Snapshot as of 2026-04-04. Tracks coverage of the 7 design surfaces from the project brief.
+> Updated 2026-04-04. Tracks coverage of the 7 design surfaces from the project brief.
+> Demo flow: see `/HAPPY-PATH-V3.md` (8-step narrative with cross-table enrichment + email drafts).
 
 ## Coverage Summary
 

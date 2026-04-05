@@ -1,6 +1,9 @@
 # Demo Flow Implementation Spec
 
-> Engineering spec for the 5-step happy path demo. Covers API route structure, tool call payloads, client-side handlers, layout animation, and component wiring.
+> Engineering spec for the happy path demo. Originally 5 steps, now expanded to 8 steps in HAPPY-PATH-V3.md.
+> This spec covers the current implementation. See `/HAPPY-PATH-V3.md` for the full narrative including cross-table enrichment (Steps 2, 4), email drafts (Steps 6-7), and audit trail (Step 8).
+>
+> **New in V3:** enrichFromTable tool (add columns from linked tables), proactive insights, ask-before-acting pattern, Follow-up Draft column with writing animation.
 
 ---
 
