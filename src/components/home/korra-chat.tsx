@@ -1,12 +1,9 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { UIMessage, ChatStatus } from "ai"
 import {
-  Database,
-  Sparkles,
-  Users,
-  HandshakeIcon,
+  BookOpen,
   SendHorizontal,
   Loader2,
 } from "lucide-react"
@@ -19,7 +16,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
+import type { ContextTag } from "@/data/demo-scripts"
+import { DEMO_STEPS, getAccumulatedTags } from "@/data/demo-scripts"
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -113,21 +115,21 @@ function PloyBooksMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="h-7 gap-1.5 text-muted-foreground">
-          <Database className="size-3.5" />
+          <BookOpen className="size-3.5" />
           <span className="text-xs">Ploybooks</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         <DropdownMenuItem>
-          <Sparkles className="mr-2 size-4" />
+          <BookOpen className="mr-2 size-4" />
           Lead Prioritization
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <Users className="mr-2 size-4" />
+          <BookOpen className="mr-2 size-4" />
           Client Health Assessment
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <HandshakeIcon className="mr-2 size-4" />
+          <BookOpen className="mr-2 size-4" />
           Deal Pipeline Review
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -137,18 +139,24 @@ function PloyBooksMenu() {
 
 // ─── Chat Input ──────────────────────────────────────────────────────
 
+const GOOGLE_SHEETS_ICON =
+  "https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/idKa2XnbFY.svg?c=1bxid64Mup7aczewSAYMX&t=1755572735234"
+
 function ChatInput({
   onSend,
   onStop,
   loading,
   variant,
+  contextTags = [],
 }: {
   onSend: (text: string) => void
   onStop: () => void
   loading: boolean
   variant: "home" | "panel"
+  contextTags?: ContextTag[]
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [autopilot, setAutopilot] = useState(false)
 
   const handleSubmit = () => {
     const text = textareaRef.current?.value.trim()
@@ -191,17 +199,65 @@ function ChatInput({
           variant === "home" ? "min-h-[7rem]" : "min-h-[3rem] max-h-[8rem]"
         )}
       />
+      {/* Context tags — only shown when tags exist */}
+      {contextTags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 border-t border-border/30 px-3 py-1.5">
+          {contextTags.map((tag) => (
+            <Badge
+              key={tag.name}
+              variant="outline"
+              className={cn(
+                "gap-1.5 py-0.5 text-[11px]",
+                tag.type === "source"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300"
+                  : "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950/30 dark:text-sky-300"
+              )}
+            >
+              {tag.icon === "google-sheets" ? (
+                <img
+                  src={GOOGLE_SHEETS_ICON}
+                  alt="Google Sheets"
+                  width={12}
+                  height={12}
+                  className="size-3 object-contain"
+                />
+              ) : (
+                <BookOpen className="size-3" />
+              )}
+              {tag.name}
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {/* Actions footer */}
       <div className="flex items-center justify-between border-t border-border/30 px-2 py-1.5">
         <PloyBooksMenu />
-        {loading ? (
-          <Button size="icon" variant="ghost" className="size-7" onClick={onStop}>
-            <Loader2 className="size-4 animate-spin" />
-          </Button>
-        ) : (
-          <Button size="icon" variant="ghost" className="size-7" onClick={handleSubmit}>
-            <SendHorizontal className="size-4" />
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <Switch
+              id="autopilot"
+              checked={autopilot}
+              onCheckedChange={setAutopilot}
+              className="h-4 w-7 data-[state=checked]:bg-sky-600 [&_span]:size-3 [&_span]:data-[state=checked]:translate-x-3"
+            />
+            <Label
+              htmlFor="autopilot"
+              className="cursor-pointer text-xs text-muted-foreground select-none"
+            >
+              Autopilot
+            </Label>
+          </div>
+          {loading ? (
+            <Button size="icon" variant="ghost" className="size-7" onClick={onStop}>
+              <Loader2 className="size-4 animate-spin" />
+            </Button>
+          ) : (
+            <Button size="icon" variant="ghost" className="size-7" onClick={handleSubmit}>
+              <SendHorizontal className="size-4" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -231,6 +287,11 @@ export function KorraChat({ variant, chat, onFirstMessage }: KorraChatProps) {
 
   const streaming = isStreaming(status)
   const hasMessages = messages.length > 0
+
+  // Derive current demo step from assistant message count (same logic as route.ts)
+  const assistantCount = messages.filter((m) => m.role === "assistant").length
+  const stepIndex = Math.max(0, assistantCount - 1)
+  const contextTags = variant === "panel" ? getAccumulatedTags(stepIndex) : []
 
   // ─── Panel variant ───────────────────────────────────────────────
   if (variant === "panel") {
@@ -277,6 +338,7 @@ export function KorraChat({ variant, chat, onFirstMessage }: KorraChatProps) {
             onStop={stop}
             loading={streaming}
             variant="panel"
+            contextTags={contextTags}
           />
         </div>
       </div>
