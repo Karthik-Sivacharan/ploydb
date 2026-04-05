@@ -343,6 +343,8 @@ export function DataGridView({
               for (const key of Object.keys(newRow)) {
                 if (key.startsWith("_")) continue
                 if (newRow[key] !== oldRow[key]) {
+                  // Skip recording when clearing to undefined (system housekeeping)
+                  if (newRow[key] === undefined && oldRow[key] === undefined) continue
                   recordCellEdit(rowId, key, newRow[key], oldRow[key], "user")
                 }
               }
