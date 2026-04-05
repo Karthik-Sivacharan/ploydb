@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DataGridSkeleton } from "@/components/ui/data-grid-skeleton"
 import { createSelectColumn } from "@/lib/select-column"
 import type { ColumnDef } from "@tanstack/react-table"
@@ -237,8 +238,11 @@ export function DataGridView({
             const newRow = next[i]
             if (oldRow && newRow && oldRow !== newRow) {
               const changedProps: Record<string, unknown> = {}
+              const schemaFieldIds = new Set(activeDb.schema.map((f) => f.id))
               for (const key of Object.keys(newRow)) {
                 if (key.startsWith("_")) continue
+                // Skip columns not in the API schema (e.g. AI-created columns)
+                if (!schemaFieldIds.has(key)) continue
                 if (newRow[key] !== oldRow[key]) {
                   changedProps[key] = newRow[key]
                 }
@@ -417,6 +421,20 @@ export function DataGridView({
         </span>
 
         <div ref={toolbarSlotRef} className="ml-auto flex items-center gap-2" />
+
+        {/* Collaborator avatars */}
+        <div className="flex -space-x-2">
+          <Avatar className="size-9 ring-2 ring-background">
+            <AvatarFallback className="bg-sky-100 text-xs font-semibold text-sky-700 dark:bg-sky-900 dark:text-sky-300">
+              KO
+            </AvatarFallback>
+          </Avatar>
+          <Avatar className="size-9 ring-2 ring-background">
+            <AvatarFallback className="bg-amber-100 text-xs font-semibold text-amber-700 dark:bg-amber-900 dark:text-amber-300">
+              SC
+            </AvatarFallback>
+          </Avatar>
+        </div>
       </div>
 
       <div className="flex-1 overflow-hidden">
