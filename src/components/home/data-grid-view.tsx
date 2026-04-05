@@ -72,6 +72,8 @@ function DataGridWithToolbar({
   onSetGeneratingColumn,
   cellAuditMap,
   onRecordCellEdit,
+  showAuditTrail = true,
+  korraEditFlag,
 }: {
   data: FlatRow[]
   columns: ColumnDef<FlatRow>[]
@@ -85,6 +87,8 @@ function DataGridWithToolbar({
   onSetGeneratingColumn?: (columnId: string, generating: boolean) => void
   cellAuditMap?: CellAuditMap
   onRecordCellEdit?: (rowId: string, columnId: string, value: unknown, prevValue: unknown, actor: CellActor, toolCallId?: string, context?: string) => void
+  showAuditTrail?: boolean
+  korraEditFlag?: React.RefObject<boolean>
 }) {
   // Track who last changed filters/sorting (Korra vs user)
   const [filterAttr, setFilterAttr] = React.useState<Attribution>("user")
@@ -122,7 +126,10 @@ function DataGridWithToolbar({
   // Expose grid APIs for Korra tool calls via imperative handle
   React.useImperativeHandle(gridRef, () => ({
     table: dataGrid.table,
-    updateCells: (updates) => dataGrid.tableMeta.onDataUpdate?.(updates),
+    updateCells: (updates) => {
+      if (korraEditFlag) korraEditFlag.current = true
+      dataGrid.tableMeta.onDataUpdate?.(updates)
+    },
     deleteRows: (indices) => dataGrid.tableMeta.onRowsDelete?.(indices),
     addRow: (row) => onDataChange((prev) => [...prev, row]),
     addColumn: onAddColumn,
@@ -155,7 +162,7 @@ function DataGridWithToolbar({
           </>,
           toolbarSlot.current,
         )}
-      <DataGrid {...dataGrid} height={0} className="h-full" footerExtra={footerExtra} generatingColumns={generatingColumns} cellAuditMap={cellAuditMap} />
+      <DataGrid {...dataGrid} height={0} className="h-full" footerExtra={footerExtra} generatingColumns={generatingColumns} cellAuditMap={cellAuditMap} showAuditTrail={showAuditTrail} />
     </>
   )
 }
@@ -165,9 +172,11 @@ type DataSource = "api" | "demo"
 export function DataGridView({
   gridRef,
   initialSlug,
+  showAuditTrail = true,
 }: {
   gridRef?: React.RefObject<GridHandle | null>
   initialSlug?: string
+  showAuditTrail?: boolean
 }) {
   const toolbarSlotRef = React.useRef<HTMLDivElement | null>(null)
   const [dataSource, setDataSource] = React.useState<DataSource>("api")
@@ -180,6 +189,10 @@ export function DataGridView({
   const [syncEnabled, setSyncEnabled] = React.useState(true)
   const [generatingColumns, setGeneratingColumns] = React.useState<Set<string>>(new Set())
   const [cellAuditMap, setCellAuditMap] = React.useState<CellAuditMap>(new Map())
+  // Flag: suppress "user" attribution when Korra's tool calls flow through handleDataChange
+  const korraEditFlag = React.useRef(false)
+  // Flag: suppress attribution when addColumn spreads rows for re-render
+  const addColumnFlag = React.useRef(false)
 
   const recordCellEdit = React.useCallback(
     (
@@ -333,19 +346,25 @@ export function DataGridView({
         const next =
           typeof updater === "function" ? updater(prev) : updater
 
-        // Record user edits for attribution
-        for (let i = 0; i < next.length; i++) {
-          const oldRow = prev[i]
-          const newRow = next[i]
-          if (oldRow && newRow && oldRow !== newRow) {
-            const rowId = (newRow._id ?? oldRow._id) as string | undefined
-            if (rowId) {
-              for (const key of Object.keys(newRow)) {
-                if (key.startsWith("_")) continue
-                if (newRow[key] !== oldRow[key]) {
-                  // Skip recording when clearing to undefined (system housekeeping)
-                  if (newRow[key] === undefined && oldRow[key] === undefined) continue
-                  recordCellEdit(rowId, key, newRow[key], oldRow[key], "user")
+        // Record user edits for attribution.
+        // Skip when: Korra's tool call triggered this (korraEditFlag) or
+        // addColumn spread rows for re-render (addColumnFlag).
+        if (korraEditFlag.current) {
+          korraEditFlag.current = false
+        } else if (addColumnFlag.current) {
+          addColumnFlag.current = false
+        } else {
+          for (let i = 0; i < next.length; i++) {
+            const oldRow = prev[i]
+            const newRow = next[i]
+            if (oldRow && newRow && oldRow !== newRow) {
+              const rowId = (newRow._id ?? oldRow._id) as string | undefined
+              if (rowId) {
+                for (const key of Object.keys(newRow)) {
+                  if (key.startsWith("_")) continue
+                  if (newRow[key] !== oldRow[key]) {
+                    recordCellEdit(rowId, key, newRow[key], oldRow[key], "user")
+                  }
                 }
               }
             }
@@ -471,6 +490,7 @@ export function DataGridView({
       // references. The memo compares `row.original` by reference — if
       // only columns change but data stays the same, rows skip re-render
       // and the new column's cells never mount.
+      addColumnFlag.current = true
       setData((prev) => prev.map((row) => ({ ...row })))
 
       // Scroll to reveal the new column after it renders
@@ -596,6 +616,8 @@ export function DataGridView({
             onSetGeneratingColumn={handleSetGeneratingColumn}
             cellAuditMap={cellAuditMap}
             onRecordCellEdit={recordCellEdit}
+            showAuditTrail={showAuditTrail}
+            korraEditFlag={korraEditFlag}
             footerExtra={
               <div className="flex items-center gap-1.5">
                 <Label htmlFor="sync-toggle" className="text-xs text-muted-foreground">

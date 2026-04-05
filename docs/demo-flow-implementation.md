@@ -1,9 +1,19 @@
-# Demo Flow Implementation Spec
+# Demo Flow Implementation Spec — Happy Path V4
 
-> Engineering spec for the happy path demo. Originally 5 steps, now expanded to 8 steps in HAPPY-PATH-V3.md.
-> This spec covers the current implementation. See `/HAPPY-PATH-V3.md` for the full narrative including cross-table enrichment (Steps 2, 4), email drafts (Steps 6-7), and audit trail (Step 8).
+> Engineering spec for the 8-step scripted demo (steps 0-7).
+> All data comes from the **live Railway API** — no Faker demo data.
+> The Contacts table (960 rows) links to the Companies table via `fld_company` ref.
+> Lookup columns (Industry, Company Size) resolve through this ref automatically.
 >
-> **New in V3:** enrichFromTable tool (add columns from linked tables), proactive insights, ask-before-acting pattern, Follow-up Draft column with writing animation.
+> **V4 changes from V3:**
+> - Lookup columns resolve from API (no hardcoded ENRICHMENT_UPDATES)
+> - Step 2 is lookup-only + permission question ("want me to scan industries?")
+> - Step 3 is new: `searchNews` fake research tool + sort by industry
+> - Step 4 fills ALL 130 rows with Priority (no empties)
+> - Step 5 sorts by Priority (High first)
+> - Step 6 acknowledges user manual edits + asks about emails
+> - `demo-data.ts` ENRICHMENT_UPDATES removed (dead file)
+> - `searchNews` tool added (no-op handler, UI renders research card in chat)
 
 ---
 
@@ -11,7 +21,7 @@
 
 ```
 home-dashboard.tsx (page owner)
-├── data, columns, table, tableMeta  ← lifted state (Option A)
+├── data, columns, table, tableMeta  ← lifted state
 ├── useChat()                        ← single instance, shared
 │
 ├── KorraChat                        ← receives chat + onToolCall results
@@ -21,6 +31,7 @@ home-dashboard.tsx (page owner)
 │   ├── Context tags (Badge)          ← source parts from messages
 │   ├── Tool result cards             ← rendered per tool invocation
 │   │   ├── FilterBadgeCard
+│   │   ├── ResearchCard (searchNews) ← NEW: globe icon, industries ticking off
 │   │   ├── DryRunPreviewCard (approve/reject)
 │   │   ├── EditSummaryCard (expandable diff)
 │   │   └── AddColumnCard
@@ -33,177 +44,197 @@ home-dashboard.tsx (page owner)
 
 ---
 
-## State Lifting (Step 0 — Do First)
+## Data Source
 
-Move grid state from `DataGridView` into `home-dashboard.tsx` so both the grid and chat can access it:
+All demo data comes from the **PloyDB Railway API**:
+- **Contacts** (960 rows): `fld_name`, `fld_email`, `fld_phone`, `fld_title`, `fld_company` (ref → companies), `fld_tags`, `fld_last_contacted`
+- **Companies** (180 rows): `fld_name`, `fld_domain`, `fld_industry` (select), `fld_size` (select), `fld_notes`, `fld_hq`
 
-```tsx
-// home-dashboard.tsx
-const [data, setData] = useState<FlatRow[]>([])
-const [columns, setColumns] = useState<ColumnDef<FlatRow>[]>([])
-const tableRef = useRef<{ table: Table<FlatRow>; tableMeta: TableMeta }>()
+Key numbers (as of 2026-04-05):
+- 960 total contacts, 265 tagged "lead", 130 stale (60+ days)
+- Industry distribution among stale leads: Legal (34), Technology (27), Finance (25), Retail (23), Consulting (21)
+- Company size distribution: 1-10 (43), 201-1000 (34), 51-200 (31), 11-50 (22)
 
-// Pass down to DataGridView
-<DataGridView data={data} columns={columns} onDataChange={setData} tableRef={tableRef} />
-
-// Pass to onToolCall handler
-function handleToolCall(toolCall) {
-  const { table, tableMeta } = tableRef.current
-  switch (toolCall.toolName) {
-    case "filterBy": table.setColumnFilters(toolCall.args.filters); break;
-    case "editCells": tableMeta.onDataUpdate(toolCall.args.updates); break;
-    case "addColumn": setColumns(prev => [...prev, toolCall.args.column]); break;
-  }
-}
-```
+Faker demo data is only used as fallback when the API is unreachable.
 
 ---
 
-## Layout Animation (Step 1)
+## Step-by-Step Flow
 
-Single `motion.div` container wrapping `KorraChat`. Morphs from centered to right-pinned.
+### Step 0 — Open Contacts Table
 
-```tsx
-<motion.div
-  layout
-  style={{
-    width: view === "split" ? 380 : "100%",
-    maxWidth: view === "split" ? 380 : 640,
-    margin: view === "split" ? 0 : "0 auto",
-  }}
-  transition={{ type: "spring", stiffness: 200, damping: 30 }}
->
-  <KorraChat chat={chat} onToolCall={handleToolCall} />
-</motion.div>
-```
+**Trigger:** User clicks "Prioritize stale leads" template
 
-Table slides in with `AnimatePresence`:
+**Korra says:** "I see 960 contacts in your CRM. Let me open that up and help you prioritize the stale ones."
 
-```tsx
-<AnimatePresence>
-  {view === "split" && (
-    <motion.div
-      initial={{ opacity: 0, x: -40 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ type: "spring", stiffness: 200, damping: 30, delay: 0.1 }}
-      className="min-w-0 flex-1 overflow-hidden"
-    >
-      <DataGridView ... />
-    </motion.div>
-  )}
-</AnimatePresence>
-```
+**Tool calls:** `openDatabase({ slug: "contacts" })`
 
-**Transition trigger:** After Step 0 response finishes streaming → 1s delay → `setView("split")`
+**Visual:** Sidebar highlights "Contacts" → full-screen chat transitions to split view (table left + chat panel right). Chat history carries over seamlessly.
 
 ---
 
-## Mock API Route — `/api/chat/route.ts`
+### Step 1 — Filter to Stale Leads
 
-Uses `MockLanguageModelV3` with a step counter. Each POST advances the counter and returns the next scripted response.
+**Trigger:** User sends any message
 
-### Stream Format Per Step
+**Korra says:** "Filtering to leads you haven't contacted in 60+ days. I can see 130 stale leads that need attention."
 
-Each step returns a combination of:
-- **Text parts** — Korra's message text (streamed character by character)
-- **Tool invocation parts** — tool calls with `state: "call"` then `state: "result"`
-- **Source parts** — context tags (ploybook name, table reference)
-
-### Step-by-Step Payloads
-
-#### Step 0 — Greeting + Open Table
-
-```
-Source: { type: "source", source: { title: "Contacts", description: "960 rows" } }
-Source: { type: "source", source: { title: "Ploybook: Lead Prioritization" } }
-Text: "I see 960 contacts in your CRM. I'll open that up and help you prioritize stale leads."
+**Tool calls:**
+```json
+filterBy({
+  filters: [
+    { columnId: "fld_tags", operator: "contains", value: "lead" },
+    { columnId: "fld_last_contacted", operator: "before", value: "2026-02-03" }
+  ]
+})
 ```
 
-No tool calls. Client waits for stream to finish, then triggers layout transition.
+**Visual:** Rows fade out, 130 remain. Korra attribution badge appears on filter controls.
 
-#### Step 1 — Filter Contacts
+---
 
-```
-Text: "I'll filter to leads you haven't contacted in 60+ days."
-Tool call: filterBy
-  args: {
-    filters: [
-      { id: "tags", value: "lead" },
-      { id: "lastContacted", value: { operator: "olderThan", days: 60 } }
-    ]
-  }
-  result: { applied: true, matchCount: 47 }
-```
+### Step 2 — Link Lookup Columns + Ask Permission
 
-Client `onToolCall`:
-```tsx
-table.setColumnFilters([
-  { id: "tags", value: "lead" },
-  { id: "lastContacted", value: "60_days_ago" }
-])
+**Trigger:** User sends any message
+
+**Korra says:** "Linked Industry and Company Size from your Companies table. I can see 5 industries across your stale leads — Legal (34), Technology (27), Finance (25), Retail (23), Consulting (21). Want me to scan what's happening in these industries so we can prioritize smarter?"
+
+**Context tags:** `Companies` (google-sheets icon)
+
+**Tool calls:**
+```json
+addColumn({ id: "fld_industry", name: "Industry", type: "select", source: "lookup", options: [...] })
+addColumn({ id: "fld_company_size", name: "Company Size", type: "select", source: "lookup", options: [...] })
 ```
 
-Chat renders: filter badge card showing applied filters + "47 matches"
+**Visual:** Two new columns appear with teal tint + Link2 icon (lookup styling). Values auto-resolve from each contact's `fld_company` ref to the Companies table. Korra ends with a question — waits for user response.
 
-#### Step 2 — Add Priority Column + Dry-Run Preview
+**Implementation note:** Lookup column value resolution needs to follow the `fld_company` ref for each contact row, look up the matching company in the Companies table, and display that company's `fld_industry` and `fld_size` values. This is a client-side join — the Companies data is already loaded (DataGridView fetches ref target tables on mount).
 
-```
-Source: { type: "source", source: { title: "Ploybook: Contact Prioritization" } }
-Text: "I'll add a Priority column based on their title seniority and company size."
-Tool call: addColumn
-  args: { id: "priority", label: "Priority", variant: "select", options: [...] }
-  result: { added: true }
-Tool call: editCells
-  args: {
-    preview: true,
-    sample: [
-      { rowIndex: 0, columnId: "priority", value: "High", reason: "VP at 500+ company" },
-      { rowIndex: 1, columnId: "priority", value: "Medium", reason: "Manager at 200 company" },
-      ...3 more
-    ]
-  }
-  result: awaiting_approval
+---
+
+### Step 3 — Research Industries + Sort (NEW in V4)
+
+**Trigger:** User says "yes" or sends any message
+
+**Korra says:** "Legal is seeing major regulatory activity right now — new compliance deadlines are pushing companies to re-evaluate vendors. That's 34 contacts worth reaching out to. Sorting them to the top."
+
+**Tool calls:**
+```json
+searchNews({ industries: ["Legal", "Technology", "Finance", "Retail", "Consulting"] })
+sortBy({ sorts: [{ columnId: "fld_industry", desc: false }] })
 ```
 
-Chat renders:
-1. "Added Priority column" confirmation card
-2. Dry-run preview card — mini-table with 5 rows showing proposed values + reasoning
-3. Approve / Reject buttons on the card
+**Visual:**
+1. **Research card appears in chat** — compact card with globe/search icon. Lists the 5 industries being "researched." Each one gets a checkmark after a staggered delay (~400ms each). Card takes ~2s total.
+2. After research card completes, Korra's text streams in with the Legal insight.
+3. Table re-sorts with Legal contacts at the top. Korra attribution badge on sort controls.
 
-On Approve → `addToolOutput({ approved: true })` → API returns next chunk with full editCells
+**Implementation note:** `searchNews` is a fake tool — the handler is a no-op. The research card is rendered in the chat UI whenever it sees a `searchNews` tool call in the message stream. The "insight" about Legal regulatory activity is hardcoded in the demo script response text.
 
-#### Step 3 — Human Corrects + Bulk Update
+---
 
-```
-Text: "Got it — I'll apply High priority to all healthcare contacts."
-Tool call: editCells
-  args: {
-    updates: [
-      { rowIndex: 5, columnId: "priority", oldValue: "Low", newValue: "High" },
-      { rowIndex: 12, columnId: "priority", oldValue: "Medium", newValue: "High" },
-      ...45 more
-    ],
-    summary: { count: 47, column: "priority", reason: "Healthcare industry contacts" }
-  }
-  result: { updated: 47 }
-```
+### Step 4 — Add Priority Column (ALL 130 Rows)
 
-Chat renders: Edit summary card — "Updated 47 rows — Priority for healthcare contacts"
-Card is expandable → shows diff view (mini-table with old → new values, red/green)
+**Trigger:** User sends any message
 
-Client `onToolCall`:
-```tsx
-tableMeta.onDataUpdate(toolCall.args.updates)
+**Korra says:** "Now let me score all 130 leads by priority based on title seniority, company size, and industry activity. Here's a preview of the first 5 rows before I apply it to all."
+
+**Ploybook:** "Contact Prioritization"
+**Context tags:** `Contact Prioritization` (ploybook icon)
+**dryRun:** true
+
+**Tool calls:**
+```json
+addColumn({ id: "fld_priority", name: "Priority", type: "select", source: "ai-generated", options: [
+  { value: "high", label: "High" },
+  { value: "medium", label: "Medium" },
+  { value: "low", label: "Low" }
+]})
+editCells({ updates: [/* ALL 130 rows — ~30 High, ~50 Medium, ~50 Low */] })
 ```
 
-#### Step 4 — Row Detail (No Chat Interaction)
+**Visual:**
+1. Priority column appears with sky-blue generating shimmer + FilePenLine icon (ai-generated styling).
+2. **Dry-run preview card** shows first 5 rows with proposed Priority values. Approve / Reject buttons.
+3. On approve → all 130 rows fill with High/Medium/Low values. Wave animation across cells.
+4. "Contact Prioritization" ploybook tag appears near chat input.
 
-This step is triggered by clicking a row in the grid, not by a chat message.
-Opens a `Sheet` side panel with:
-- All fields in form layout
-- Audit timeline at bottom:
-  - "Korra set Priority to High — VP-level role at 500+ company" (Korra avatar, timestamp)
-  - "You changed Priority from Low to High" (User avatar, timestamp)
+**Distribution:** ~30 High (large companies + senior titles in active industries), ~50 Medium (mid-size or mid-level), ~50 Low (small companies + junior titles). No empty cells.
+
+---
+
+### Step 5 — Sort by Priority
+
+**Trigger:** User sends any message
+
+**Korra says:** "Sorting by priority so your high-value contacts are at the top. Take a look — feel free to adjust any that don't look right."
+
+**Tool calls:**
+```json
+sortBy({ sorts: [{ columnId: "fld_priority", desc: true }] })
+```
+
+**Visual:** Table re-sorts — High-priority contacts float to the top. Korra attribution badge on sort. Korra explicitly invites the user to review and make manual corrections.
+
+---
+
+### Step 6 — Acknowledge Manual Edits + Ask About Emails
+
+**Trigger:** User manually changes a couple of Low → High in the grid (acquaintances they recognize), then sends a message
+
+**Korra says:** "Nice catches — I see you bumped a couple to High. Your priority list is looking solid. Want me to draft personalized re-engagement emails for the high-priority ones?"
+
+**Tool calls:** None
+
+**Visual:** No table changes. This is a permission checkpoint — Korra asks before taking the next big action (drafting emails). The user's manual edits are tracked in the cell audit map with "user" attribution.
+
+**Note:** The scripted response assumes the user made manual edits. In a live demo, the presenter manually edits 2-3 cells before sending the next message. If the user doesn't edit anything, the message is slightly off but still works narratively.
+
+---
+
+### Step 7 — Draft Follow-up Emails
+
+**Trigger:** User says "yes" or sends any message
+
+**Korra says:** "Writing follow-up drafts for your high-priority contacts. Each email is personalized with their name, title, company, and the industry context we found."
+
+**Context tags:** `Personalized Outreach` (ploybook icon)
+
+**Tool calls:**
+```json
+addColumn({ id: "fld_followup_draft", name: "Follow-up Draft", type: "long-text", source: "ai-generated" })
+```
+
+**Visual:**
+1. New Follow-up Draft column appears with sky-blue generating shimmer + skeleton cells.
+2. FilePenLine icon + tooltip ("Generated by Korra") in column header.
+3. Emails generate via `/api/generate-emails` endpoint (real Claude API or mock).
+4. "Personalized Outreach" ploybook tag appears near chat input.
+
+---
+
+### Fallback (after Step 7)
+
+**Trigger:** User sends any message
+
+**Korra says:** "That's the full flow! You can click any row to see the detail view, edit cells directly in the grid, or ask me to help with something else."
+
+---
+
+## Key Narrative Beats
+
+| Beat | Steps | What it proves |
+|------|-------|----------------|
+| **Orient** | 0-1 | Korra opens the right data and narrows focus automatically |
+| **Enrich** | 2-3 | Korra links external data (Companies table) and researches context (industry news) |
+| **Analyze** | 4-5 | Korra applies AI judgment (Priority scoring) with human review (dry-run + sort) |
+| **Collaborate** | 5-6 | Human corrects AI (manual edits), AI acknowledges and asks before next action |
+| **Act** | 7 | Korra drafts personalized content using all the context gathered |
+
+**Two permission checkpoints:**
+1. Step 2 → 3: "Want me to scan these industries?" (before research)
+2. Step 6 → 7: "Want me to draft emails?" (before content generation)
 
 ---
 
@@ -214,41 +245,32 @@ All rendered inside chat messages when a tool invocation is present.
 ### FilterBadgeCard
 - Shows applied filter chips: `Tags contains "lead"` + `Last Contacted > 60 days`
 - Badge variant with filter icon
-- "47 matches" count
+- "130 matches" count
+
+### ResearchCard (NEW in V4)
+- Compact card with globe/search icon
+- Lists industries being "researched": Legal, Technology, Finance, Retail, Consulting
+- Each industry gets a checkmark after staggered delay (~400ms)
+- Total animation ~2s
+- Triggered by seeing `searchNews` tool call in message stream
 
 ### DryRunPreviewCard
-- Mini-table: 5 rows with columns [Contact, Company, Proposed Priority, Reason]
-- Approve button → calls `addToolOutput({ approved: true })`
-- Reject button → calls `addToolOutput({ approved: false })`, Korra asks for corrections
+- Mini-table: 5 rows with columns [Contact, Company, Proposed Priority]
+- Approve button → executes full editCells on all 130 rows
+- Reject button → Korra asks for corrections
 - Uses existing `Badge`, table HTML, `Button` components
 
 ### EditSummaryCard
-- Header: "Updated 47 rows — Priority for healthcare contacts"
+- Header: "Updated 130 rows — Priority column scored"
 - Expandable (click to toggle)
 - Expanded: diff table with columns [Contact, Before, After]
 - Before values: `text-destructive` with line-through
-- After values: `text-green-500` (or `text-chart-2`)
+- After values: `text-green-500`
 - Uses `Collapsible` from shadcn
 
 ### AddColumnCard
 - Simple confirmation: "Added Priority column (Select type)"
 - Column icon + name + type badge
-
----
-
-## Source Part Rendering
-
-Source parts appear as context tags above the message text:
-
-```tsx
-// In message renderer
-{message.parts.filter(p => p.type === "source").map(source => (
-  <Badge variant="outline" className="gap-1 text-xs">
-    <Paperclip className="size-3" />
-    {source.source.title}
-  </Badge>
-))}
-```
 
 ---
 
@@ -271,29 +293,18 @@ t=5s     Layout settled — user sees grid + chat
 
 ---
 
-## Build Order
-
-1. **Layout animation** — `motion.div layout` on chat container, `AnimatePresence` on grid
-2. **Lift grid state** — move data/columns/table out of `DataGridView`, pass as props
-3. **Mock API route** — script 5 steps with text + tool calls + source parts
-4. **Tool result cards** — FilterBadgeCard, DryRunPreviewCard, EditSummaryCard, AddColumnCard
-5. **`onToolCall` handler** — bridge tool calls to table/tableMeta APIs
-6. **Source part renderer** — context tag badges in messages
-7. **Row detail Sheet** — form layout + audit timeline (Step 4)
-
----
-
 ## Files to Create/Modify
 
 | File | Action | Purpose |
 |---|---|---|
-| `src/app/api/chat/route.ts` | Modify | 5-step scripted responses with tool calls |
-| `src/components/home/home-dashboard.tsx` | Modify | Lift state, add animation, wire onToolCall |
-| `src/components/home/korra-chat.tsx` | Modify | Render tool cards + source tags in messages |
-| `src/components/home/data-grid-view.tsx` | Modify | Accept lifted state as props |
-| `src/components/home/tool-cards/filter-badge-card.tsx` | Create | Filter result card |
+| `src/data/demo-scripts.ts` | Modified (V4) | 8-step scripted responses with searchNews + full priority fill |
+| `src/data/demo-data.ts` | Dead file | ENRICHMENT_UPDATES no longer imported — can be deleted |
+| `src/lib/ai-tools.ts` | Modified | Added searchNews tool definition |
+| `src/lib/tool-handler.ts` | Modified | Added searchNews no-op handler |
+| `src/app/api/chat/route.ts` | No change needed | Step counter logic works with new steps |
+| `src/components/home/home-dashboard.tsx` | No change needed | Layout animation works with new steps |
+| `src/components/home/korra-chat.tsx` | Needs update | Render ResearchCard for searchNews tool calls |
+| `src/components/home/data-grid-view.tsx` | Needs update | Lookup column value resolution from fld_company ref |
+| `src/components/home/tool-cards/research-card.tsx` | Create | Globe icon + staggered industry checkmarks |
 | `src/components/home/tool-cards/dry-run-preview-card.tsx` | Create | Preview with approve/reject |
 | `src/components/home/tool-cards/edit-summary-card.tsx` | Create | Summary + expandable diff |
-| `src/components/home/tool-cards/add-column-card.tsx` | Create | Column added confirmation |
-| `src/components/row-detail/row-detail-sheet.tsx` | Create | Row detail side panel |
-| `src/components/row-detail/audit-timeline.tsx` | Create | Edit history timeline |

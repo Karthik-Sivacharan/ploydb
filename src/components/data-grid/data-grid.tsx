@@ -34,6 +34,8 @@ interface DataGridProps<TData>
   generatingColumns?: Set<string>;
   /** Cell-level audit attribution map */
   cellAuditMap?: CellAuditMap;
+  /** Whether audit trail indicators are visible */
+  showAuditTrail?: boolean;
 }
 
 export function DataGrid<TData>({
@@ -65,6 +67,7 @@ export function DataGrid<TData>({
   footerExtra,
   generatingColumns,
   cellAuditMap,
+  showAuditTrail = true,
   className,
   ...props
 }: DataGridProps<TData>) {
@@ -256,6 +259,7 @@ export function DataGrid<TData>({
                 readOnly={readOnly}
                 generatingColumns={generatingColumns}
                 cellAuditMap={cellAuditMap}
+                showAuditTrail={showAuditTrail}
               />
             );
           })}

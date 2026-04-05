@@ -1,7 +1,7 @@
 # Design Surface Progress
 
-> Updated 2026-04-04. Tracks coverage of the 7 design surfaces from the project brief.
-> Demo flow: see `/HAPPY-PATH-V3.md` (8-step narrative with cross-table enrichment + email drafts).
+> Updated 2026-04-05. Tracks coverage of the 7 design surfaces from the project brief.
+> Demo flow: see `docs/demo-flow-implementation.md` (Happy Path V4 — 8-step narrative with lookup columns, industry research, full priority scoring + email drafts).
 
 ## Coverage Summary
 
@@ -83,15 +83,18 @@ Planned:
 - Korra chat panel (right side, 380px fixed width)
 - Streaming text via MockLanguageModelV3
 - KorraAvatar with sky-blue "KO" initials
-- 7 tool definitions with Zod schemas (openDatabase, editCells, addColumn, filterBy, sortBy, addRow, deleteRows)
+- 8 tool definitions with Zod schemas (openDatabase, editCells, addColumn, filterBy, sortBy, addRow, deleteRows, searchNews)
 - Tool call handler bridges chat → grid via GridHandle imperative ref
-- 5-step scripted demo flow calibrated to live API data (960 contacts, 131 stale leads)
+- 8-step scripted demo flow (V4) calibrated to live Railway API data (960 contacts, 130 stale leads)
 - Demo step synced to client message count (no server-side counter drift)
+- Lookup columns resolve from Companies table via fld_company ref (no hardcoded enrichment data)
+- searchNews fake research tool (no-op handler, UI renders research card)
 
 **What's missing — the trust UI:**
-- Dry-run preview cards: Korra shows 5 sample rows before bulk applying, user approves/rejects
-- Edit summary cards: "Updated 27 rows" card with click-to-expand diff view (red/green/yellow)
-- Ploybook/Skill context tags near chat input
+- Research card: globe icon + staggered industry checkmarks for searchNews tool (step 3)
+- Dry-run preview cards: Korra shows 5 sample rows before bulk applying, user approves/rejects (step 4)
+- Edit summary cards: "Updated 130 rows" card with click-to-expand diff view (red/green/yellow)
+- Lookup column value resolution: auto-fill Industry/Company Size from fld_company ref (step 2)
 - Cell-level attribution: badge showing last editor (Korra icon vs user avatar) on hover/click
 - AI-written cell indicator (subtle, discoverable)
 - Row highlight pulse when Korra updates a row

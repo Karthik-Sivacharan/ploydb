@@ -64,6 +64,7 @@ type View = "home" | "split"
 export function HomeDashboard() {
   const [view, setView] = useState<View>("home")
   const [showTemplates, setShowTemplates] = useState(true)
+  const [showAuditTrail, setShowAuditTrail] = useState(true)
   const { setOpen } = useSidebar()
   const { setActiveNav } = useNav()
   const { resolvedTheme } = useTheme()
@@ -131,12 +132,12 @@ export function HomeDashboard() {
               <button className="rounded bg-purple-500 px-2 py-0.5 text-xs text-white" onClick={() => { gridRef.current?.addColumn({ id: "priority", name: "Priority", type: "select", options: [{ value: "High", label: "High", color: "#ef4444" }, { value: "Medium", label: "Medium", color: "#f59e0b" }, { value: "Low", label: "Low", color: "#22c55e" }] }) }}>Test Add Column</button>
             </div>
             */}
-            <DataGridView gridRef={gridRef} initialSlug={INITIAL_DB_SLUG} />
+            <DataGridView gridRef={gridRef} initialSlug={INITIAL_DB_SLUG} showAuditTrail={showAuditTrail} />
           </div>
 
           {/* Chat panel on the right — fixed width, same useChat instance */}
           <div className="flex h-full w-[380px] min-w-[380px] max-w-[380px] flex-col border-l bg-muted/30">
-            <KorraChat variant="panel" chat={chat} />
+            <KorraChat variant="panel" chat={chat} showAuditTrail={showAuditTrail} onShowAuditTrailChange={setShowAuditTrail} />
           </div>
         </motion.div>
       ) : (

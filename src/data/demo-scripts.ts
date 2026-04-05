@@ -1,16 +1,16 @@
-// Happy Path V3 — "Prioritize stale leads"
+// Happy Path V4 — "Prioritize stale leads"
 //
-// 8-step scripted demo using live PloyDB API (960 contacts).
-// See /HAPPY-PATH-V3.md for the full narrative.
-// Enrichment + email data in demo-data.ts (auto-generated from API).
+// 8-step scripted demo (steps 0-7) using live PloyDB API (960 contacts).
+// All data comes from the Railway API — no Faker demo data.
 //
-
-import { ENRICHMENT_UPDATES } from "@/data/demo-data"
-
-// Data (as of 2026-04-04):
-//   960 total contacts, 266 tagged "lead", 131 stale (60+ days)
-//   Industries among stale leads: Legal (34), Technology (27), Finance (24)
-//   Company sizes: 1000+ (23 stale leads), 201-1000 (28), etc.
+// Lookup columns (Industry, Company Size) resolve via fld_company ref
+// to the Companies table. No hardcoded enrichment data.
+//
+// Data (as of 2026-04-05):
+//   960 total contacts, 265 tagged "lead", 130 stale (60+ days)
+//   Industries among stale leads: Legal (34), Technology (27), Finance (25),
+//     Retail (23), Consulting (21)
+//   Company sizes: 1-10 (43), 201-1000 (34), 51-200 (31), 11-50 (22)
 //
 // Step counter is client-driven (route.ts counts assistant messages).
 
@@ -25,6 +25,7 @@ export interface DemoToolCall {
     | "sortBy"
     | "addRow"
     | "deleteRows"
+    | "searchNews"
   args: Record<string, unknown>
 }
 
@@ -47,6 +48,28 @@ export interface DemoStep {
   toolDelay?: number
 }
 
+// ─── Priority distribution for all 130 stale leads ──────────────────────────
+// Weighted: ~30 High, ~50 Medium, ~50 Low
+// High = large companies (201-1000) + senior titles in active industries
+// Medium = mid-size companies (51-200) or mid-level titles
+// Low = small companies (1-10, 11-50) + junior titles
+
+function generatePriorityUpdates(): Array<{
+  rowIndex: number
+  columnId: string
+  value: string
+}> {
+  const updates: Array<{ rowIndex: number; columnId: string; value: string }> = []
+  for (let i = 0; i < 130; i++) {
+    let priority: string
+    if (i < 30) priority = "high"
+    else if (i < 80) priority = "medium"
+    else priority = "low"
+    updates.push({ rowIndex: i, columnId: "fld_priority", value: priority })
+  }
+  return updates
+}
+
 // ─── Steps ───────────────────────────────────────────────────────────────────
 
 export const DEMO_STEPS: DemoStep[] = [
@@ -65,7 +88,7 @@ export const DEMO_STEPS: DemoStep[] = [
   {
     step: 1,
     response:
-      "Filtering to leads you haven't contacted in 60+ days. I can see 131 stale leads that need attention.",
+      "Filtering to leads you haven't contacted in 60+ days. I can see 130 stale leads that need attention.",
     toolCalls: [
       {
         name: "filterBy",
@@ -80,14 +103,14 @@ export const DEMO_STEPS: DemoStep[] = [
     toolDelay: 600,
   },
 
-  // ── Step 2: Enrich from Companies table ──────────────────────────────────
-  // Adds Industry + Company Size columns by reading each contact's linked
-  // Company record. Simulated with addColumn + editCells (cross-table lookup
-  // is the story, implementation is column add + fill).
+  // ── Step 2: Link lookup columns from Companies table ───────────────────
+  // Adds Industry + Company Size as lookup columns. Values resolve
+  // automatically via each contact's fld_company ref. No editCells needed.
+  // Korra ends with a question — asks permission to research industries.
   {
     step: 2,
     response:
-      "Let me pull in their company details so we can prioritize smarter. Adding Industry and Company Size from your Companies table.",
+      "Linked Industry and Company Size from your Companies table. I can see 5 industries across your stale leads — Legal (34), Technology (27), Finance (25), Retail (23), Consulting (21). Want me to scan what's happening in these industries so we can prioritize smarter?",
     contextTags: [
       { type: "source", name: "Companies", icon: "google-sheets" },
     ],
@@ -124,22 +147,42 @@ export const DEMO_STEPS: DemoStep[] = [
           ],
         },
       },
-      {
-        name: "editCells",
-        args: {
-          // All 131 rows enriched from Companies table (industry + size)
-          updates: ENRICHMENT_UPDATES,
-        },
-      },
     ],
     toolDelay: 800,
   },
 
-  // ── Step 3: Add Priority column + dry-run preview ────────────────────────
+  // ── Step 3: Research industries + sort by Legal ────────────────────────
+  // User said "yes" to scanning industries. Korra shows a research loading
+  // card (searchNews tool — fake, ~2s animation), then comes back with an
+  // insight about Legal and sorts the table.
   {
     step: 3,
     response:
-      "I'll add a Priority column based on their title seniority and company size. Here's a preview of the first 5 rows before I apply it to all 131.",
+      "Legal is seeing major regulatory activity right now — new compliance deadlines are pushing companies to re-evaluate vendors. That's 34 contacts worth reaching out to. Sorting them to the top.",
+    toolCalls: [
+      {
+        name: "searchNews",
+        args: {
+          industries: ["Legal", "Technology", "Finance", "Retail", "Consulting"],
+        },
+      },
+      {
+        name: "sortBy",
+        args: {
+          sorts: [{ columnId: "fld_industry", desc: false }],
+        },
+      },
+    ],
+    toolDelay: 600,
+  },
+
+  // ── Step 4: Add Priority column — ALL 130 rows scored ──────────────────
+  // Adds Priority column and fills every row with High/Medium/Low.
+  // No empties. dryRun shows preview of first 5 before applying to all.
+  {
+    step: 4,
+    response:
+      "Now let me score all 130 leads by priority based on title seniority, company size, and industry activity. Here's a preview of the first 5 rows before I apply it to all.",
     ploybook: "Contact Prioritization",
     contextTags: [
       { type: "ploybook", name: "Contact Prioritization", icon: "ploybook" },
@@ -163,82 +206,50 @@ export const DEMO_STEPS: DemoStep[] = [
       {
         name: "editCells",
         args: {
-          updates: [
-            { rowIndex: 0, columnId: "fld_priority", value: "high" },
-            { rowIndex: 1, columnId: "fld_priority", value: "medium" },
-            { rowIndex: 2, columnId: "fld_priority", value: "high" },
-            { rowIndex: 3, columnId: "fld_priority", value: "low" },
-            { rowIndex: 4, columnId: "fld_priority", value: "medium" },
-          ],
+          updates: generatePriorityUpdates(),
         },
       },
     ],
     toolDelay: 500,
   },
 
-  // ── Step 4: Proactive insight ────────────────────────────────────────────
-  // Korra surfaces something the user didn't ask for: 23 stale leads at
-  // 1000+ companies are the biggest missed opportunities.
-  {
-    step: 4,
-    response:
-      "One thing I noticed — 23 of these stale leads are at companies with 1000+ employees. Those are your biggest missed opportunities. I've made sure they're all marked High priority.",
-    toolCalls: [
-      {
-        name: "editCells",
-        args: {
-          updates: Array.from({ length: 23 }, (_, i) => ({
-            rowIndex: i,
-            columnId: "fld_priority",
-            value: "high",
-          })),
-        },
-      },
-    ],
-    toolDelay: 600,
-  },
-
-  // ── Step 5: Human correction + bulk update ───────────────────────────────
-  // In the real flow, the user manually edits a cell first (cell badge flips
-  // from Korra to You). Then they type a bulk instruction.
-  // This step handles the bulk part — "Apply High to all Technology contacts."
+  // ── Step 5: Sort by Priority (High first) ──────────────────────────────
+  // Korra sorts so High-priority contacts are at the top. Invites the user
+  // to review and adjust — sets up the manual edit moment.
   {
     step: 5,
     response:
-      "Done — updated all 27 Technology company contacts to High priority.",
+      "Sorting by priority so your high-value contacts are at the top. Take a look — feel free to adjust any that don't look right.",
     toolCalls: [
       {
-        name: "editCells",
+        name: "sortBy",
         args: {
-          updates: Array.from({ length: 27 }, (_, i) => ({
-            rowIndex: i,
-            columnId: "fld_priority",
-            value: "high",
-          })),
+          sorts: [{ columnId: "fld_priority", desc: true }],
         },
       },
     ],
     toolDelay: 400,
   },
 
-  // ── Step 6: Korra asks before drafting emails ────────────────────────────
-  // No tool calls — just the question. The user's next message (yes/approve)
-  // triggers step 7.
+  // ── Step 6: Acknowledge manual edits + ask about emails ────────────────
+  // Between steps 5 and 6, the user manually changes a couple of Low →
+  // High (contacts they personally know). This step acknowledges that
+  // and asks permission before drafting emails.
   {
     step: 6,
     response:
-      "Your high-priority list is ready — 27 contacts who haven't heard from you in 60+ days. Would you like me to draft re-engagement emails for them?",
+      "Nice catches — I see you bumped a couple to High. Your priority list is looking solid. Want me to draft personalized re-engagement emails for the high-priority ones?",
     toolCalls: [],
     toolDelay: 0,
   },
 
-  // ── Step 7: Draft outreach emails ────────────────────────────────────────
-  // Adds a Follow-up Draft column (long-text) and fills the first few rows
-  // with personalized email drafts.
+  // ── Step 7: Draft follow-up emails ─────────────────────────────────────
+  // Adds a Follow-up Draft column (long-text, ai-generated) and generates
+  // personalized emails for high-priority contacts.
   {
     step: 7,
     response:
-      "Writing follow-up drafts for your high-priority contacts. Each email is personalized with their name, title, company, and how long it's been since you last connected.",
+      "Writing follow-up drafts for your high-priority contacts. Each email is personalized with their name, title, company, and the industry context we found.",
     contextTags: [
       { type: "ploybook", name: "Personalized Outreach", icon: "ploybook" },
     ],

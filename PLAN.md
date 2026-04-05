@@ -458,80 +458,40 @@ The AI collaboration surface is the core differentiator. This is what makes Ploy
 - [x] `addColumn` — add a new column with type/options → updates column definitions (supports `source: "lookup" | "ai-generated"`)
 - [x] `filterBy` — apply filters → `table.setColumnFilters()` (with Korra attribution badge)
 - [x] `sortBy` — apply sorts → `table.setSorting()` (with Korra attribution badge)
+- [x] `searchNews` — fake research tool (no-op handler, UI renders loading card in chat)
 - [x] `addRow` / `deleteRows` — row CRUD
 - [x] Mock model with pre-scripted 8-step demo (MockLanguageModelV3, no API key needed)
 - [ ] Later: swap mock for real Claude via `@ai-sdk/anthropic`
 
-### 3.5 — Pre-Scripted Happy Path Demo (Contacts table)
+### 3.5 — Pre-Scripted Happy Path Demo V4 (Contacts table)
 
-The demo is **scripted theater** — looks real but every response is pre-written. No real AI. The Vercel AI SDK's `MockLanguageModelV1` plays exact responses. No matter what the user types, we match to the next step in the sequence.
+The demo is **scripted theater** — looks real but every response is pre-written. No real AI. The Vercel AI SDK's `MockLanguageModelV3` plays exact responses. No matter what the user types, we match to the next step in the sequence.
+
+**All data comes from the live Railway API** — no Faker demo data. The Contacts table (960 rows) links to the Companies table via `fld_company` ref. Lookup columns (Industry, Company Size) resolve through this ref automatically.
 
 #### How it works
 
 A step counter advances on each user message. Every message — whether they click a template or type freeform — triggers the next scripted response + tool calls.
 
-```ts
-// demo-scripts.ts
-const DEMO_STEPS = [
-  {
-    step: 0,
-    response: "I see 960 contacts in your CRM. Let me open that up and help you prioritize.",
-    toolCalls: [{ name: "openDatabase", args: { slug: "contacts" } }],
-    // Triggers: sidebar highlight + transition from home to split view
-  },
-  {
-    step: 1,
-    response: "Filtering to leads you haven't contacted in 60+ days...",
-    toolCalls: [{ name: "filterBy", args: { filters: [
-      { field: "fld_tags", op: "contains", value: "lead" },
-      { field: "fld_last_contacted", op: "lt", value: "60_days_ago" }
-    ]}}],
-    // Triggers: table filters, rows fade out
-  },
-  {
-    step: 2,
-    response: "I'll add a Priority column based on their title seniority and company size.",
-    ploybook: "Contact Prioritization",
-    dryRun: true, // Shows preview card with 5 rows, waits for approve
-    toolCalls: [
-      { name: "addColumn", args: { name: "Priority", type: "select", options: ["High", "Medium", "Low"] } },
-      { name: "editCells", args: { updates: "...all rows with priority values..." } }
-    ],
-    // Triggers: ploybook tag, dry-run card, then on approve → column slides in, cells fill with wave
-  },
-  {
-    step: 3,
-    response: "Done — updated all healthcare contacts to High priority.",
-    toolCalls: [{ name: "editCells", args: { updates: "...healthcare contacts batch..." } }],
-    // Triggers: edit summary card in chat, diff view available on click
-  },
-];
-
-let currentStep = 0;
-
-// No matter what user sends, play the next step
-function getNextResponse() {
-  return DEMO_STEPS[currentStep++];
-}
-```
-
 #### What makes it feel real
 - Streaming text via mock model (characters appear one by one)
-- Short delay (~500ms) before tool calls execute (feels like Korra is "thinking")
+- Short delay (~500-800ms) before tool calls execute (feels like Korra is "thinking")
 - Animations on the table when changes land (wave fill, row fade, column slide)
+- Lookup columns resolve real data from the Companies table via ref
+- Research card in chat with staggered industry checkmarks (searchNews tool)
 - Dry-run card shows actual data from the current table state
-- Step 4 (row detail) is just a click — no chat message needed
+- Two permission checkpoints (research + emails) — Korra asks before acting
 
-#### Demo steps (8-step flow, all working ✅)
+#### Demo steps (8-step flow)
 
-- [x] **Step 0:** User clicks template → Korra opens Contacts table → transition to split view
-- [x] **Step 1:** Korra filters: Tags "lead" + Last Contacted > 60 days → 131 stale leads
-- [x] **Step 2:** Enrichment — adds Industry + Company Size columns (lookup source, teal tint + link icon) from Companies table
-- [x] **Step 3:** Adds Priority column (dry-run preview on 5 rows) → Ploybook tag appears
-- [x] **Step 4:** Proactive insight — 23 stale leads at 1000+ companies marked High
-- [x] **Step 5:** Bulk update — all Technology contacts → High priority
-- [x] **Step 6:** Korra asks before drafting emails (no tool calls, just the question)
-- [x] **Step 7:** Drafts follow-up emails — adds Follow-up Draft column (ai-generated source, sky shimmer + skeleton cells + FilePenLine icon)
+- [x] **Step 0:** User clicks "Prioritize stale leads" template → Korra opens Contacts table → transition to split view
+- [x] **Step 1:** Korra filters: Tags "lead" + Last Contacted > 60 days → 130 stale leads
+- [x] **Step 2:** Links Industry + Company Size lookup columns from Companies table (teal tint + Link2 icon). Korra asks: "Want me to scan what's happening in these industries?"
+- [ ] **Step 3:** User says yes → Research card animates (searchNews tool, globe icon, 5 industries ticking off). Korra surfaces insight: "Legal has major regulatory activity." Sorts by industry (Legal to top).
+- [ ] **Step 4:** Adds Priority column (ai-generated, dry-run preview on 5 rows). On approve → fills ALL 130 rows (High/Medium/Low). Ploybook tag appears.
+- [ ] **Step 5:** Sorts by Priority (High first). Korra invites user to review and adjust.
+- [ ] **Step 6:** User manually bumps a couple Low → High (acquaintances). Sends message → Korra acknowledges: "Nice catches." Asks permission to draft emails.
+- [ ] **Step 7:** Drafts follow-up emails — adds Follow-up Draft column (ai-generated source, sky shimmer + skeleton cells + FilePenLine icon). "Personalized Outreach" ploybook tag appears.
 
 ---
 

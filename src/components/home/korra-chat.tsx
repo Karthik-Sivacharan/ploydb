@@ -55,6 +55,10 @@ interface KorraChatProps {
   chat: KorraChatInput
   /** Callback for input changes (for auto-switching to split) */
   onFirstMessage?: () => void
+  /** Whether audit trail triangles are visible in the grid */
+  showAuditTrail?: boolean
+  /** Callback to toggle audit trail visibility */
+  onShowAuditTrailChange?: (value: boolean) => void
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
@@ -250,7 +254,7 @@ function MessageList({
 
 // ─── Main Component ──────────────────────────────────────────────────
 
-export function KorraChat({ variant, chat, onFirstMessage }: KorraChatProps) {
+export function KorraChat({ variant, chat, onFirstMessage, showAuditTrail, onShowAuditTrailChange }: KorraChatProps) {
   const { messages, status, sendMessage, stop } = chat
   const hasCalledFirstMessage = useRef(false)
 
@@ -274,13 +278,31 @@ export function KorraChat({ variant, chat, onFirstMessage }: KorraChatProps) {
     return (
       <div className="flex h-full flex-col border-l border-border/40">
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-end gap-2 border-b border-border/40 px-4 py-2">
-          <Avatar className="size-7">
-            <AvatarFallback className="bg-sky-100 text-xs font-semibold text-sky-700 dark:bg-sky-900 dark:text-sky-300">
-              KO
-            </AvatarFallback>
-          </Avatar>
-          <span className="flex h-9 items-center text-sm font-medium">Korra</span>
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border/40 px-4 py-2">
+          {/* Left: Audit trail toggle */}
+          <div className="flex items-center gap-1.5">
+            <Switch
+              id="audit-trail"
+              checked={showAuditTrail ?? true}
+              onCheckedChange={onShowAuditTrailChange}
+              className="h-4 w-7 data-[state=checked]:bg-sky-600 [&_span]:size-3 [&_span]:data-[state=checked]:translate-x-3"
+            />
+            <Label
+              htmlFor="audit-trail"
+              className="cursor-pointer text-xs text-muted-foreground select-none"
+            >
+              Audit Trail
+            </Label>
+          </div>
+          {/* Right: Korra avatar + name */}
+          <div className="flex items-center gap-2">
+            <Avatar className="size-7">
+              <AvatarFallback className="bg-sky-100 text-xs font-semibold text-sky-700 dark:bg-sky-900 dark:text-sky-300">
+                KO
+              </AvatarFallback>
+            </Avatar>
+            <span className="flex h-9 items-center text-sm font-medium">Korra</span>
+          </div>
         </div>
 
         {/* Messages — Conversation provides auto-scroll via use-stick-to-bottom */}

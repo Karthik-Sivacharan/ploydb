@@ -48,6 +48,7 @@ interface DataGridRowProps<TData> extends React.ComponentProps<"div"> {
   adjustLayout: boolean;
   generatingColumns?: Set<string>;
   cellAuditMap?: CellAuditMap;
+  showAuditTrail?: boolean;
 }
 
 export const DataGridRow = React.memo(DataGridRowImpl, (prev, next) => {
@@ -160,6 +161,11 @@ export const DataGridRow = React.memo(DataGridRowImpl, (prev, next) => {
     return false;
   }
 
+  // Re-render if audit trail visibility changed
+  if (prev.showAuditTrail !== next.showAuditTrail) {
+    return false;
+  }
+
   // Skip re-render - props are equal
   return true;
 }) as typeof DataGridRowImpl;
@@ -184,6 +190,7 @@ function DataGridRowImpl<TData>({
   adjustLayout,
   generatingColumns,
   cellAuditMap,
+  showAuditTrail = true,
   className,
   style,
   ref,
@@ -321,7 +328,7 @@ function DataGridRowImpl<TData>({
                 readOnly={readOnly}
               />
             )}
-            {auditEntries && auditEntries.length > 0 && (
+            {showAuditTrail && auditEntries && auditEntries.length > 0 && (
               <CellAttributionIndicator entries={auditEntries} />
             )}
           </div>

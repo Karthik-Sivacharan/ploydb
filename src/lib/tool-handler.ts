@@ -247,6 +247,15 @@ export function createToolCallHandler(
         return
       }
 
+      case "searchNews": {
+        // Fake research tool — shows a loading card in chat for ~2s.
+        // The actual "insight" is baked into the demo script response text.
+        // This handler is a no-op; the UI renders the loading card based
+        // on seeing a searchNews tool call in the message stream.
+        console.log("[Korra tool] searchNews (fake research):", args.industries)
+        return
+      }
+
       default: {
         console.warn("[Korra tool] Unknown tool:", toolName)
         return
