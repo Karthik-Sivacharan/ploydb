@@ -216,16 +216,17 @@ export const DEMO_STEPS: DemoStep[] = [
       },
     ],
     thinkingDelay: 800,
+    autoAdvance: 500,
   },
 
   // ── Step 5: Ask about prioritizing ─────────────────────────────────
-  // No tools — just asks permission before scoring.
+  // Auto-triggered after step 4. Thinking delay before asking.
   {
     step: 5,
     response:
       "I'm going to prioritize these 34 Legal contacts by title seniority and company size. Does that sound good?",
     toolCalls: [],
-    thinkingDelay: 800,
+    thinkingDelay: 1500,
   },
 
   // ── Step 6: Add Priority + sort + ask if it looks right ────────────

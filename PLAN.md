@@ -460,7 +460,10 @@ The AI collaboration surface is the core differentiator. This is what makes Ploy
 - [x] `sortBy` — apply sorts → `table.setSorting()` (with Korra attribution badge)
 - [x] `searchNews` — fake research tool (no-op handler, UI renders loading card in chat)
 - [x] `addRow` / `deleteRows` — row CRUD
-- [x] Mock model with pre-scripted 8-step demo (MockLanguageModelV3, no API key needed)
+- [x] Mock model with pre-scripted 9-step demo (MockLanguageModelV3, no API key needed)
+- [x] Per-step `thinkingDelay` (800ms-3s) for visible thinking shimmer
+- [x] `autoAdvance` — steps that auto-trigger the next step without user input
+- [x] Chain-of-thought reasoning via `Reasoning`/`ReasoningContent` components
 - [ ] Later: swap mock for real Claude via `@ai-sdk/anthropic`
 
 ### 3.5 — Pre-Scripted Happy Path Demo V4 (Contacts table)
@@ -471,27 +474,29 @@ The demo is **scripted theater** — looks real but every response is pre-writte
 
 #### How it works
 
-A step counter advances on each user message. Every message — whether they click a template or type freeform — triggers the next scripted response + tool calls.
+A step counter advances on each user message. Some steps auto-advance (send a hidden `__auto__` message) to trigger the next step without user input. Per-step `thinkingDelay` controls how long the thinking shimmer shows.
 
 #### What makes it feel real
 - Streaming text via mock model (characters appear one by one)
-- Short delay (~500-800ms) before tool calls execute (feels like Korra is "thinking")
-- Animations on the table when changes land (wave fill, row fade, column slide)
-- Lookup columns resolve real data from the Companies table via ref
-- Research card in chat with staggered industry checkmarks (searchNews tool)
-- Dry-run card shows actual data from the current table state
-- Two permission checkpoints (research + emails) — Korra asks before acting
+- Per-step thinking delay (800ms-3s) — longer for analysis steps
+- Chain-of-thought reasoning streamed line by line (Reuters, Bloomberg, TechCrunch sources)
+- Auto-advance steps (0→1, 4→5) — Korra keeps working without waiting
+- Lookup columns resolve real data from the Companies table via API
+- Custom sort order for select columns (High → Medium → Low, not alphabetical)
+- Four permission checkpoints (filter, link, research, prioritize) + one for emails
+- Cell-level attribution tracks Korra vs user edits with sky-blue/amber triangles
 
-#### Demo steps (8-step flow)
+#### Demo steps (9-step flow, steps 0-8)
 
-- [x] **Step 0:** User clicks "Prioritize stale leads" template → Korra opens Contacts table → transition to split view
-- [x] **Step 1:** Korra filters: Tags "lead" + Last Contacted > 60 days → 130 stale leads
-- [x] **Step 2:** Links Industry + Company Size lookup columns from Companies table (teal tint + Link2 icon). Korra asks: "Want me to scan what's happening in these industries?"
-- [ ] **Step 3:** User says yes → Research card animates (searchNews tool, globe icon, 5 industries ticking off). Korra surfaces insight: "Legal has major regulatory activity." Filters to Legal (34 contacts).
-- [ ] **Step 4:** Adds Priority column (ai-generated, dry-run preview on 5 rows). On approve → fills all 34 rows (High/Medium/Low). Ploybook tag appears.
-- [ ] **Step 5:** Sorts by Priority ascending (High first). Korra invites user to review and adjust.
-- [ ] **Step 6:** User manually bumps a couple Low → High (acquaintances). Sends message → Korra acknowledges: "Nice catches." Asks permission to draft emails.
-- [ ] **Step 7:** Drafts follow-up emails — adds Follow-up Draft column (ai-generated source, sky shimmer + skeleton cells + FilePenLine icon). "Personalized Outreach" ploybook tag appears.
+- [x] **Step 0:** User clicks template → Korra opens Contacts table → transition to split view → **auto-advances to step 1**
+- [x] **Step 1:** (auto-triggered) 2s thinking → Korra says 130 stale leads found, asks "Want me to filter those out?"
+- [x] **Step 2:** User says yes → Filters to 130 stale leads. Asks about linking Industry + Company Size from Companies table.
+- [x] **Step 3:** User says yes → Links lookup columns (teal tint + Link2 icon, values from API). Asks about scanning industries for news.
+- [x] **Step 4:** User says yes → Chain-of-thought reasoning streams (searching sources). Korra surfaces Legal insight. Filters to 34 Legal contacts. **Auto-advances to step 5.**
+- [x] **Step 5:** (auto-triggered) 1.5s thinking → Asks "I'm going to prioritize by title seniority and company size. Sound good?"
+- [x] **Step 6:** User says yes → 2s thinking → Adds Priority column + fills all 34 rows + sorts (High first). "Does this feel right?"
+- [x] **Step 7:** User bumps one Low → High, sends message → Korra acknowledges. Asks about drafting emails for High + Medium.
+- [x] **Step 8:** User says yes → Adds Follow-up Draft column (ai-generated, sky shimmer). Emails for High + Medium contacts.
 
 ---
 
