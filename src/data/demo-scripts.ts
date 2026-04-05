@@ -2,7 +2,11 @@
 //
 // 8-step scripted demo using live PloyDB API (960 contacts).
 // See /HAPPY-PATH-V3.md for the full narrative.
+// Enrichment + email data in demo-data.ts (auto-generated from API).
 //
+
+import { ENRICHMENT_UPDATES, EMAIL_DRAFT_UPDATES } from "@/data/demo-data"
+
 // Data (as of 2026-04-04):
 //   960 total contacts, 266 tagged "lead", 131 stale (60+ days)
 //   Industries among stale leads: Legal (34), Technology (27), Finance (24)
@@ -24,12 +28,21 @@ export interface DemoToolCall {
   args: Record<string, unknown>
 }
 
+export interface ContextTag {
+  type: "source" | "ploybook"
+  name: string
+  /** Icon hint: "google-sheets" renders the Sheets logo, "ploybook" renders BookOpen */
+  icon: "google-sheets" | "ploybook"
+}
+
 export interface DemoStep {
   step: number
   response: string
   toolCalls: DemoToolCall[]
   dryRun?: boolean
   ploybook?: string
+  /** New context tags introduced at this step (accumulate forward) */
+  contextTags?: ContextTag[]
   /** Delay in ms before executing tool calls */
   toolDelay?: number
 }
@@ -75,6 +88,9 @@ export const DEMO_STEPS: DemoStep[] = [
     step: 2,
     response:
       "Let me pull in their company details so we can prioritize smarter. Adding Industry and Company Size from your Companies table.",
+    contextTags: [
+      { type: "source", name: "Companies", icon: "google-sheets" },
+    ],
     toolCalls: [
       {
         name: "addColumn",
@@ -109,30 +125,8 @@ export const DEMO_STEPS: DemoStep[] = [
       {
         name: "editCells",
         args: {
-          updates: [
-            // Enrichment from Companies table (actual data via ref lookup)
-            // Row order matches API: oldest stale leads first
-            { rowIndex: 0, columnId: "fld_industry", value: "Legal" },
-            { rowIndex: 0, columnId: "fld_company_size", value: "201-1000" },      // Dr. Bruce Hermiston @ Kris LLC
-            { rowIndex: 1, columnId: "fld_industry", value: "Technology" },
-            { rowIndex: 1, columnId: "fld_company_size", value: "11-50" },          // Erling Feeney IV @ Torphy Inc
-            { rowIndex: 2, columnId: "fld_industry", value: "Legal" },
-            { rowIndex: 2, columnId: "fld_company_size", value: "201-1000" },       // Belinda Gibson @ Kris LLC
-            { rowIndex: 3, columnId: "fld_industry", value: "Legal" },
-            { rowIndex: 3, columnId: "fld_company_size", value: "51-200" },         // Rhonda Balistreri @ McClure et al
-            { rowIndex: 4, columnId: "fld_industry", value: "Retail" },
-            { rowIndex: 4, columnId: "fld_company_size", value: "1-10" },           // Alvin Gleason @ Beahan
-            { rowIndex: 5, columnId: "fld_industry", value: "Technology" },
-            { rowIndex: 5, columnId: "fld_company_size", value: "201-1000" },
-            { rowIndex: 6, columnId: "fld_industry", value: "Finance" },
-            { rowIndex: 6, columnId: "fld_company_size", value: "1000+" },
-            { rowIndex: 7, columnId: "fld_industry", value: "Consulting" },
-            { rowIndex: 7, columnId: "fld_company_size", value: "51-200" },
-            { rowIndex: 8, columnId: "fld_industry", value: "Legal" },
-            { rowIndex: 8, columnId: "fld_company_size", value: "201-1000" },
-            { rowIndex: 9, columnId: "fld_industry", value: "Technology" },
-            { rowIndex: 9, columnId: "fld_company_size", value: "11-50" },
-          ],
+          // All 131 rows enriched from Companies table (industry + size)
+          updates: ENRICHMENT_UPDATES,
         },
       },
     ],
@@ -145,6 +139,9 @@ export const DEMO_STEPS: DemoStep[] = [
     response:
       "I'll add a Priority column based on their title seniority and company size. Here's a preview of the first 5 rows before I apply it to all 131.",
     ploybook: "Contact Prioritization",
+    contextTags: [
+      { type: "ploybook", name: "Contact Prioritization", icon: "ploybook" },
+    ],
     dryRun: true,
     toolCalls: [
       {
@@ -239,6 +236,9 @@ export const DEMO_STEPS: DemoStep[] = [
     step: 7,
     response:
       "Writing follow-up drafts for your high-priority contacts. Each email is personalized with their name, title, company, and how long it's been since you last connected.",
+    contextTags: [
+      { type: "ploybook", name: "Personalized Outreach", icon: "ploybook" },
+    ],
     toolCalls: [
       {
         name: "addColumn",
@@ -251,38 +251,8 @@ export const DEMO_STEPS: DemoStep[] = [
       {
         name: "editCells",
         args: {
-          updates: [
-            {
-              rowIndex: 0,
-              columnId: "fld_followup_draft",
-              value:
-                "Hi Dr. Hermiston — it's been about 4 months since we last connected. I know things move fast in the legal space, and I wanted to check in on how things are going at Kris LLC. Given your role orchestrating the group's forward strategy, I have a few ideas that might be relevant. Would you have 15 minutes this week to catch up?",
-            },
-            {
-              rowIndex: 1,
-              columnId: "fld_followup_draft",
-              value:
-                "Hi Erling — it's been over 4 months since our last conversation. I've been following some interesting developments in the Technology sector that I think could be relevant for Torphy Inc, especially from an infrastructure perspective. Would you be open to a quick call to reconnect?",
-            },
-            {
-              rowIndex: 2,
-              columnId: "fld_followup_draft",
-              value:
-                "Hi Belinda — I noticed it's been about 120 days since we last spoke. With the changes happening in the legal industry right now, I wanted to reach out and see how the mobility planning side is evolving at Kris LLC. I'd love to hear what you're working on — are you free for a brief chat this week?",
-            },
-            {
-              rowIndex: 3,
-              columnId: "fld_followup_draft",
-              value:
-                "Hi Rhonda — it's been a while! I wanted to reconnect and see how things are going at McClure, Murazik and Ziemann. As a Senior Brand Coordinator, you probably have a lot on your plate right now. I have a couple of ideas I'd love to run by you — do you have 15 minutes this week or next?",
-            },
-            {
-              rowIndex: 4,
-              columnId: "fld_followup_draft",
-              value:
-                "Hi Alvin — it's been about 4 months since our last conversation. I've been thinking about how research planning is evolving in the retail space and wanted to check in on how things are going at Beahan. Would love to find some time to catch up — are you available this week?",
-            },
-          ],
+          // All 131 personalized follow-up drafts (name, title, company, industry, days)
+          updates: EMAIL_DRAFT_UPDATES,
         },
       },
     ],
@@ -314,4 +284,25 @@ export function resetDemoStep(): void {
 
 export function getCurrentStep(): number {
   return currentStep
+}
+
+// ─── Accumulated context tags up to a given step ────────────────────────────
+
+/**
+ * Collects all contextTags from DEMO_STEPS[0..stepIndex] (inclusive).
+ * Deduplicates by name so tags don't repeat.
+ */
+export function getAccumulatedTags(stepIndex: number): ContextTag[] {
+  const seen = new Set<string>()
+  const tags: ContextTag[] = []
+  const end = Math.min(stepIndex, DEMO_STEPS.length - 1)
+  for (let i = 0; i <= end; i++) {
+    for (const tag of DEMO_STEPS[i].contextTags ?? []) {
+      if (!seen.has(tag.name)) {
+        seen.add(tag.name)
+        tags.push(tag)
+      }
+    }
+  }
+  return tags
 }
