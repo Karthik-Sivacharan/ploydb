@@ -133,6 +133,7 @@ export const korraTools = {
         .describe("Zero-based row indices to delete"),
     }),
   }),
+
 };
 
 /** Union type of all Korra tool names */

@@ -248,6 +248,7 @@ export const DEMO_STEPS: DemoStep[] = [
           id: "fld_followup_draft",
           name: "Follow-up Draft",
           type: "long-text",
+          source: "ai-generated",
         },
       },
       {

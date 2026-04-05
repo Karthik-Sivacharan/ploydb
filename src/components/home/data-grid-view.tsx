@@ -66,6 +66,8 @@ function DataGridWithToolbar({
   toolbarSlot,
   gridRef,
   footerExtra,
+  generatingColumns,
+  onSetGeneratingColumn,
 }: {
   data: FlatRow[]
   columns: ColumnDef<FlatRow>[]
@@ -75,6 +77,8 @@ function DataGridWithToolbar({
   toolbarSlot: React.RefObject<HTMLDivElement | null>
   gridRef?: React.RefObject<GridHandle | null>
   footerExtra?: React.ReactNode
+  generatingColumns?: Set<string>
+  onSetGeneratingColumn?: (columnId: string, generating: boolean) => void
 }) {
   // Track who last changed filters/sorting (Korra vs user)
   const [filterAttr, setFilterAttr] = React.useState<Attribution>("user")
@@ -127,7 +131,10 @@ function DataGridWithToolbar({
       if (attr === "korra") korraSortFlag.current = true
       setSortAttr(attr)
     },
-  }), [dataGrid.table, dataGrid.tableMeta, onDataChange, onAddColumn, onOpenDatabase, data])
+    setGeneratingColumn: (columnId, generating) => {
+      onSetGeneratingColumn?.(columnId, generating)
+    },
+  }), [dataGrid.table, dataGrid.tableMeta, onDataChange, onAddColumn, onOpenDatabase, data, onSetGeneratingColumn])
 
   return (
     <>
@@ -141,7 +148,7 @@ function DataGridWithToolbar({
           </>,
           toolbarSlot.current,
         )}
-      <DataGrid {...dataGrid} height={0} className="h-full" footerExtra={footerExtra} />
+      <DataGrid {...dataGrid} height={0} className="h-full" footerExtra={footerExtra} generatingColumns={generatingColumns} />
     </>
   )
 }
@@ -164,6 +171,19 @@ export function DataGridView({
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [syncEnabled, setSyncEnabled] = React.useState(true)
+  const [generatingColumns, setGeneratingColumns] = React.useState<Set<string>>(new Set())
+
+  const handleSetGeneratingColumn = React.useCallback(
+    (columnId: string, generating: boolean) => {
+      setGeneratingColumns((prev) => {
+        const next = new Set(prev)
+        if (generating) next.add(columnId)
+        else next.delete(columnId)
+        return next
+      })
+    },
+    []
+  )
 
   const activeDb = databases.find((db) => db.id === activeDbId) ?? null
 
@@ -514,6 +534,8 @@ export function DataGridView({
             onOpenDatabase={handleOpenDatabase}
             toolbarSlot={toolbarSlotRef}
             gridRef={gridRef}
+            generatingColumns={generatingColumns}
+            onSetGeneratingColumn={handleSetGeneratingColumn}
             footerExtra={
               <div className="flex items-center gap-1.5">
                 <Label htmlFor="sync-toggle" className="text-xs text-muted-foreground">

@@ -9,6 +9,7 @@ import type {
 import type { VirtualItem } from "@tanstack/react-virtual";
 import * as React from "react";
 import { DataGridCell } from "@/components/data-grid/data-grid-cell";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useComposedRefs } from "@/lib/compose-refs";
 import {
   flexRender,
@@ -42,6 +43,7 @@ interface DataGridRowProps<TData> extends React.ComponentProps<"div"> {
   readOnly: boolean;
   stretchColumns: boolean;
   adjustLayout: boolean;
+  generatingColumns?: Set<string>;
 }
 
 export const DataGridRow = React.memo(DataGridRowImpl, (prev, next) => {
@@ -144,6 +146,11 @@ export const DataGridRow = React.memo(DataGridRowImpl, (prev, next) => {
     return false;
   }
 
+  // Re-render if generating columns changed
+  if (prev.generatingColumns !== next.generatingColumns) {
+    return false;
+  }
+
   // Skip re-render - props are equal
   return true;
 }) as typeof DataGridRowImpl;
@@ -166,6 +173,7 @@ function DataGridRowImpl<TData>({
   readOnly,
   stretchColumns,
   adjustLayout,
+  generatingColumns,
   className,
   style,
   ref,
@@ -262,13 +270,19 @@ function DataGridRowImpl<TData>({
               "border-s": showStartBorder && columnId !== "select",
               "bg-teal-100/50 dark:bg-teal-900/20":
                 cell.column.columnDef.meta?.source === "lookup",
+              "generating-shimmer":
+                generatingColumns?.has(columnId),
             })}
             style={{
               ...getColumnPinningStyle({ column: cell.column, dir }),
               width: `calc(var(--col-${columnId}-size) * 1px)`,
             }}
           >
-            {typeof cell.column.columnDef.header === "function" ? (
+            {generatingColumns?.has(columnId) && !cell.getValue() ? (
+              <div className="flex size-full items-center px-2 py-1.5">
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            ) : typeof cell.column.columnDef.header === "function" ? (
               <div
                 className={cn("flex size-full items-center justify-center px-3 py-1.5", {
                   "bg-primary/10": isRowSelected,

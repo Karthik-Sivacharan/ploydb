@@ -1,6 +1,8 @@
 import type { RefObject } from "react"
 import type { GridHandle } from "@/types/grid-handle"
 
+const AI_GENERATING_DELAY = 5000
+
 type FlatRow = Record<string, unknown>
 
 /**
@@ -14,6 +16,8 @@ type FlatRow = Record<string, unknown>
 export function createToolCallHandler(
   gridRef: RefObject<GridHandle | null>
 ) {
+  const generatingColumns = new Set<string>()
+
   return async ({ toolCall }: { toolCall: { toolCallId: string; toolName: string; input: unknown } }) => {
     const { toolName, input } = toolCall
     const args = input as Record<string, unknown>
@@ -47,20 +51,40 @@ export function createToolCallHandler(
           columnId: string
           value: unknown
         }>
+        // If updates target a generating column, delay to show shimmer + skeleton
+        const targetCols = new Set(updates.map((u) => u.columnId))
+        const hasGenerating = [...targetCols].some((c) => generatingColumns.has(c))
+        if (hasGenerating) {
+          await new Promise((r) => setTimeout(r, AI_GENERATING_DELAY))
+        }
         grid!.updateCells(updates)
+        // Stop shimmer on any generating columns that were just filled
+        for (const colId of targetCols) {
+          if (generatingColumns.has(colId)) {
+            generatingColumns.delete(colId)
+            grid!.setGeneratingColumn(colId, false)
+          }
+        }
         return
       }
 
       case "addColumn": {
+        const colId = args.id as string
+        const source = args.source as "lookup" | "ai-generated" | undefined
         grid!.addColumn({
-          id: args.id as string,
+          id: colId,
           name: args.name as string,
           type: args.type as string,
           options: args.options as
             | Array<{ value: string; label: string; color?: string }>
             | undefined,
-          source: args.source as "lookup" | "ai-generated" | undefined,
+          source,
         })
+        // Start shimmer for AI-generated columns
+        if (source === "ai-generated") {
+          generatingColumns.add(colId)
+          grid!.setGeneratingColumn(colId, true)
+        }
         return
       }
 
