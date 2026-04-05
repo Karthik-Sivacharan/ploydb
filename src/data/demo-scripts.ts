@@ -5,7 +5,7 @@
 // Enrichment + email data in demo-data.ts (auto-generated from API).
 //
 
-import { ENRICHMENT_UPDATES, EMAIL_DRAFT_UPDATES } from "@/data/demo-data"
+import { ENRICHMENT_UPDATES } from "@/data/demo-data"
 
 // Data (as of 2026-04-04):
 //   960 total contacts, 266 tagged "lead", 131 stale (60+ days)
@@ -152,6 +152,7 @@ export const DEMO_STEPS: DemoStep[] = [
           id: "fld_priority",
           name: "Priority",
           type: "select",
+          source: "ai-generated",
           options: [
             { value: "high", label: "High" },
             { value: "medium", label: "Medium" },
@@ -249,13 +250,6 @@ export const DEMO_STEPS: DemoStep[] = [
           name: "Follow-up Draft",
           type: "long-text",
           source: "ai-generated",
-        },
-      },
-      {
-        name: "editCells",
-        args: {
-          // All 131 personalized follow-up drafts (name, title, company, industry, days)
-          updates: EMAIL_DRAFT_UPDATES,
         },
       },
     ],

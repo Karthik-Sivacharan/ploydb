@@ -9,7 +9,10 @@ import type {
 import type { VirtualItem } from "@tanstack/react-virtual";
 import * as React from "react";
 import { DataGridCell } from "@/components/data-grid/data-grid-cell";
+import { CellAttributionIndicator } from "@/components/cells/cell-attribution-indicator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cellKey } from "@/types/cell-attribution";
+import type { CellAuditMap } from "@/types/cell-attribution";
 import { useComposedRefs } from "@/lib/compose-refs";
 import {
   flexRender,
@@ -44,6 +47,7 @@ interface DataGridRowProps<TData> extends React.ComponentProps<"div"> {
   stretchColumns: boolean;
   adjustLayout: boolean;
   generatingColumns?: Set<string>;
+  cellAuditMap?: CellAuditMap;
 }
 
 export const DataGridRow = React.memo(DataGridRowImpl, (prev, next) => {
@@ -151,6 +155,11 @@ export const DataGridRow = React.memo(DataGridRowImpl, (prev, next) => {
     return false;
   }
 
+  // Re-render if cell audit map changed
+  if (prev.cellAuditMap !== next.cellAuditMap) {
+    return false;
+  }
+
   // Skip re-render - props are equal
   return true;
 }) as typeof DataGridRowImpl;
@@ -174,6 +183,7 @@ function DataGridRowImpl<TData>({
   stretchColumns,
   adjustLayout,
   generatingColumns,
+  cellAuditMap,
   className,
   style,
   ref,
@@ -255,6 +265,12 @@ function DataGridRowImpl<TData>({
           isLastColumn,
         });
 
+        const rowId = (row.original as Record<string, unknown>)._id as string | undefined
+        const auditEntries =
+          columnId !== "select" && rowId && cellAuditMap
+            ? cellAuditMap.get(cellKey(rowId, columnId)) ?? null
+            : null
+
         return (
           <div
             key={cell.id}
@@ -264,7 +280,7 @@ function DataGridRowImpl<TData>({
             data-slot="grid-cell"
             data-source={cell.column.columnDef.meta?.source ?? undefined}
             tabIndex={-1}
-            className={cn({
+            className={cn("relative", {
               grow: stretchColumns && columnId !== "select",
               "border-e": showEndBorder && columnId !== "select",
               "border-s": showStartBorder && columnId !== "select",
@@ -304,6 +320,9 @@ function DataGridRowImpl<TData>({
                 isActiveSearchMatch={isActiveSearchMatch}
                 readOnly={readOnly}
               />
+            )}
+            {auditEntries && auditEntries.length > 0 && (
+              <CellAttributionIndicator entries={auditEntries} />
             )}
           </div>
         );

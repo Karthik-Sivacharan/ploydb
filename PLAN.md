@@ -412,21 +412,21 @@ npx shadcn@latest add "https://tablecn.com/r/data-grid-row-height-menu.json"
 
 The workspace home screen. Chat-first interface that proves PloyDB is part of the workspace, not a separate app. Korra navigates to the right database for you.
 
-### 2.7.1 — Layout
-- [ ] Full-screen chat layout (Korra chat centered, like ChatGPT home)
-- [ ] Left sidebar showing workspace items (databases: Contacts, Companies, Deals, Content, Categories, Media + documents, assets)
-- [ ] Connected sources section below chat (Google Sheets, Airtable icons — already synced)
+### 2.7.1 — Layout ✅
+- [x] Full-screen chat layout (Korra chat centered, like ChatGPT home)
+- [x] Left sidebar showing workspace items (databases, agents, ploybooks, connected apps)
+- [x] Connected sources section below chat (Google Sheets, Analytics, Figma — Brandfetch logos)
 
-### 2.7.2 — Starter Templates
-- [ ] Template cards below the chat input: "Prioritize stale leads", "Clean up contacts", "Analyze deal pipeline", "Audit content status"
-- [ ] Clicking a template populates the chat with that prompt
-- [ ] One template triggers the happy path demo flow
+### 2.7.2 — Starter Templates ✅
+- [x] Template cards below the chat input: "Prioritize stale leads", "Clean up contacts", "Analyze deal pipeline", "Audit content status"
+- [x] Clicking a template populates the chat with that prompt
+- [x] One template triggers the happy path demo flow
 
-### 2.7.3 — Transition to Table View
-- [ ] When user sends a message or clicks a template, Korra responds and opens the relevant database
-- [ ] Sidebar item highlights as Korra selects it
-- [ ] Smooth transition animation: full-screen chat → split view (table left + chat panel right)
-- [ ] Chat history carries over to the right panel seamlessly
+### 2.7.3 — Transition to Table View ✅
+- [x] When user sends a message or clicks a template, Korra responds and opens the relevant database
+- [x] Sidebar item highlights as Korra selects it (nav-context)
+- [x] Smooth transition animation: full-screen chat → split view (table left + chat panel right)
+- [x] Chat history carries over to the right panel seamlessly
 
 ---
 
@@ -434,12 +434,12 @@ The workspace home screen. Chat-first interface that proves PloyDB is part of th
 
 The AI collaboration surface is the core differentiator. This is what makes PloyDB feel AI-native, not a Notion clone with a chat sidebar. Korra is a peer working on the same table — the UI must make that visible, trustworthy, and natural.
 
-### 3.1 — Chat UI
-- [ ] Right side panel (collapsible, resizable)
-- [ ] Chat message list with streaming text rendering
-- [ ] Korra avatar + typing indicator
-- [ ] Input area with send button
-- [ ] Ploybook/Skill tags visible near chat input (e.g., `Ploybook: Client Health Assessment` + `Skill: Acme Client Tiers`) — shows what context Korra is using
+### 3.1 — Chat UI ✅
+- [x] Right side panel (fixed width, bg-muted/30 tint, border-l separation)
+- [x] Chat message list with streaming text rendering (Vercel AI SDK Elements)
+- [x] Korra avatar (KO badge, sky blue) + thinking indicator (brain icon + shimmer, no chevron)
+- [x] Input area with send button, autopilot toggle
+- [x] Ploybook/Skill context tags visible near chat input (accumulate per demo step)
 
 ### 3.2 — Dry-Run Preview Cards
 - [ ] Before Korra acts on all rows, she shows a preview card in chat with results for first 5 rows
@@ -452,14 +452,14 @@ The AI collaboration surface is the core differentiator. This is what makes Ploy
 - [ ] Clicking the card opens a diff view — code-editor style: removed values in red, added in green, edited in yellow
 - [ ] Diff view shows before/after per cell, grouped by row
 
-### 3.4 — Tool Definitions + Mock Model
-- [ ] `openDatabase` — navigate to a database → triggers sidebar highlight + transition to split view
-- [ ] `editCells` — batch cell updates → `tableMeta.onDataUpdate()`
-- [ ] `addColumn` — add a new column with type/options → updates column definitions
-- [ ] `filterBy` — apply filters → `table.setColumnFilters()`
-- [ ] `sortBy` — apply sorts → `table.setSorting()`
-- [ ] `addRow` / `deleteRows` — row CRUD
-- [ ] Mock model with pre-scripted responses for the happy path demo (no API key needed)
+### 3.4 — Tool Definitions + Mock Model ✅
+- [x] `openDatabase` — navigate to a database → triggers sidebar highlight + transition to split view
+- [x] `editCells` — batch cell updates → `tableMeta.onDataUpdate()` (with 5s delay for AI-generated columns)
+- [x] `addColumn` — add a new column with type/options → updates column definitions (supports `source: "lookup" | "ai-generated"`)
+- [x] `filterBy` — apply filters → `table.setColumnFilters()` (with Korra attribution badge)
+- [x] `sortBy` — apply sorts → `table.setSorting()` (with Korra attribution badge)
+- [x] `addRow` / `deleteRows` — row CRUD
+- [x] Mock model with pre-scripted 8-step demo (MockLanguageModelV3, no API key needed)
 - [ ] Later: swap mock for real Claude via `@ai-sdk/anthropic`
 
 ### 3.5 — Pre-Scripted Happy Path Demo (Contacts table)
@@ -522,13 +522,16 @@ function getNextResponse() {
 - Dry-run card shows actual data from the current table state
 - Step 4 (row detail) is just a click — no chat message needed
 
-#### Demo steps
+#### Demo steps (8-step flow, all working ✅)
 
-- [ ] **Step 0:** User clicks "Prioritize stale leads" template on home → Korra: "I see 960 contacts in your CRM. I'll open that up." → `openDatabase("contacts")` → transition to split view
-- [ ] **Step 1:** Next message → Korra filters: Tags contains "lead" + Last Contacted > 60 days → table narrows
-- [ ] **Step 2:** Next message → "I'll add a Priority column based on title seniority and company size" → Ploybook tag appears → dry-run on 5 rows → approve → Korra fills all rows with wave animation
-- [ ] **Step 3:** Next message → "Do this for all healthcare contacts" → bulk update → edit summary card with diff
-- [ ] **Step 4:** User clicks a row → side panel with audit trail showing Korra + User edits (no chat needed)
+- [x] **Step 0:** User clicks template → Korra opens Contacts table → transition to split view
+- [x] **Step 1:** Korra filters: Tags "lead" + Last Contacted > 60 days → 131 stale leads
+- [x] **Step 2:** Enrichment — adds Industry + Company Size columns (lookup source, teal tint + link icon) from Companies table
+- [x] **Step 3:** Adds Priority column (dry-run preview on 5 rows) → Ploybook tag appears
+- [x] **Step 4:** Proactive insight — 23 stale leads at 1000+ companies marked High
+- [x] **Step 5:** Bulk update — all Technology contacts → High priority
+- [x] **Step 6:** Korra asks before drafting emails (no tool calls, just the question)
+- [x] **Step 7:** Drafts follow-up emails — adds Follow-up Draft column (ai-generated source, sky shimmer + skeleton cells + FilePenLine icon)
 
 ---
 
@@ -578,10 +581,21 @@ Trust is built into the table itself, not just the chat panel.
 ## Phase 7: Polish + Stretch
 
 - [ ] Motion animations (cell edit glow, row add/delete, filter transitions, Korra activity pulse)
-- [ ] Korra personality animations — waterbending/spirit-world-inspired effects (particles, glows, shaders) to give the AI agent Korra's character from The Legend of Korra. See `docs/korra-animation-research.md` for full research, color palette, library picks.
-- [ ] Loading skeletons, empty states
-- [ ] Row count footer
-- [ ] Dark mode toggle
+- [x] Korra personality animations — shooting stars (spirit energy streaks, dark mode only, 1 at a time, 8-15s interval). See `docs/korra-animation-research.md` for full research, color palette, library picks.
+- [x] AI column generating shimmer (sky-blue sweep + skeleton cells for empty values)
+- [x] FilePenLine icon + tooltip ("Generated by Korra") for ai-generated columns
+- [x] Teal tint + Link2 icon for lookup columns
+- [x] Breadcrumb toolbar (Q1 Tables > Table picker) replacing outlined Select dropdown
+- [x] Chat panel visual separation (bg-muted/30 + border-l)
+- [x] Column header font-semibold
+- [x] Korra header height aligned with table toolbar (py-2 + h-9)
+- [x] Korra avatar badge (KO) in chat panel header
+- [x] Row count badge in add-row footer
+- [x] Sync toggle (Google Sheets icon, sky-600 switch, "Last synced 2m ago" with amber when off)
+- [x] Thinking indicator without chevron (brain icon + shimmer only)
+- [x] Loading skeletons (data grid skeleton)
+- [ ] Empty states
+- [x] Dark mode toggle (sidebar footer)
 - [ ] "Reset data" button
 - [ ] Board View (kanban) — stretch goal
 

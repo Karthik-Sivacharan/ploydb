@@ -50,6 +50,8 @@ import { createSelectColumn } from "@/lib/select-column"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { GridHandle, AddColumnOptions, Attribution } from "@/types/grid-handle"
 import type { CellSelectOption, CellOpts } from "@/types/data-grid"
+import type { CellAuditMap, CellActor } from "@/types/cell-attribution"
+import { cellKey } from "@/types/cell-attribution"
 
 type FlatRow = Record<string, unknown>
 
@@ -68,6 +70,8 @@ function DataGridWithToolbar({
   footerExtra,
   generatingColumns,
   onSetGeneratingColumn,
+  cellAuditMap,
+  onRecordCellEdit,
 }: {
   data: FlatRow[]
   columns: ColumnDef<FlatRow>[]
@@ -79,6 +83,8 @@ function DataGridWithToolbar({
   footerExtra?: React.ReactNode
   generatingColumns?: Set<string>
   onSetGeneratingColumn?: (columnId: string, generating: boolean) => void
+  cellAuditMap?: CellAuditMap
+  onRecordCellEdit?: (rowId: string, columnId: string, value: unknown, prevValue: unknown, actor: CellActor, toolCallId?: string, context?: string) => void
 }) {
   // Track who last changed filters/sorting (Korra vs user)
   const [filterAttr, setFilterAttr] = React.useState<Attribution>("user")
@@ -134,7 +140,8 @@ function DataGridWithToolbar({
     setGeneratingColumn: (columnId, generating) => {
       onSetGeneratingColumn?.(columnId, generating)
     },
-  }), [dataGrid.table, dataGrid.tableMeta, onDataChange, onAddColumn, onOpenDatabase, data, onSetGeneratingColumn])
+    recordCellEdit: onRecordCellEdit,
+  }), [dataGrid.table, dataGrid.tableMeta, onDataChange, onAddColumn, onOpenDatabase, data, onSetGeneratingColumn, onRecordCellEdit])
 
   return (
     <>
@@ -148,7 +155,7 @@ function DataGridWithToolbar({
           </>,
           toolbarSlot.current,
         )}
-      <DataGrid {...dataGrid} height={0} className="h-full" footerExtra={footerExtra} generatingColumns={generatingColumns} />
+      <DataGrid {...dataGrid} height={0} className="h-full" footerExtra={footerExtra} generatingColumns={generatingColumns} cellAuditMap={cellAuditMap} />
     </>
   )
 }
@@ -172,6 +179,38 @@ export function DataGridView({
   const [error, setError] = React.useState<string | null>(null)
   const [syncEnabled, setSyncEnabled] = React.useState(true)
   const [generatingColumns, setGeneratingColumns] = React.useState<Set<string>>(new Set())
+  const [cellAuditMap, setCellAuditMap] = React.useState<CellAuditMap>(new Map())
+
+  const recordCellEdit = React.useCallback(
+    (
+      rowId: string,
+      columnId: string,
+      value: unknown,
+      prevValue: unknown,
+      actor: CellActor,
+      toolCallId?: string,
+      context?: string
+    ) => {
+      setCellAuditMap((prev) => {
+        const next = new Map(prev)
+        const key = cellKey(rowId, columnId)
+        const entries = [...(next.get(key) ?? [])]
+        entries.push({
+          actor,
+          value,
+          prevValue,
+          timestamp: Date.now(),
+          toolCallId,
+          context,
+        })
+        // Keep last 10 entries per cell
+        if (entries.length > 10) entries.shift()
+        next.set(key, entries)
+        return next
+      })
+    },
+    []
+  )
 
   const handleSetGeneratingColumn = React.useCallback(
     (columnId: string, generating: boolean) => {
@@ -294,6 +333,23 @@ export function DataGridView({
         const next =
           typeof updater === "function" ? updater(prev) : updater
 
+        // Record user edits for attribution
+        for (let i = 0; i < next.length; i++) {
+          const oldRow = prev[i]
+          const newRow = next[i]
+          if (oldRow && newRow && oldRow !== newRow) {
+            const rowId = (newRow._id ?? oldRow._id) as string | undefined
+            if (rowId) {
+              for (const key of Object.keys(newRow)) {
+                if (key.startsWith("_")) continue
+                if (newRow[key] !== oldRow[key]) {
+                  recordCellEdit(rowId, key, newRow[key], oldRow[key], "user")
+                }
+              }
+            }
+          }
+        }
+
         if (dataSource === "api" && activeDbId && activeDb) {
           for (let i = 0; i < next.length; i++) {
             const oldRow = prev[i]
@@ -336,7 +392,7 @@ export function DataGridView({
         return next
       })
     },
-    [dataSource, activeDbId, activeDb]
+    [dataSource, activeDbId, activeDb, recordCellEdit]
   )
 
   // ─── Add column handler (for Korra addColumn tool) ───────────────────
@@ -536,6 +592,8 @@ export function DataGridView({
             gridRef={gridRef}
             generatingColumns={generatingColumns}
             onSetGeneratingColumn={handleSetGeneratingColumn}
+            cellAuditMap={cellAuditMap}
+            onRecordCellEdit={recordCellEdit}
             footerExtra={
               <div className="flex items-center gap-1.5">
                 <Label htmlFor="sync-toggle" className="text-xs text-muted-foreground">
