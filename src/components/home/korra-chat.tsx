@@ -219,9 +219,12 @@ function MessageList({
           .map((p) => p.text)
           .join("")
       : ""
+  const lastAssistantHasReasoning =
+    realLastMsg?.role === "assistant" &&
+    realLastMsg.parts.some((p) => p.type === "reasoning")
   const isThinking =
     (status === "submitted" && realLastMsg?.role === "user") ||
-    (status === "streaming" && realLastMsg?.role === "assistant" && !lastAssistantText)
+    (status === "streaming" && realLastMsg?.role === "assistant" && !lastAssistantText && !lastAssistantHasReasoning)
 
   return (
     <>
