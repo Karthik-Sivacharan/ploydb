@@ -24,6 +24,8 @@ import {
   Reasoning,
   ReasoningTrigger,
 } from "@/components/ai-elements/reasoning"
+import { Shimmer } from "@/components/ai-elements/shimmer"
+import { BrainIcon } from "lucide-react"
 import {
   PromptInput,
   PromptInputTextarea,
@@ -233,7 +235,10 @@ function MessageList({
         <Message from="assistant">
           <MessageContent>
             <Reasoning isStreaming>
-              <ReasoningTrigger />
+              <ReasoningTrigger>
+                <BrainIcon className="size-4" />
+                <Shimmer duration={1}>Thinking...</Shimmer>
+              </ReasoningTrigger>
             </Reasoning>
           </MessageContent>
         </Message>
@@ -268,8 +273,8 @@ export function KorraChat({ variant, chat, onFirstMessage }: KorraChatProps) {
     return (
       <div className="flex h-full flex-col border-l border-border/40">
         {/* Header */}
-        <div className="flex h-12 shrink-0 items-center border-b border-border/40 px-4">
-          <span className="text-sm font-medium">Korra</span>
+        <div className="flex shrink-0 items-center justify-end gap-2 border-b border-border/40 px-4 py-2">
+          <span className="flex h-9 items-center text-sm font-medium">Korra</span>
         </div>
 
         {/* Messages — Conversation provides auto-scroll via use-stick-to-bottom */}

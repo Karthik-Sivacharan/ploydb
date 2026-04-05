@@ -135,7 +135,7 @@ export function HomeDashboard() {
           </div>
 
           {/* Chat panel on the right — fixed width, same useChat instance */}
-          <div className="flex h-full w-[380px] min-w-[380px] max-w-[380px] flex-col">
+          <div className="flex h-full w-[380px] min-w-[380px] max-w-[380px] flex-col border-l bg-muted/30">
             <KorraChat variant="panel" chat={chat} />
           </div>
         </motion.div>

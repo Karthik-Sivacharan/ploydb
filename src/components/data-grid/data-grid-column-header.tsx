@@ -141,7 +141,7 @@ export function DataGridColumnHeader<TData, TValue>({
                 </TooltipContent>
               </Tooltip>
             )}
-            <span className="truncate">{label}</span>
+            <span className="truncate font-semibold">{label}</span>
             {column.columnDef.meta?.source === "lookup" && (
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>

@@ -532,7 +532,7 @@ export function DataGridView({
                   height={14}
                   className="size-3.5 object-contain"
                 />
-                <Separator orientation="vertical" className="h-3" />
+                <Separator orientation="vertical" className="h-3 bg-muted-foreground/40" />
                 <span className={cn(
                   "text-xs",
                   syncEnabled ? "text-muted-foreground" : "text-amber-500"
