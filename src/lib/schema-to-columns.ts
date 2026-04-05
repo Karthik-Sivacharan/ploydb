@@ -278,11 +278,22 @@ export function apiRowToFlat(
     }
   }
 
+  // Only include properties that are in the schema — prevents stale/orphan
+  // fields from the backend leaking into the grid (e.g. fld_followup_draft
+  // from a previous demo run)
+  const schemaFieldIds = schema ? new Set(schema.map((f) => f.id)) : null;
+  const cleanProps: Record<string, unknown> = {};
+  for (const key of Object.keys(props)) {
+    if (!schemaFieldIds || schemaFieldIds.has(key)) {
+      cleanProps[key] = props[key];
+    }
+  }
+
   return {
     _id: row.id,
     _version: Number(row.version),
     _rowNumber: row.rowNumber,
-    ...props,
+    ...cleanProps,
   };
 }
 
