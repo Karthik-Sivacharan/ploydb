@@ -98,6 +98,7 @@ export const DEMO_STEPS: DemoStep[] = [
           id: "fld_industry",
           name: "Industry",
           type: "select",
+          source: "lookup",
           options: [
             { value: "Technology", label: "Technology" },
             { value: "Legal", label: "Legal" },
@@ -113,6 +114,7 @@ export const DEMO_STEPS: DemoStep[] = [
           id: "fld_company_size",
           name: "Company Size",
           type: "select",
+          source: "lookup",
           options: [
             { value: "1-10", label: "1-10" },
             { value: "11-50", label: "11-50" },

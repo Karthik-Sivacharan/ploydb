@@ -59,6 +59,7 @@ export function createToolCallHandler(
           options: args.options as
             | Array<{ value: string; label: string; color?: string }>
             | undefined,
+          source: args.source as "lookup" | "ai-generated" | undefined,
         })
         return
       }
@@ -69,6 +70,7 @@ export function createToolCallHandler(
           value: unknown
           operator?: string
         }>
+        grid!.setFilterAttribution("korra")
         // Map to tablecn FilterValue format: { operator, value }
         grid!.table.setColumnFilters(
           filters.map((f) => ({
@@ -87,6 +89,7 @@ export function createToolCallHandler(
           columnId: string
           desc: boolean
         }>
+        grid!.setSortAttribution("korra")
         // Map to TanStack Table SortingState format: { id, desc }
         grid!.table.setSorting(
           sorts.map((s) => ({ id: s.columnId, desc: s.desc }))

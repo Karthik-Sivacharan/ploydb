@@ -86,6 +86,10 @@ export const korraTools = {
         .describe(
           "Options for select, multi-select, status, and tags column types"
         ),
+      source: z
+        .enum(["lookup", "ai-generated"])
+        .optional()
+        .describe("Column data source — lookup for cross-table references, ai-generated for AI-created data"),
     }),
   }),
 

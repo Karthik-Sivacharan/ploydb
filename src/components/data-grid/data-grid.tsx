@@ -173,6 +173,8 @@ export function DataGrid<TData>({
                         showEndBorder && header.column.id !== "select",
                       "border-s":
                         showStartBorder && header.column.id !== "select",
+                      "bg-teal-50/60 dark:bg-teal-950/20":
+                        header.column.columnDef.meta?.source === "lookup",
                     })}
                     style={{
                       ...getColumnPinningStyle({ column: header.column, dir }),

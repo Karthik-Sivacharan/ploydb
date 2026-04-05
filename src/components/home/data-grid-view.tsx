@@ -38,7 +38,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DataGridSkeleton } from "@/components/ui/data-grid-skeleton"
 import { createSelectColumn } from "@/lib/select-column"
 import type { ColumnDef } from "@tanstack/react-table"
-import type { GridHandle, AddColumnOptions } from "@/types/grid-handle"
+import type { GridHandle, AddColumnOptions, Attribution } from "@/types/grid-handle"
 import type { CellSelectOption, CellOpts } from "@/types/data-grid"
 
 type FlatRow = Record<string, unknown>
@@ -64,6 +64,13 @@ function DataGridWithToolbar({
   toolbarSlot: React.RefObject<HTMLDivElement | null>
   gridRef?: React.RefObject<GridHandle | null>
 }) {
+  // Track who last changed filters/sorting (Korra vs user)
+  const [filterAttr, setFilterAttr] = React.useState<Attribution>("user")
+  const [sortAttr, setSortAttr] = React.useState<Attribution>("user")
+  // Flag: when true, the next filter/sort change came from Korra's tool call
+  const korraFilterFlag = React.useRef(false)
+  const korraSortFlag = React.useRef(false)
+
   const dataGrid = useDataGrid<FlatRow>({
     data,
     columns,
@@ -73,6 +80,20 @@ function DataGridWithToolbar({
     enableRowSelection: true,
     initialState: {
       columnPinning: { left: ["select"] },
+    },
+    onColumnFiltersChange: () => {
+      if (korraFilterFlag.current) {
+        korraFilterFlag.current = false
+      } else {
+        setFilterAttr("user")
+      }
+    },
+    onSortingChange: () => {
+      if (korraSortFlag.current) {
+        korraSortFlag.current = false
+      } else {
+        setSortAttr("user")
+      }
     },
   })
 
@@ -86,6 +107,14 @@ function DataGridWithToolbar({
     setDataAndColumns: () => {}, // handled at DataGridView level
     getData: () => data,
     openDatabase: onOpenDatabase,
+    setFilterAttribution: (attr) => {
+      if (attr === "korra") korraFilterFlag.current = true
+      setFilterAttr(attr)
+    },
+    setSortAttribution: (attr) => {
+      if (attr === "korra") korraSortFlag.current = true
+      setSortAttr(attr)
+    },
   }), [dataGrid.table, dataGrid.tableMeta, onDataChange, onAddColumn, onOpenDatabase, data])
 
   return (
@@ -93,8 +122,8 @@ function DataGridWithToolbar({
       {toolbarSlot.current &&
         ReactDOM.createPortal(
           <>
-            <DataGridFilterMenu table={dataGrid.table} align="end" />
-            <DataGridSortMenu table={dataGrid.table} align="end" />
+            <DataGridFilterMenu table={dataGrid.table} align="end" attribution={filterAttr} />
+            <DataGridSortMenu table={dataGrid.table} align="end" attribution={sortAttr} />
             <DataGridRowHeightMenu table={dataGrid.table} align="end" />
             <DataGridViewMenu table={dataGrid.table} align="end" />
           </>,
@@ -341,6 +370,7 @@ export function DataGridView({
         meta: {
           label: opts.name,
           cell: cellConfig,
+          ...(opts.source ? { source: opts.source } : {}),
         },
       }
 

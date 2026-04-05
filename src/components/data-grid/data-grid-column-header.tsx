@@ -11,6 +11,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   EyeOffIcon,
+  Link2Icon,
   PinIcon,
   PinOffIcon,
   XIcon,
@@ -141,6 +142,16 @@ export function DataGridColumnHeader<TData, TValue>({
               </Tooltip>
             )}
             <span className="truncate">{label}</span>
+            {column.columnDef.meta?.source === "lookup" && (
+              <Tooltip delayDuration={100}>
+                <TooltipTrigger asChild>
+                  <Link2Icon className="size-3 shrink-0 text-teal-500 dark:text-teal-400" />
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p>Linked from another table</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
           </div>
           <ChevronDownIcon className="shrink-0 text-muted-foreground" />
         </DropdownMenuTrigger>

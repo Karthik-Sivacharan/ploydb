@@ -10,12 +10,18 @@ type FlatRow = Record<string, unknown>
  * that HomeDashboard (and eventually onToolCall) can use to
  * manipulate the table programmatically.
  */
+export type ColumnSource = "lookup" | "ai-generated"
+
 export interface AddColumnOptions {
   id: string
   name: string
   type: string
   options?: Array<{ value: string; label: string; color?: string }>
+  /** Where this column's data comes from — affects visual treatment */
+  source?: ColumnSource
 }
+
+export type Attribution = "korra" | "user"
 
 export interface GridHandle {
   /** TanStack Table instance — filters, sorting, selection, row model */
@@ -34,4 +40,7 @@ export interface GridHandle {
   getData: () => FlatRow[]
   /** Switch to an API database by slug */
   openDatabase: (slug: string) => void
+  /** Mark filter/sort attribution (who last changed it) */
+  setFilterAttribution: (attr: Attribution) => void
+  setSortAttribution: (attr: Attribution) => void
 }

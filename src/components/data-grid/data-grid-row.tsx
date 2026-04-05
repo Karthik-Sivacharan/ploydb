@@ -259,6 +259,8 @@ function DataGridRowImpl<TData>({
               grow: stretchColumns && columnId !== "select",
               "border-e": showEndBorder && columnId !== "select",
               "border-s": showStartBorder && columnId !== "select",
+              "bg-teal-50/40 dark:bg-teal-950/15":
+                cell.column.columnDef.meta?.source === "lookup",
             })}
             style={{
               ...getColumnPinningStyle({ column: cell.column, dir }),
