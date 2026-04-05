@@ -13,7 +13,9 @@ import {
 import { fade, transitions } from "@/lib/motion"
 import { Badge } from "@/components/ui/badge"
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
+import { ShootingStars } from "@/components/ui/shooting-stars"
 import { Separator } from "@/components/ui/separator"
+import { useNav } from "@/components/nav-context"
 import { KorraChat } from "@/components/home/korra-chat"
 import { DataGridView } from "@/components/home/data-grid-view"
 import { DEMO_STEPS } from "@/data/demo-scripts"
@@ -62,6 +64,7 @@ export function HomeDashboard() {
   const [view, setView] = useState<View>("home")
   const [showTemplates, setShowTemplates] = useState(true)
   const { setOpen } = useSidebar()
+  const { setActiveNav } = useNav()
 
   // Grid handle for Korra tool calls to manipulate the table
   const gridRef = useRef<GridHandle>(null)
@@ -83,6 +86,7 @@ export function HomeDashboard() {
 
     setOpen(false) // collapses instantly — no CSS transition to fight
     setView("split") // AnimatePresence handles the crossfade
+    setActiveNav("Records") // highlight Records in sidebar
 
     // Restore sidebar transitions for future manual toggles
     requestAnimationFrame(() => {
@@ -151,8 +155,10 @@ export function HomeDashboard() {
             <span className="text-sm text-muted-foreground">Overview</span>
           </header>
 
+          {/* Spirit energy streaks — subtle ambient background */}
+          <ShootingStars className="flex-1">
           {/* Centered chat area */}
-          <div className="flex flex-1 flex-col items-center justify-center px-4 pb-24">
+          <div className="flex h-full flex-col items-center justify-center px-4 pb-24">
             <div className="w-full max-w-2xl space-y-8">
               {/* Greeting */}
               <div className="space-y-2 text-center">
@@ -190,7 +196,7 @@ export function HomeDashboard() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">
-                      Get started with some examples
+                      Suggested for you
                     </span>
                     <button
                       onClick={() => setShowTemplates(false)}
@@ -220,6 +226,7 @@ export function HomeDashboard() {
               )}
             </div>
           </div>
+          </ShootingStars>
         </motion.div>
       )}
     </AnimatePresence>

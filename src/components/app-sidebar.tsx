@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { useTheme } from "next-themes"
 
+import { useNav } from "@/components/nav-context"
 import { NavMain } from "@/components/nav-main"
 import { NavResources } from "@/components/nav-resources"
 import { NavUser } from "@/components/nav-user"
@@ -47,7 +48,6 @@ const data = {
       title: "Overview",
       url: "#",
       icon: House,
-      isActive: true,
     },
     {
       title: "Ploys",
@@ -139,13 +139,24 @@ function SidebarSettings() {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { activeNav } = useNav()
+
+  const navItems = React.useMemo(
+    () =>
+      data.navMain.map((item) => ({
+        ...item,
+        isActive: item.title === activeNav,
+      })),
+    [activeNav]
+  )
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <WorkspaceSwitcher workspaces={data.workspaces} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navItems} />
         <NavResources resources={data.resources} />
       </SidebarContent>
       <SidebarFooter>

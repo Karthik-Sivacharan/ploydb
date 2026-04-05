@@ -127,7 +127,7 @@ function KorraPromptInput({
   return (
     <PromptInput onSubmit={handleSubmit}>
       <PromptInputTextarea
-        placeholder="Ask Korra..."
+        placeholder={variant === "home" ? "What should we work on?" : "Ask Korra..."}
         className={cn(
           variant === "home" ? "min-h-[7rem]" : "min-h-[3rem] max-h-[8rem]"
         )}
@@ -159,7 +159,7 @@ function KorraPromptInput({
         </PromptInputTools>
 
         {/* Right side: Autopilot toggle + Submit */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <Switch
               id="autopilot"
