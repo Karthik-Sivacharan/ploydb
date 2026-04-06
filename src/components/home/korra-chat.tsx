@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import type { ContextTag } from "@/data/demo-scripts"
 import { getAccumulatedTags, AUTO_ADVANCE_PREFIX } from "@/data/demo-scripts"
+import { ToolResultCard } from "@/components/korra/tool-cards/tool-result-card"
 import {
   Conversation,
   ConversationContent,
@@ -56,6 +57,8 @@ interface KorraChatProps {
   chat: KorraChatInput
   /** Callback for input changes (for auto-switching to split) */
   onFirstMessage?: () => void
+  /** Tool execution results map (toolCallId → result data) */
+  toolResults?: Map<string, Record<string, unknown>>
   /** Whether audit trail triangles are visible in the grid */
   showAuditTrail?: boolean
   /** Callback to toggle audit trail visibility */
@@ -194,9 +197,11 @@ function KorraPromptInput({
 function MessageList({
   messages,
   status,
+  toolResults,
 }: {
   messages: UIMessage[]
   status: ChatStatus
+  toolResults?: Map<string, Record<string, unknown>>
 }) {
   // Filter out auto-advance user messages (hidden from UI)
   const visibleMessages = messages.filter((msg) => {
@@ -248,13 +253,38 @@ function MessageList({
                   <ReasoningContent>{reasoningText}</ReasoningContent>
                 </Reasoning>
               )}
-              {msg.parts.map((part, i) =>
-                part.type === "text" ? (
-                  <MessageResponse key={i} isAnimating={isLastAssistant}>
-                    {part.text}
-                  </MessageResponse>
-                ) : null
-              )}
+              {msg.parts.map((part, i) => {
+                if (part.type === "text") {
+                  return (
+                    <MessageResponse key={i} isAnimating={isLastAssistant}>
+                      {part.text}
+                    </MessageResponse>
+                  )
+                }
+                // Tool result cards — render for tool-invocation parts
+                if (typeof part.type === "string" && part.type.startsWith("tool-")) {
+                  const toolName = part.type.replace(/^tool-/, "")
+                  // Skip searchNews — handled by Reasoning block
+                  if (toolName === "searchNews") return null
+                  const toolPart = part as unknown as {
+                    toolCallId: string
+                    input: Record<string, unknown>
+                    state: string
+                  }
+                  // Only render when input is available (not during streaming)
+                  if (toolPart.state === "input-streaming") return null
+                  const result = toolResults?.get(toolPart.toolCallId)
+                  return (
+                    <ToolResultCard
+                      key={i}
+                      toolName={toolName}
+                      input={toolPart.input ?? {}}
+                      result={result}
+                    />
+                  )
+                }
+                return null
+              })}
             </MessageContent>
           </Message>
         )
@@ -279,7 +309,7 @@ function MessageList({
 
 // ─── Main Component ──────────────────────────────────────────────────
 
-export function KorraChat({ variant, chat, onFirstMessage, showAuditTrail, onShowAuditTrailChange }: KorraChatProps) {
+export function KorraChat({ variant, chat, onFirstMessage, toolResults, showAuditTrail, onShowAuditTrailChange }: KorraChatProps) {
   const { messages, status, sendMessage, stop } = chat
   const hasCalledFirstMessage = useRef(false)
 
@@ -334,7 +364,7 @@ export function KorraChat({ variant, chat, onFirstMessage, showAuditTrail, onSho
         <Conversation className="flex-1">
           <ConversationContent className="gap-4 px-4 py-3">
             {hasMessages ? (
-              <MessageList messages={messages} status={status} />
+              <MessageList messages={messages} status={status} toolResults={toolResults} />
             ) : (
               <ConversationEmptyState
                 title="Ask Korra to help with your data"
@@ -365,7 +395,7 @@ export function KorraChat({ variant, chat, onFirstMessage, showAuditTrail, onSho
       {/* Show messages inline if any exist */}
       {hasMessages && (
         <div className="max-h-64 space-y-4 overflow-y-auto rounded-xl border border-border/30 p-4">
-          <MessageList messages={messages} status={status} />
+          <MessageList messages={messages} status={status} toolResults={toolResults} />
         </div>
       )}
 

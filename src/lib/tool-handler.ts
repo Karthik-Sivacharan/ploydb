@@ -17,6 +17,7 @@ type FlatRow = Record<string, unknown>
 export function createToolCallHandler(
   gridRef: RefObject<GridHandle | null>
 ) {
+  const toolResults = new Map<string, Record<string, unknown>>()
   const generatingColumns = new Set<string>()
 
   // Cache for lookup resolution — avoids duplicate API calls when multiple
@@ -111,7 +112,7 @@ export function createToolCallHandler(
     lookupProcessing = false
   }
 
-  return async ({ toolCall }: { toolCall: { toolCallId: string; toolName: string; input: unknown } }) => {
+  const handler = async ({ toolCall }: { toolCall: { toolCallId: string; toolName: string; input: unknown } }) => {
     const { toolName, input } = toolCall
     const args = input as Record<string, unknown>
 
@@ -134,6 +135,7 @@ export function createToolCallHandler(
         if (grid) {
           grid.openDatabase(slug)
         }
+        toolResults.set(toolCall.toolCallId, { slug })
         return
       }
 
@@ -194,6 +196,10 @@ export function createToolCallHandler(
             grid!.setGeneratingColumn(colId, false)
           }
         }
+        toolResults.set(toolCall.toolCallId, {
+          updateCount: updates.length,
+          columns: [...targetCols],
+        })
         return
       }
 
@@ -309,6 +315,11 @@ export function createToolCallHandler(
               grid!.setGeneratingColumn(colId, false)
             })
         }
+        toolResults.set(toolCall.toolCallId, {
+          columnName: args.name as string,
+          columnType: args.type as string,
+          source: source ?? null,
+        })
         return
       }
 
@@ -329,6 +340,13 @@ export function createToolCallHandler(
             },
           }))
         )
+        // Record result after filters applied (use timeout to let React settle)
+        setTimeout(() => {
+          toolResults.set(toolCall.toolCallId, {
+            filterCount: filters.length,
+            rowCount: grid!.table.getRowModel().rows.length,
+          })
+        }, 50)
         return
       }
 
@@ -342,6 +360,10 @@ export function createToolCallHandler(
         grid!.table.setSorting(
           sorts.map((s) => ({ id: s.columnId, desc: s.desc }))
         )
+        toolResults.set(toolCall.toolCallId, {
+          sortCount: sorts.length,
+          primaryColumn: sorts[0]?.columnId,
+        })
         return
       }
 
@@ -349,12 +371,14 @@ export function createToolCallHandler(
         const data = args.data as FlatRow
         const id = `row-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
         grid!.addRow({ _id: id, ...data })
+        toolResults.set(toolCall.toolCallId, { rowId: id })
         return
       }
 
       case "deleteRows": {
         const rowIndices = args.rowIndices as number[]
         grid!.deleteRows(rowIndices)
+        toolResults.set(toolCall.toolCallId, { deletedCount: rowIndices.length })
         return
       }
 
@@ -373,4 +397,6 @@ export function createToolCallHandler(
       }
     }
   }
+
+  return { handler, toolResults }
 }

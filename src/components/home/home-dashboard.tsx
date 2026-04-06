@@ -73,7 +73,7 @@ export function HomeDashboard() {
   const gridRef = useRef<GridHandle>(null)
 
   // Tool call handler bridges AI tool calls → grid APIs
-  const onToolCall = useMemo(() => createToolCallHandler(gridRef), [])
+  const { handler: onToolCall, toolResults } = useMemo(() => createToolCallHandler(gridRef), [])
 
   // Single useChat instance shared across both layouts
   const chat = useChat({ onToolCall })
@@ -159,7 +159,7 @@ export function HomeDashboard() {
 
           {/* Chat panel on the right — fixed width, same useChat instance */}
           <div className="flex h-full w-[380px] min-w-[380px] max-w-[380px] flex-col border-l bg-muted/30">
-            <KorraChat variant="panel" chat={chat} showAuditTrail={showAuditTrail} onShowAuditTrailChange={setShowAuditTrail} />
+            <KorraChat variant="panel" chat={chat} toolResults={toolResults} showAuditTrail={showAuditTrail} onShowAuditTrailChange={setShowAuditTrail} />
           </div>
         </motion.div>
       ) : (

@@ -563,6 +563,7 @@ Trust is built into the table itself, not just the chat panel.
 - [x] Dark mode toggle (sidebar footer)
 - [ ] "Reset data" button
 - [ ] Board View (kanban) — stretch goal
+- [ ] Ploybook case studies — show how Ploybooks helped companies increase response rates (e.g. retargeting emails that prompted clicks/conversions). Social proof in the UI to make Ploybooks feel proven, not hypothetical.
 
 ---
 
