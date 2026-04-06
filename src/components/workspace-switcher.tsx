@@ -42,7 +42,7 @@ export function WorkspaceSwitcher({
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
           <Avatar className="size-8 rounded-lg">
-            <AvatarFallback className="rounded-lg bg-sidebar-primary text-sidebar-primary-foreground text-xs">
+            <AvatarFallback className="rounded-lg bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 text-xs font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>

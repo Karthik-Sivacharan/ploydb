@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react"
 import type { UIMessage, ChatStatus } from "ai"
-import { BookOpen } from "lucide-react"
+import { BookOpen, Paperclip } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -113,6 +113,33 @@ function ContextTagsRow({ tags }: { tags: ContextTag[] }) {
   )
 }
 
+// ─── Model Data ─────────────────────────────────────────────────────
+
+type ModelProvider = "anthropic" | "openai" | "google"
+
+const MODELS: { id: string; name: string; provider: ModelProvider }[] = [
+  { id: "claude-sonnet-4", name: "Claude Sonnet 4", provider: "anthropic" },
+  { id: "claude-opus-4", name: "Claude Opus 4", provider: "anthropic" },
+  { id: "claude-haiku-4-5", name: "Claude Haiku 4.5", provider: "anthropic" },
+  { id: "gpt-4o", name: "GPT-4o", provider: "openai" },
+  { id: "gpt-4o-mini", name: "GPT-4o Mini", provider: "openai" },
+  { id: "gemini-2.5-pro", name: "Gemini 2.5 Pro", provider: "google" },
+  { id: "gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "google" },
+]
+
+/** Renders a provider logo from models.dev — uniform sizing, dark:invert for dark mode */
+function ProviderLogo({ provider, className }: { provider: ModelProvider; className?: string }) {
+  return (
+    <img
+      alt={`${provider} logo`}
+      src={`https://models.dev/logos/${provider}.svg`}
+      width={16}
+      height={16}
+      className={cn("size-4 shrink-0 dark:invert", className)}
+    />
+  )
+}
+
 // ─── Korra Prompt Input ──────────────────────────────────────────────
 
 function KorraPromptInput({
@@ -129,11 +156,18 @@ function KorraPromptInput({
   contextTags?: ContextTag[]
 }) {
   const [autopilot, setAutopilot] = useState(false)
+  const [selectedModel, setSelectedModel] = useState(MODELS[0])
 
   const handleSubmit = ({ text }: { text: string }) => {
     if (!text.trim()) return
     onSend(text)
   }
+
+  // Group models by provider for the dropdown
+  const grouped = MODELS.reduce<Record<ModelProvider, typeof MODELS>>((acc, m) => {
+    ;(acc[m.provider] ??= []).push(m)
+    return acc
+  }, {} as Record<ModelProvider, typeof MODELS>)
 
   return (
     <PromptInput onSubmit={handleSubmit}>
@@ -149,11 +183,43 @@ function KorraPromptInput({
 
       <PromptInputFooter>
         <PromptInputTools>
-          {/* Ploybooks menu */}
+          {/* 1. Model selector — logo only trigger, logo + name in dropdown */}
           <PromptInputActionMenu>
-            <PromptInputActionMenuTrigger tooltip="Ploybooks">
+            <PromptInputActionMenuTrigger>
+              <ProviderLogo provider={selectedModel.provider} />
+            </PromptInputActionMenuTrigger>
+            <PromptInputActionMenuContent>
+              {(Object.keys(grouped) as ModelProvider[]).map((provider) => (
+                grouped[provider].map((model) => (
+                  <PromptInputActionMenuItem
+                    key={model.id}
+                    onSelect={() => setSelectedModel(model)}
+                  >
+                    <ProviderLogo provider={model.provider} />
+                    <span>{model.name}</span>
+                  </PromptInputActionMenuItem>
+                ))
+              ))}
+            </PromptInputActionMenuContent>
+          </PromptInputActionMenu>
+
+          {/* 2. File upload */}
+          <PromptInputActionMenu>
+            <PromptInputActionMenuTrigger>
+              <Paperclip className="size-4" />
+            </PromptInputActionMenuTrigger>
+            <PromptInputActionMenuContent>
+              <PromptInputActionMenuItem>Upload from computer</PromptInputActionMenuItem>
+              <PromptInputActionMenuItem>Google Drive</PromptInputActionMenuItem>
+              <PromptInputActionMenuItem>Paste URL</PromptInputActionMenuItem>
+            </PromptInputActionMenuContent>
+          </PromptInputActionMenu>
+
+          {/* 3. Ploybooks menu */}
+          <PromptInputActionMenu>
+            <PromptInputActionMenuTrigger>
               <BookOpen className="size-4" />
-              <span className="text-sm">Ploybooks</span>
+              {variant === "home" && <span className="text-sm">Ploybooks</span>}
             </PromptInputActionMenuTrigger>
             <PromptInputActionMenuContent>
               <PromptInputActionMenuItem>
