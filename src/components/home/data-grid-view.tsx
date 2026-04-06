@@ -195,6 +195,11 @@ export function DataGridView({
   const korraEditCount = React.useRef(0)
   // Flag: suppress attribution when addColumn spreads rows for re-render
   const addColumnFlag = React.useRef(false)
+  // Tracks the latest committed data so handleDataChange can diff outside of
+  // the setData updater. This avoids React strict mode double-invoking the
+  // updater and recording duplicate attribution entries.
+  const committedDataRef = React.useRef(data)
+  React.useEffect(() => { committedDataRef.current = data }, [data])
 
   const recordCellEdit = React.useCallback(
     (
@@ -207,9 +212,25 @@ export function DataGridView({
       context?: string
     ) => {
       setCellAuditMap((prev) => {
-        const next = new Map(prev)
         const key = cellKey(rowId, columnId)
-        const entries = [...(next.get(key) ?? [])]
+        const entries = [...(prev.get(key) ?? [])]
+
+        // Deduplicate: when React strict mode double-invokes this updater,
+        // the second invocation is chained (receives the first's result as
+        // `prev`) and sees the entry we just pushed. Skip if the last entry
+        // matches exactly within the same edit cycle.
+        const last = entries[entries.length - 1]
+        if (
+          last &&
+          last.actor === actor &&
+          last.value === value &&
+          last.prevValue === prevValue &&
+          Date.now() - last.timestamp < 500
+        ) {
+          return prev
+        }
+
+        const next = new Map(prev)
         entries.push({
           actor,
           value,
@@ -342,89 +363,101 @@ export function DataGridView({
   }, [dataSource, activeDbId, activeDb, databases])
 
   // ─── Handle data changes ──────────────────────────────────────────────
+  // Attribution and API-sync logic lives OUTSIDE the setData updater to
+  // avoid React strict mode double-invoking the updater and recording
+  // duplicate audit entries / duplicate API calls.
   const handleDataChange = React.useCallback(
     (updater: FlatRow[] | ((prev: FlatRow[]) => FlatRow[])) => {
-      setData((prev) => {
-        const next =
-          typeof updater === "function" ? updater(prev) : updater
+      const prev = committedDataRef.current
+      const next = typeof updater === "function" ? updater(prev) : updater
 
-        // Record user edits for attribution.
-        // Skip when: Korra's tool call triggered this (korraEditCount) or
-        // addColumn spread rows for re-render (addColumnFlag).
-        if (korraEditCount.current > 0) {
-          korraEditCount.current--
-        } else if (addColumnFlag.current) {
-          addColumnFlag.current = false
-        } else {
-          // Build set of lookup column IDs — these are linked data, not user edits
-          const lookupColIds = new Set<string>()
-          for (const col of columns) {
-            const meta = (col as { meta?: { source?: string } }).meta
-            if (meta?.source === "lookup") {
-              lookupColIds.add((col as { id?: string }).id ?? "")
-            }
-          }
+      // Eagerly update the ref so back-to-back calls (e.g. concurrent
+      // Korra edits) each see the previous call's result as `prev`.
+      committedDataRef.current = next
 
-          for (let i = 0; i < next.length; i++) {
-            const oldRow = prev[i]
-            const newRow = next[i]
-            if (oldRow && newRow && oldRow !== newRow) {
-              const rowId = (newRow._id ?? oldRow._id) as string | undefined
-              if (rowId) {
-                for (const key of Object.keys(newRow)) {
-                  if (key.startsWith("_")) continue
-                  // Skip lookup columns — they're linked data, not edits
-                  if (lookupColIds.has(key)) continue
-                  if (newRow[key] !== oldRow[key]) {
-                    recordCellEdit(rowId, key, newRow[key], oldRow[key], "user")
-                  }
-                }
-              }
-            }
+      // Record user edits for attribution.
+      // Skip when: Korra's tool call triggered this (korraEditCount) or
+      // addColumn spread rows for re-render (addColumnFlag).
+      // Always consume addColumnFlag when korraEditCount is consumed —
+      // otherwise the flag leaks (addColumn is always followed by
+      // updateCells which has korraEditCount > 0, so the else-if never
+      // fires, leaving addColumnFlag stale for the next user edit).
+      if (korraEditCount.current > 0) {
+        korraEditCount.current--
+        if (addColumnFlag.current) addColumnFlag.current = false
+      } else if (addColumnFlag.current) {
+        addColumnFlag.current = false
+      } else {
+        // Build set of lookup column IDs — these are linked data, not user edits
+        const lookupColIds = new Set<string>()
+        for (const col of columns) {
+          const meta = (col as { meta?: { source?: string } }).meta
+          if (meta?.source === "lookup") {
+            lookupColIds.add((col as { id?: string }).id ?? "")
           }
         }
 
-        if (dataSource === "api" && activeDbId && activeDb) {
-          for (let i = 0; i < next.length; i++) {
-            const oldRow = prev[i]
-            const newRow = next[i]
-            if (oldRow && newRow && oldRow !== newRow) {
-              const changedProps: Record<string, unknown> = {}
-              const schemaFieldIds = new Set(activeDb.schema.map((f) => f.id))
+        for (let i = 0; i < next.length; i++) {
+          const oldRow = prev[i]
+          const newRow = next[i]
+          if (oldRow && newRow && oldRow !== newRow) {
+            const rowId = (newRow._id ?? oldRow._id) as string | undefined
+            if (rowId) {
               for (const key of Object.keys(newRow)) {
                 if (key.startsWith("_")) continue
-                // Skip columns not in the API schema (e.g. AI-created columns)
-                if (!schemaFieldIds.has(key)) continue
+                // Skip lookup columns — they're linked data, not edits
+                if (lookupColIds.has(key)) continue
                 if (newRow[key] !== oldRow[key]) {
-                  changedProps[key] = newRow[key]
+                  recordCellEdit(rowId, key, newRow[key], oldRow[key], "user")
                 }
-              }
-
-              if (Object.keys(changedProps).length > 0) {
-                const rowId = newRow._id as string
-                const version = (newRow._version as number) ?? 0
-                const apiProps = flatPropsToApi(changedProps, activeDb.schema)
-
-                apiUpdateRow(activeDbId, rowId, apiProps, version)
-                  .then((updated) => {
-                    setData((current) =>
-                      current.map((r) =>
-                        r._id === rowId
-                          ? { ...r, _version: Number(updated.version) }
-                          : r
-                      )
-                    )
-                  })
-                  .catch((err) => {
-                    console.error("Failed to save row:", err)
-                  })
               }
             }
           }
         }
+      }
 
-        return next
-      })
+      if (dataSource === "api" && activeDbId && activeDb) {
+        for (let i = 0; i < next.length; i++) {
+          const oldRow = prev[i]
+          const newRow = next[i]
+          if (oldRow && newRow && oldRow !== newRow) {
+            const changedProps: Record<string, unknown> = {}
+            const schemaFieldIds = new Set(activeDb.schema.map((f) => f.id))
+            for (const key of Object.keys(newRow)) {
+              if (key.startsWith("_")) continue
+              // Skip columns not in the API schema (e.g. AI-created columns)
+              if (!schemaFieldIds.has(key)) continue
+              if (newRow[key] !== oldRow[key]) {
+                changedProps[key] = newRow[key]
+              }
+            }
+
+            if (Object.keys(changedProps).length > 0) {
+              const rowId = newRow._id as string
+              const version = (newRow._version as number) ?? 0
+              const apiProps = flatPropsToApi(changedProps, activeDb.schema)
+
+              apiUpdateRow(activeDbId, rowId, apiProps, version)
+                .then((updated) => {
+                  setData((current) =>
+                    current.map((r) =>
+                      r._id === rowId
+                        ? { ...r, _version: Number(updated.version) }
+                        : r
+                    )
+                  )
+                })
+                .catch((err) => {
+                  console.error("Failed to save row:", err)
+                })
+            }
+          }
+        }
+      }
+
+      // Pass the value directly — not a function updater — so React strict
+      // mode has nothing to double-invoke.
+      setData(next)
     },
     [dataSource, activeDbId, activeDb, columns, recordCellEdit]
   )

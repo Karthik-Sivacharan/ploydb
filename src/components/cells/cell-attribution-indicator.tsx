@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { formatDistanceToNow } from "date-fns"
+import { History } from "lucide-react"
 import {
   Tooltip,
   TooltipContent,
@@ -76,7 +77,8 @@ export function CellAttributionIndicator({
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <div className="border-b px-3 py-2">
-          <span className="text-xs font-medium text-muted-foreground">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <History className="size-3.5" />
             Edit History
           </span>
         </div>
@@ -134,11 +136,6 @@ function AuditEntryRow({ entry }: { entry: CellAuditEntry }) {
             {displayValue(entry.value)}
           </span>
         </div>
-        {entry.context && (
-          <div className="mt-0.5 text-[10px] text-muted-foreground italic">
-            via {entry.context}
-          </div>
-        )}
       </div>
     </div>
   )
