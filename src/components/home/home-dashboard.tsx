@@ -11,10 +11,12 @@ import {
   Users,
   HandshakeIcon,
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { fade, transitions } from "@/lib/motion"
 import { Badge } from "@/components/ui/badge"
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar"
 import { ShootingStars } from "@/components/ui/shooting-stars"
+import { BorderBeam } from "@/components/ui/border-beam"
 import { Separator } from "@/components/ui/separator"
 import { useNav } from "@/components/nav-context"
 import { KorraChat } from "@/components/home/korra-chat"
@@ -26,12 +28,28 @@ import type { GridHandle } from "@/types/grid-handle"
 const openDbCall = DEMO_STEPS[0]?.toolCalls.find((tc) => tc.name === "openDatabase")
 const INITIAL_DB_SLUG = (openDbCall?.args?.slug as string) ?? "contacts"
 
-const TEMPLATES = [
+interface Template {
+  icon: typeof Target
+  title: string
+  description: string
+  prompt: string
+  /** Case study card — highlighted with animated border */
+  featured?: {
+    company: string
+    metric: string
+  }
+}
+
+const TEMPLATES: Template[] = [
   {
     icon: Target,
-    title: "Prioritize stale leads",
+    title: "Re-engage cold leads",
     description: "Find contacts you haven't reached in 60+ days",
     prompt: "Prioritize my stale leads — contacts I haven't reached out to in over 60 days.",
+    featured: {
+      company: "Meridian SaaS",
+      metric: "42% reply rate in 1 week",
+    },
   },
   {
     icon: Users,
@@ -235,13 +253,36 @@ export function HomeDashboard() {
                       <button
                         key={template.title}
                         onClick={() => handleTemplateClick(template.prompt)}
-                        className="group flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-4 text-left transition-colors hover:border-border hover:bg-accent/50"
+                        className={cn(
+                          "group relative flex flex-col gap-3 overflow-hidden rounded-xl border p-4 text-left transition-colors",
+                          template.featured
+                            ? "border-sky-200 bg-sky-50/50 hover:bg-sky-50 dark:border-sky-800/60 dark:bg-sky-950/30 dark:hover:bg-sky-950/50"
+                            : "border-border/60 bg-card hover:border-border hover:bg-accent/50"
+                        )}
                       >
-                        <template.icon className="size-5 text-muted-foreground" />
+                        {template.featured && (
+                          <>
+                            <BorderBeam
+                              size={60}
+                              duration={8}
+                              colorFrom="var(--color-sky-400)"
+                              colorTo="var(--color-sky-600)"
+                            />
+                            <Badge className="absolute top-3 right-3 bg-sky-100 text-sky-700 hover:bg-sky-100 dark:bg-sky-900 dark:text-sky-300 dark:hover:bg-sky-900 text-[10px] px-1.5 py-0">
+                              Try it now
+                            </Badge>
+                          </>
+                        )}
+                        <template.icon className={cn(
+                          "size-5",
+                          template.featured ? "text-sky-600 dark:text-sky-400" : "text-muted-foreground"
+                        )} />
                         <div className="space-y-1">
                           <div className="text-sm font-medium">{template.title}</div>
                           <div className="text-xs text-muted-foreground">
-                            {template.description}
+                            {template.featured
+                              ? `${template.featured.company} used this ploybook to reactivate 130 cold leads — ${template.featured.metric}`
+                              : template.description}
                           </div>
                         </div>
                       </button>
