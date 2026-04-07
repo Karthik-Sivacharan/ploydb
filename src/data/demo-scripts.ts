@@ -37,7 +37,7 @@ export interface ContextTag {
   type: "source" | "ploybook"
   name: string
   /** Icon hint: "google-sheets" renders the Sheets logo, "ploybook" renders BookOpen */
-  icon: "google-sheets" | "ploybook"
+  icon: "google-sheets" | "ploybook" | "clearbit"
 }
 
 export interface DemoStep {
@@ -72,6 +72,22 @@ function generatePriorityUpdates(): Array<{
     else if (i < 21) priority = "medium"
     else priority = "low"
     updates.push({ rowIndex: i, columnId: "fld_priority", value: priority })
+  }
+  return updates
+}
+
+function generateVisitUpdates(): Array<{
+  rowIndex: number
+  columnId: string
+  value: number
+}> {
+  const updates: Array<{ rowIndex: number; columnId: string; value: number }> = []
+  for (let i = 0; i < 34; i++) {
+    let visits: number
+    if (i < 8) visits = 4 + (i % 6)         // 4-9 (High priority = heavy intent)
+    else if (i < 21) visits = 1 + (i % 3)   // 1-3 (Medium = some intent)
+    else visits = i % 2                      // 0-1 (Low = minimal)
+    updates.push({ rowIndex: i, columnId: "fld_website_visits", value: visits })
   }
   return updates
 }
@@ -227,7 +243,7 @@ export const DEMO_STEPS: DemoStep[] = [
   {
     step: 5,
     response:
-      "I'm going to prioritize these 34 Legal contacts by title seniority and company size. Does that sound good?",
+      "I'm going to prioritize these 34 Legal contacts by title seniority, company size, and website activity from Clearbit — some of them have been visiting your product pages. Does that sound good?",
     toolCalls: [],
     thinkingDelay: 1500,
   },
@@ -237,12 +253,29 @@ export const DEMO_STEPS: DemoStep[] = [
   {
     step: 6,
     response:
-      "Here's how they stack up — sorted by priority. Take a look, does this feel right?",
+      "I pulled website activity from Clearbit — turns out several of these leads have been visiting your pricing and product pages. Combined with title seniority and company size, here's how they stack up.",
     ploybook: "Contact Prioritization",
     contextTags: [
       { type: "ploybook", name: "Contact Prioritization", icon: "ploybook" },
+      { type: "source", name: "Clearbit", icon: "clearbit" },
     ],
     toolCalls: [
+      // 1. Add Website Visits column (from Clearbit — treated as linked data)
+      {
+        name: "addColumn",
+        args: {
+          id: "fld_website_visits",
+          name: "Website Visits",
+          type: "number",
+          source: "ai-generated",
+        },
+      },
+      // 2. Fill visit counts
+      {
+        name: "editCells",
+        args: { updates: generateVisitUpdates() },
+      },
+      // 3. Add Priority column (same as before)
       {
         name: "addColumn",
         args: {
@@ -257,12 +290,14 @@ export const DEMO_STEPS: DemoStep[] = [
           ],
         },
       },
+      // 4. Fill priority values (same as before)
       {
         name: "editCells",
         args: {
           updates: generatePriorityUpdates(),
         },
       },
+      // 5. Sort by priority (same as before)
       {
         name: "sortBy",
         args: {

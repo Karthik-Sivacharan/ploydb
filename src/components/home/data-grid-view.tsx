@@ -392,7 +392,7 @@ export function DataGridView({
         const lookupColIds = new Set<string>()
         for (const col of columns) {
           const meta = (col as { meta?: { source?: string } }).meta
-          if (meta?.source === "lookup") {
+          if (meta?.source === "lookup" || meta?.source === "clearbit") {
             lookupColIds.add((col as { id?: string }).id ?? "")
           }
         }

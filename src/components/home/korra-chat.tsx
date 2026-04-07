@@ -70,6 +70,9 @@ interface KorraChatProps {
 const GOOGLE_SHEETS_ICON =
   "https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/idKa2XnbFY.svg?c=1bxid64Mup7aczewSAYMX&t=1755572735234"
 
+const CLEARBIT_ICON =
+  "https://cdn.brandfetch.io/idPfQccWRj/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1668081777632"
+
 function getMessageText(message: UIMessage): string {
   return message.parts
     .filter((p): p is { type: "text"; text: string } => p.type === "text")
@@ -99,6 +102,14 @@ function ContextTagsRow({ tags }: { tags: ContextTag[] }) {
             <img
               src={GOOGLE_SHEETS_ICON}
               alt="Google Sheets"
+              width={12}
+              height={12}
+              className="size-3 object-contain"
+            />
+          ) : tag.icon === "clearbit" ? (
+            <img
+              src={CLEARBIT_ICON}
+              alt="Clearbit"
               width={12}
               height={12}
               className="size-3 object-contain"

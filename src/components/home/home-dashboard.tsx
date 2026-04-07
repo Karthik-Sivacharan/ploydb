@@ -87,13 +87,11 @@ const CONNECTED_SOURCES = [
 const INBOX_ITEMS = [
   { id: 1, icon: MessageSquare, title: "3 contacts missing company info", time: "2 hours ago" },
   { id: 2, icon: Inbox, title: "Deal velocity dropped 18% this week", time: "Today" },
-  { id: 3, icon: MessageSquare, title: "Legal vertical showing strong engagement", time: "Yesterday" },
 ]
 
 const PLOYS_ITEMS = [
   { id: 1, icon: Zap, title: "Weekly pipeline digest", status: "working" as const, time: null },
-  { id: 2, icon: Zap, title: "Stale lead re-engagement", status: "working" as const, time: null },
-  { id: 3, icon: Settings, title: "Contact enrichment", status: "idle" as const, time: "1 day ago" },
+  { id: 2, icon: Settings, title: "Contact enrichment", status: "idle" as const, time: "1 day ago" },
 ]
 
 type View = "home" | "split"
@@ -279,12 +277,12 @@ export function HomeDashboard() {
                       >
                         {template.featured && (
                           <>
-                            <BorderBeam
+                            {/* <BorderBeam
                               size={60}
                               duration={8}
                               colorFrom="var(--color-sky-400)"
                               colorTo="var(--color-sky-600)"
-                            />
+                            /> */}
                             <Badge className="absolute top-3 right-3 bg-sky-100 text-sky-700 hover:bg-sky-100 dark:bg-sky-900 dark:text-sky-300 dark:hover:bg-sky-900 text-[10px] px-1.5 py-0">
                               Try it now
                             </Badge>

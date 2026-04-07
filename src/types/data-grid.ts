@@ -82,7 +82,7 @@ declare module "@tanstack/react-table" {
     label?: string;
     cell?: CellOpts;
     /** Column data source — "lookup" for cross-table references */
-    source?: "lookup" | "ai-generated";
+    source?: "lookup" | "ai-generated" | "clearbit";
   }
 
   // biome-ignore lint/correctness/noUnusedVariables: TData is used in the TableMeta interface

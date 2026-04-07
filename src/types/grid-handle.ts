@@ -11,7 +11,7 @@ type FlatRow = Record<string, unknown>
  * that HomeDashboard (and eventually onToolCall) can use to
  * manipulate the table programmatically.
  */
-export type ColumnSource = "lookup" | "ai-generated"
+export type ColumnSource = "lookup" | "ai-generated" | "clearbit"
 
 export interface AddColumnOptions {
   id: string

@@ -87,9 +87,9 @@ export const korraTools = {
           "Options for select, multi-select, status, and tags column types"
         ),
       source: z
-        .enum(["lookup", "ai-generated"])
+        .enum(["lookup", "ai-generated", "clearbit"])
         .optional()
-        .describe("Column data source — lookup for cross-table references, ai-generated for AI-created data"),
+        .describe("Column data source — lookup for cross-table references, ai-generated for AI-created data, clearbit for Clearbit enrichment"),
       lookupConfig: z
         .object({
           targetTable: z.string().describe("Slug of the target table to look up"),

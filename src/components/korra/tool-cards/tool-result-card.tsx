@@ -205,7 +205,7 @@ function EditSummaryCard({
 function AddColumnCard({ input }: { input: Record<string, unknown> }) {
   const name = input.name as string
   const type = input.type as string
-  const source = input.source as "lookup" | "ai-generated" | undefined
+  const source = input.source as "lookup" | "ai-generated" | "clearbit" | undefined
   const options = input.options as Array<{ value: string; label: string }> | undefined
 
   return (
@@ -298,15 +298,15 @@ function OpenDatabaseCard({ input }: { input: Record<string, unknown> }) {
 
 // ─── Source Badge ────────────────────────────────────────────────────
 
-function SourceBadge({ source }: { source: "lookup" | "ai-generated" }) {
-  if (source === "lookup") {
+function SourceBadge({ source }: { source: "lookup" | "ai-generated" | "clearbit" }) {
+  if (source === "lookup" || source === "clearbit") {
     return (
       <Badge
         variant="outline"
         className="gap-1 border-teal-200 bg-teal-50 px-1.5 py-0 text-[10px] text-teal-700 dark:border-teal-800 dark:bg-teal-950/30 dark:text-teal-300"
       >
         <Link2 className="size-2.5" />
-        Lookup
+        {source === "clearbit" ? "Clearbit" : "Lookup"}
       </Badge>
     )
   }

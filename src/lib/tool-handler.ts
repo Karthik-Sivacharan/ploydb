@@ -2,7 +2,7 @@ import type { RefObject } from "react"
 import type { GridHandle } from "@/types/grid-handle"
 import { listDatabases, queryRows } from "@/lib/ploydb-api"
 
-const AI_GENERATING_DELAY = 5000
+const AI_GENERATING_DELAY = 4000
 
 type FlatRow = Record<string, unknown>
 
@@ -251,69 +251,75 @@ export function createToolCallHandler(
           setTimeout(() => processLookupQueue(), 100)
         }
 
-        // Start shimmer + AI content generation for follow-up draft column
-        if (source === "ai-generated" && colId === "fld_followup_draft") {
+        // Start shimmer for any AI-generated column
+        if (source === "ai-generated") {
           generatingColumns.add(colId)
           grid!.setGeneratingColumn(colId, true)
 
-          // Generate AI content for high + medium priority contacts
-          const rows = grid!.table.getRowModel().rows
-          const contacts = rows
-            .map((row, i) => {
-              const d = row.original as Record<string, unknown>
-              const priority = d.fld_priority as string
-              if (priority !== "high" && priority !== "medium") return null
-              const name = (d.fld_name as string) ?? (d.fld_first_name as string) ?? "there"
-              const company = (d.fld_company_name as string) ?? (d.fld_company as string) ?? "your company"
-              const title = (d.fld_title as string) ?? (d.fld_job_title as string) ?? ""
-              const industry = (d.fld_industry as string) ?? ""
-              const lastContacted = d.fld_last_contacted as string
-              const daysSinceContact = lastContacted
-                ? Math.floor((Date.now() - new Date(lastContacted).getTime()) / 86400000)
-                : 90
-              return { rowIndex: i, name, company, title, industry, daysSinceContact }
-            })
-            .filter((c): c is NonNullable<typeof c> => c !== null)
-            .slice(0, 30)
+          // Column-specific: generate email content for follow-up drafts
+          if (colId === "fld_followup_draft") {
+            // Generate AI content for high + medium priority contacts
+            const rows = grid!.table.getRowModel().rows
+            const contacts = rows
+              .map((row, i) => {
+                const d = row.original as Record<string, unknown>
+                const priority = d.fld_priority as string
+                if (priority !== "high" && priority !== "medium") return null
+                const name = (d.fld_name as string) ?? (d.fld_first_name as string) ?? "there"
+                const company = (d.fld_company_name as string) ?? (d.fld_company as string) ?? "your company"
+                const title = (d.fld_title as string) ?? (d.fld_job_title as string) ?? ""
+                const industry = (d.fld_industry as string) ?? ""
+                const lastContacted = d.fld_last_contacted as string
+                const daysSinceContact = lastContacted
+                  ? Math.floor((Date.now() - new Date(lastContacted).getTime()) / 86400000)
+                  : 90
+                return { rowIndex: i, name, company, title, industry, daysSinceContact }
+              })
+              .filter((c): c is NonNullable<typeof c> => c !== null)
+              .slice(0, 30)
 
-          console.log("[Korra] Starting AI email generation for", contacts.length, "high-priority contacts")
-          fetch("/api/generate-emails", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contacts }),
-          })
-            .then((res) => res.json())
-            .then(({ updates: emailUpdates }) => {
-              // Record attribution before applying updates.
-              // Use visible row model (not raw data) because rowIndex
-              // refers to visible/filtered row order.
-              if (grid!.recordCellEdit) {
-                const visibleRows = grid!.table.getRowModel().rows
-                for (const u of emailUpdates as Array<{ rowIndex: number; columnId: string; value: unknown }>) {
-                  const row = visibleRows[u.rowIndex]
-                  if (row) {
-                    const original = row.original as Record<string, unknown>
-                    grid!.recordCellEdit!(
-                      original._id as string,
-                      u.columnId,
-                      u.value,
-                      original[u.columnId],
-                      "korra",
-                      undefined,
-                      "Follow-up Draft"
-                    )
+            console.log("[Korra] Starting AI email generation for", contacts.length, "high-priority contacts")
+            fetch("/api/generate-emails", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ contacts }),
+            })
+              .then((res) => res.json())
+              .then(({ updates: emailUpdates }) => {
+                // Record attribution before applying updates.
+                // Use visible row model (not raw data) because rowIndex
+                // refers to visible/filtered row order.
+                if (grid!.recordCellEdit) {
+                  const visibleRows = grid!.table.getRowModel().rows
+                  for (const u of emailUpdates as Array<{ rowIndex: number; columnId: string; value: unknown }>) {
+                    const row = visibleRows[u.rowIndex]
+                    if (row) {
+                      const original = row.original as Record<string, unknown>
+                      grid!.recordCellEdit!(
+                        original._id as string,
+                        u.columnId,
+                        u.value,
+                        original[u.columnId],
+                        "korra",
+                        undefined,
+                        "Follow-up Draft"
+                      )
+                    }
                   }
                 }
-              }
-              grid!.updateCells(emailUpdates)
-              generatingColumns.delete(colId)
-              grid!.setGeneratingColumn(colId, false)
-            })
-            .catch((err) => {
-              console.error("[Korra] AI email generation failed:", err)
-              generatingColumns.delete(colId)
-              grid!.setGeneratingColumn(colId, false)
-            })
+                grid!.updateCells(emailUpdates)
+                generatingColumns.delete(colId)
+                grid!.setGeneratingColumn(colId, false)
+              })
+              .catch((err) => {
+                console.error("[Korra] AI email generation failed:", err)
+                generatingColumns.delete(colId)
+                grid!.setGeneratingColumn(colId, false)
+              })
+          }
+          // Other ai-generated columns (Website Visits, Priority, etc.)
+          // rely on the subsequent editCells tool call to fill values.
+          // editCells already checks hasGenerating → waits AI_GENERATING_DELAY → fills → clears shimmer.
         }
         toolResults.set(toolCall.toolCallId, {
           columnName: args.name as string,
