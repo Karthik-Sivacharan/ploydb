@@ -6,9 +6,15 @@ import { useChat } from "@ai-sdk/react"
 import { createToolCallHandler } from "@/lib/tool-handler"
 import { AnimatePresence, motion } from "motion/react"
 import {
+  Bot,
+  ChevronRight,
   FileText,
+  Inbox,
+  MessageSquare,
+  Settings,
   Target,
   Users,
+  Zap,
   HandshakeIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -76,6 +82,18 @@ const CONNECTED_SOURCES = [
   { name: "Google Analytics", iconUrl: "https://cdn.brandfetch.io/idYpJMnlBx/w/192/h/192/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1768155572893" },
   { name: "Figma", iconUrl: "https://cdn.brandfetch.io/idZHcZ_i7F/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1729268241679" },
   { name: "Clearbit", iconUrl: "https://cdn.brandfetch.io/idPfQccWRj/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1668081777632" },
+]
+
+const INBOX_ITEMS = [
+  { id: 1, icon: MessageSquare, title: "3 contacts missing company info", time: "2 hours ago" },
+  { id: 2, icon: Inbox, title: "Deal velocity dropped 18% this week", time: "Today" },
+  { id: 3, icon: MessageSquare, title: "Legal vertical showing strong engagement", time: "Yesterday" },
+]
+
+const PLOYS_ITEMS = [
+  { id: 1, icon: Zap, title: "Weekly pipeline digest", status: "working" as const, time: null },
+  { id: 2, icon: Zap, title: "Stale lead re-engagement", status: "working" as const, time: null },
+  { id: 3, icon: Settings, title: "Contact enrichment", status: "idle" as const, time: "1 day ago" },
 ]
 
 type View = "home" | "split"
@@ -235,13 +253,11 @@ export function HomeDashboard() {
                 </Badge>
               </div>
 
-              {/* Template Cards */}
+              {/* Suggestions — horizontal scroll */}
               {showTemplates && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Suggested for you
-                    </span>
+                    <span className="text-sm font-medium text-foreground">Suggested for you</span>
                     <button
                       onClick={() => setShowTemplates(false)}
                       className="text-sm text-muted-foreground hover:text-foreground"
@@ -291,6 +307,62 @@ export function HomeDashboard() {
                   </div>
                 </div>
               )}
+
+              {/* Inbox + Recent Ploys — two-column list view */}
+              <div className="grid grid-cols-2 gap-8">
+                {/* Inbox */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-foreground">Inbox</span>
+                    <button className="text-muted-foreground hover:text-foreground">
+                      <ChevronRight className="size-3.5" />
+                    </button>
+                  </div>
+                  <Separator className="opacity-50" />
+                  <div>
+                    {INBOX_ITEMS.map((item) => (
+                      <button
+                        key={item.id}
+                        className="flex w-full items-center gap-3 rounded-md px-1 py-3 text-left transition-colors hover:bg-accent/50"
+                      >
+                        <item.icon className="size-4 shrink-0 text-muted-foreground" />
+                        <span className="min-w-0 flex-1 truncate text-sm">{item.title}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">{item.time}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Recent Ploys */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-foreground">Recent Ploys</span>
+                    <button className="text-muted-foreground hover:text-foreground">
+                      <ChevronRight className="size-3.5" />
+                    </button>
+                  </div>
+                  <Separator className="opacity-50" />
+                  <div>
+                    {PLOYS_ITEMS.map((ploy) => (
+                      <button
+                        key={ploy.id}
+                        className="flex w-full items-center gap-3 rounded-md px-1 py-3 text-left transition-colors hover:bg-accent/50"
+                      >
+                        <ploy.icon className="size-4 shrink-0 text-muted-foreground" />
+                        <span className="min-w-0 flex-1 truncate text-sm">{ploy.title}</span>
+                        {ploy.status === "working" ? (
+                          <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
+                            <span className="inline-block size-1.5 rounded-full bg-emerald-500" />
+                            Working...
+                          </span>
+                        ) : (
+                          <span className="shrink-0 text-xs text-muted-foreground">{ploy.time}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           </ShootingStars>
