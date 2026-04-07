@@ -156,6 +156,22 @@
   pointer-events: none;
 }
 
+/* Scroll fade edges — apply to overflow containers to soften clipped content */
+@utility fade-edge-r {
+  -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+  mask-image: linear-gradient(to right, black 85%, transparent 100%);
+}
+
+@utility fade-edge-l {
+  -webkit-mask-image: linear-gradient(to left, black 85%, transparent 100%);
+  mask-image: linear-gradient(to left, black 85%, transparent 100%);
+}
+
+@utility fade-edge-x {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

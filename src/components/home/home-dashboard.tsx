@@ -75,6 +75,7 @@ const CONNECTED_SOURCES = [
   { name: "Google Sheets", iconUrl: "https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/idKa2XnbFY.svg?c=1bxid64Mup7aczewSAYMX&t=1755572735234" },
   { name: "Google Analytics", iconUrl: "https://cdn.brandfetch.io/idYpJMnlBx/w/192/h/192/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1768155572893" },
   { name: "Figma", iconUrl: "https://cdn.brandfetch.io/idZHcZ_i7F/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1729268241679" },
+  { name: "Clearbit", iconUrl: "https://cdn.brandfetch.io/idPfQccWRj/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1668081777632" },
 ]
 
 type View = "home" | "split"
@@ -206,7 +207,7 @@ export function HomeDashboard() {
               {/* Greeting */}
               <div className="space-y-2 text-center">
                 <h1 className="text-3xl font-semibold tracking-tight">
-                  Hey Karthik, how can I help?
+                  Sofia, what should we work on today?
                 </h1>
                 <p className="text-muted-foreground">
                   Ask anything or tell Korra what you need
@@ -248,13 +249,13 @@ export function HomeDashboard() {
                       &times;
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-1 fade-edge-r [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {TEMPLATES.map((template) => (
                       <button
                         key={template.title}
                         onClick={() => handleTemplateClick(template.prompt)}
                         className={cn(
-                          "group relative flex flex-col gap-3 overflow-hidden rounded-xl border p-4 text-left transition-colors",
+                          "group relative flex w-64 shrink-0 flex-col gap-3 overflow-hidden rounded-xl border p-4 text-left transition-colors snap-start",
                           template.featured
                             ? "border-sky-200 bg-sky-50/50 hover:bg-sky-50 dark:border-sky-800/60 dark:bg-sky-950/30 dark:hover:bg-sky-950/50"
                             : "border-border/60 bg-card hover:border-border hover:bg-accent/50"
