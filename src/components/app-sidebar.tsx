@@ -36,12 +36,12 @@ import {
 
 const data = {
   user: {
-    name: "Karthik",
-    email: "karthik@ploy.app",
+    name: "Sofia Carter",
+    email: "sofia@stackline.com",
     avatar: "",
   },
   workspaces: [
-    { name: "My Workspace", plan: "Pro" },
+    { name: "Stackline", plan: "Pro" },
   ],
   navMain: [
     {
@@ -72,7 +72,7 @@ const data = {
       icon: Palette,
     },
     {
-      name: "Assets",
+      name: "Brand Kit",
       url: "#",
       icon: Image,
     },

@@ -182,20 +182,23 @@ export const DEMO_STEPS: DemoStep[] = [
   {
     step: 4,
     response:
-      "Legal is seeing major regulatory activity right now — new compliance deadlines are pushing companies to re-evaluate vendors. That's 34 contacts worth reaching out to. Let me filter to those.",
+      "Legal is the standout here — AI adoption in law firms just doubled in the past year, and the ABA formally cleared firms to use AI tools. Mid-market firms are in catch-up mode. That's 34 contacts worth reaching out to. Let me filter to those.",
     reasoning: [
-      "Searching Reuters and Bloomberg for Legal sector news...",
-      "→ Found: EU Digital Services Act enforcement deadline Q2 2026",
-      "→ Found: New corporate compliance reporting requirements effective April 2026",
-      "Scanning TechCrunch and Crunchbase for Technology sector...",
-      "→ AI infrastructure spending up 40% YoY, but hiring freeze at mid-market",
-      "Checking Financial Times for Finance sector updates...",
-      "→ Interest rate holds steady — banks tightening vendor budgets",
-      "Reviewing Retail and Consulting trends...",
-      "→ Retail: cautious spending post-holiday season",
-      "→ Consulting: steady demand, no major shifts",
+      "Searching LawNext and Artificial Lawyer for legal AI adoption trends...",
+      "→ Found: 70% of legal professionals now use generative AI — doubled in one year",
+      "→ Found: Law firm tech spending grew 9.7% in 2025, fastest growth ever recorded",
+      "Scanning Thomson Reuters State of Legal Market 2026...",
+      "→ Found: Mid-market firms (50-200 attorneys) in aggressive tech catch-up phase",
+      "→ Found: Per-lawyer tech spend at midsize firms up to $18K/year",
+      "Checking ABA ethics guidance on AI adoption...",
+      "→ Found: ABA Formal Opinion 512 — lawyers now have formal green light to use AI tools",
+      "→ Found: State bars issuing new AI ethics opinions in 2026 — firms must have AI policies",
+      "Reviewing Technology, Finance, Retail, Consulting...",
+      "→ Tech: saturated, budget freezes at mid-market, long sales cycles",
+      "→ Finance: conservative, 6-month procurement cycles",
+      "→ Retail & Consulting: steady but no urgency signal",
       "",
-      "**Conclusion:** Legal has the strongest re-engagement signal — regulatory pressure creates urgency for companies to seek new solutions.",
+      "**Conclusion:** Legal has the strongest re-engagement signal — ABA green light + record tech spending + mid-market catch-up phase = urgent demand for AI document tools.",
     ].join("\n"),
     toolCalls: [
       {
@@ -284,7 +287,7 @@ export const DEMO_STEPS: DemoStep[] = [
   {
     step: 8,
     response:
-      "Writing follow-up drafts for your High and Medium priority contacts. Each email is personalized with their name, title, company, and the regulatory context we found.",
+      "Writing follow-up drafts for your High and Medium priority contacts. Each email is personalized with their name, title, company, and the AI adoption context we found.",
     contextTags: [
       { type: "ploybook", name: "Personalized Outreach", icon: "ploybook" },
     ],

@@ -144,7 +144,7 @@ export const korraTools = {
 
   searchNews: tool({
     description:
-      "Search external news sources for recent industry activity, regulatory changes, and market events. Returns insights that can inform prioritization and outreach strategy. This is a research tool — it does not modify the grid.",
+      "Search external news sources for recent industry activity, market trends, and adoption signals. Returns insights that can inform prioritization and outreach strategy. This is a research tool — it does not modify the grid.",
     inputSchema: z.object({
       industries: z
         .array(z.string())

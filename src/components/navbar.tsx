@@ -50,12 +50,12 @@ export function Navbar() {
         <div className="flex items-center gap-2 pl-1">
           <Avatar className="h-7 w-7">
             <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-              KS
+              SC
             </AvatarFallback>
           </Avatar>
           <div className="hidden sm:flex sm:flex-col">
-            <span className="text-xs font-medium leading-none">Karthik Sivacharan</span>
-            <span className="text-xs text-muted-foreground leading-none mt-0.5">Karthik&apos;s Workspace</span>
+            <span className="text-xs font-medium leading-none">Sofia Carter</span>
+            <span className="text-xs text-muted-foreground leading-none mt-0.5">Stackline</span>
           </div>
         </div>
       </div>
