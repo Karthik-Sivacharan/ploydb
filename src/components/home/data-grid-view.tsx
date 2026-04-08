@@ -691,7 +691,7 @@ export function DataGridView({
                 />
                 <img
                   src="https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/idKa2XnbFY.svg?c=1bxid64Mup7aczewSAYMX&t=1755572735234"
-                  alt="Google Sheets"
+                  alt="Sheets"
                   width={14}
                   height={14}
                   className="size-3.5 object-contain"

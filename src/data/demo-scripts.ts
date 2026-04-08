@@ -94,12 +94,13 @@ function generateVisitUpdates(): Array<{
   return updates
 }
 
-/** Generate personalized page URLs for the 8 High priority contacts (rows 0-7). */
+/** Generate personalized page URLs for the 9 High priority contacts (rows 0-8).
+ *  Slugs are fallbacks — the tool handler overrides with real company names at runtime. */
 function generatePageUrlUpdates() {
   const slugs = [
     "martinez-legal", "chen-partners", "williams-law",
     "johnson-legal", "patel-associates", "thompson-firm",
-    "garcia-legal", "kim-partners",
+    "garcia-legal", "kim-partners", "reed-associates",
   ]
   return slugs.map((slug, i) => ({
     rowIndex: i,
@@ -108,12 +109,13 @@ function generatePageUrlUpdates() {
   }))
 }
 
-/** Generate P.S. lines to append to existing email drafts for rows 0-7. */
+/** Generate P.S. lines to append to existing email drafts for rows 0-8.
+ *  The tool handler overrides with the actual landing page URL at runtime. */
 function generateEmailAppendUpdates() {
   const slugs = [
     "martinez-legal", "chen-partners", "williams-law",
     "johnson-legal", "patel-associates", "thompson-firm",
-    "garcia-legal", "kim-partners",
+    "garcia-legal", "kim-partners", "reed-associates",
   ]
   return slugs.map((slug, i) => ({
     rowIndex: i,
@@ -383,19 +385,19 @@ export const DEMO_STEPS: DemoStep[] = [
     thinkingDelay: 5000,
   },
 
-  // ── Step 10: Check Google Analytics + findings ──────────────────────
+  // ── Step 10: Check Analytics + findings ──────────────────────
   // User said yes. Korra connects to GA, shows chain-of-thought
   // research, then reports the winning variant. Auto-advances to step 11.
   {
     step: 10,
     response:
-      "Pulling your Google Analytics data to see which page variant performed best...",
+      "Pulling your Analytics data to see which page variant performed best...",
     contextTags: [
       { type: "ploybook", name: "Build a Content Page", icon: "ploybook" },
-      { type: "source", name: "Google Analytics", icon: "google-analytics" },
+      { type: "source", name: "Analytics", icon: "google-analytics" },
     ],
     reasoning: [
-      "Checking Google Analytics experiment data for stackline.com...",
+      "Checking Analytics experiment data for stackline.com...",
       "→ Found: Experiment \"Legal Landing Page\" (Jan 15 – Feb 28, 2026)",
       "→ Variant A: \"AI-Powered Document Automation for Law Firms\" — 14.2% conversion rate",
       "→ Variant B: \"Streamline Your Legal Workflows\" — 11.5% conversion rate",
@@ -406,7 +408,7 @@ export const DEMO_STEPS: DemoStep[] = [
       {
         name: "checkAnalytics",
         args: {
-          source: "Google Analytics",
+          source: "Analytics",
           query: "AB test results for legal landing page variants",
         },
       },

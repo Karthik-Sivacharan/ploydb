@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils"
 
 const tools = [
   {
-    name: "Google Sheets",
+    name: "Sheets",
     iconUrl: "https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/idKa2XnbFY.svg?c=1bxid64Mup7aczewSAYMX&t=1755572735234",
     usage: "Stores contacts, companies, deals",
     pain: "No automation, just rows and columns",
@@ -45,7 +45,7 @@ const tools = [
     pain: "Disconnected from her contact data",
   },
   {
-    name: "Google Analytics",
+    name: "Analytics",
     iconUrl: "https://cdn.brandfetch.io/idYpJMnlBx/w/192/h/192/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1768155572893",
     usage: "A/B testing different Webflow pages",
     pain: "No way to tie test results back to contacts",
@@ -89,7 +89,7 @@ const ployFeatures = [
   {
     icon: Rows3,
     title: "Records",
-    replaces: "Google Sheets",
+    replaces: "Sheets",
     description:
       "960 contacts, 142 companies, 30 deals. Same CRM, no separate tool.",
   },

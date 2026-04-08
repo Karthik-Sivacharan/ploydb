@@ -104,7 +104,7 @@ function ContextTagsRow({ tags }: { tags: ContextTag[] }) {
           {tag.icon === "google-sheets" ? (
             <img
               src={GOOGLE_SHEETS_ICON}
-              alt="Google Sheets"
+              alt="Sheets"
               width={12}
               height={12}
               className="size-3 object-contain"
@@ -120,7 +120,7 @@ function ContextTagsRow({ tags }: { tags: ContextTag[] }) {
           ) : tag.icon === "google-analytics" ? (
             <img
               src={GOOGLE_ANALYTICS_ICON}
-              alt="Google Analytics"
+              alt="Analytics"
               width={12}
               height={12}
               className="size-3 object-contain"
