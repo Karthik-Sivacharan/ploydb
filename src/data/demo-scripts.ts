@@ -247,7 +247,7 @@ export const DEMO_STEPS: DemoStep[] = [
   {
     step: 5,
     response:
-      "I'm going to prioritize these 34 Legal contacts by title seniority, company size, and website activity from Clearbit — some of them have been visiting your product pages. Does that sound good?",
+      "I'm going to prioritize these 34 Legal contacts by title seniority, company size, and website activity from Clearbit — some of them might have visited your product pages. Does that sound good?",
     toolCalls: [],
     thinkingDelay: 1500,
   },

@@ -304,9 +304,22 @@ function MessageList({
   const lastAssistantHasReasoning =
     realLastMsg?.role === "assistant" &&
     realLastMsg.parts.some((p) => p.type === "reasoning")
+
+  // Check if tool calls are still executing (parts exist but results not yet in map)
+  const hasUnresolvedTools =
+    isStreaming &&
+    realLastMsg?.role === "assistant" &&
+    realLastMsg.parts.some(
+      (p) =>
+        typeof p.type === "string" &&
+        p.type.startsWith("tool-") &&
+        !(toolResults?.has((p as unknown as { toolCallId: string }).toolCallId))
+    )
+
   const isThinking =
     (status === "submitted" && realLastMsg?.role === "user") ||
-    (status === "streaming" && realLastMsg?.role === "assistant" && !lastAssistantText && !lastAssistantHasReasoning)
+    (status === "streaming" && realLastMsg?.role === "assistant" && !lastAssistantText && !lastAssistantHasReasoning) ||
+    hasUnresolvedTools
 
   return (
     <>
