@@ -440,12 +440,13 @@ export const DEMO_STEPS: DemoStep[] = [
         args: { updates: generatePageUrlUpdates() },
       },
     ],
+    followUp:
+      "Pages are live. Want me to append the landing page links to those draft emails?",
     thinkingDelay: 1500,
-    autoAdvance: 6000,
   },
 
   // ── Step 12: Append landing page links to email drafts ──────────────
-  // Auto-triggered from step 11. Appends P.S. with landing page URL
+  // User said yes. Appends P.S. with landing page URL
   // to existing follow-up drafts — does NOT replace them.
   {
     step: 12,
