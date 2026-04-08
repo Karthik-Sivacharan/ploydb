@@ -166,6 +166,14 @@ export const korraTools = {
     }),
   }),
 
+  connectApp: tool({
+    description:
+      "Prompt the user to connect an external app like Gmail, Slack, or HubSpot. Shows a connection card in chat.",
+    inputSchema: z.object({
+      app: z.string().describe("App identifier, e.g. 'gmail', 'slack', 'hubspot'"),
+    }),
+  }),
+
 };
 
 /** Union type of all Korra tool names */

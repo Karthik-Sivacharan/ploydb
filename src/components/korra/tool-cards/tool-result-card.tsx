@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import {
+  ArrowRight,
   BarChart3,
   Filter,
   Pencil,
@@ -44,6 +45,8 @@ export function ToolResultCard({ toolName, input, result }: ToolCardProps) {
       return <OpenDatabaseCard input={input} />
     case "checkAnalytics":
       return <CheckAnalyticsCard input={input} />
+    case "connectApp":
+      return <ConnectAppCard input={input} />
     default:
       return null
   }
@@ -313,6 +316,38 @@ function CheckAnalyticsCard({ input }: { input: Record<string, unknown> }) {
         {query}
       </Badge>
     </CardShell>
+  )
+}
+
+// ─── Connect App Card ─────────────────────────────────────────────
+
+const APP_ICONS: Record<string, { url: string; label: string }> = {
+  gmail: {
+    url: "https://cdn.brandfetch.io/id5o3EIREg/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1696475443284",
+    label: "Gmail",
+  },
+}
+
+function ConnectAppCard({ input }: { input: Record<string, unknown> }) {
+  const app = input.app as string
+  const config = APP_ICONS[app] ?? { url: "", label: app }
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-muted/40 px-3 py-2.5 text-sm">
+      {config.url && (
+        <img
+          src={config.url}
+          alt={config.label}
+          width={16}
+          height={16}
+          className="size-4 shrink-0 object-contain"
+        />
+      )}
+      <span className="flex-1 font-medium text-foreground">
+        Connect {config.label}
+      </span>
+      <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+    </div>
   )
 }
 

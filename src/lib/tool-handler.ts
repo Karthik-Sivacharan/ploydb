@@ -423,6 +423,12 @@ export function createToolCallHandler(
         return
       }
 
+      case "connectApp": {
+        // Shows a connection card in chat. No-op handler.
+        console.log("[Korra tool] connectApp:", args.app)
+        return
+      }
+
       default: {
         console.warn("[Korra tool] Unknown tool:", toolName)
         return

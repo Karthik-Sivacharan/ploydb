@@ -1,6 +1,6 @@
 // Happy Path V5 — "Prioritize stale leads"
 //
-// 13-step scripted demo (steps 0-12) using live PloyDB API (960 contacts).
+// 14-step scripted demo (steps 0-13) using live PloyDB API (960 contacts).
 // All data comes from the Railway API — no Faker demo data.
 //
 // V5: More conversational flow. Korra explains her thinking, asks permission
@@ -31,6 +31,7 @@ export interface DemoToolCall {
     | "deleteRows"
     | "searchNews"
     | "checkAnalytics"
+    | "connectApp"
   args: Record<string, unknown>
 }
 
@@ -464,6 +465,22 @@ export const DEMO_STEPS: DemoStep[] = [
     followUp:
       "Done — the full loop is complete: enriched data → prioritized contacts → personalized email → personalized landing page.",
     thinkingDelay: 3000,
+  },
+
+  // ── Step 13: Connect Gmail to send emails ───────────────────────────
+  // User asks to send the emails. Korra says she needs Gmail access
+  // and shows a Connect Gmail card. End of demo.
+  {
+    step: 13,
+    response:
+      "To send these directly, I'll need access to your Gmail. Connect it and I can fire off all 9 emails in one go.",
+    toolCalls: [
+      {
+        name: "connectApp",
+        args: { app: "gmail" },
+      },
+    ],
+    thinkingDelay: 1500,
   },
 ]
 
