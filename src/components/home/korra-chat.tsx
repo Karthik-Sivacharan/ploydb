@@ -73,6 +73,9 @@ const GOOGLE_SHEETS_ICON =
 const CLEARBIT_ICON =
   "https://cdn.brandfetch.io/idPfQccWRj/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1668081777632"
 
+const GOOGLE_ANALYTICS_ICON =
+  "https://cdn.brandfetch.io/idYpJMnlBx/w/192/h/192/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1768155572893"
+
 function getMessageText(message: UIMessage): string {
   return message.parts
     .filter((p): p is { type: "text"; text: string } => p.type === "text")
@@ -110,6 +113,14 @@ function ContextTagsRow({ tags }: { tags: ContextTag[] }) {
             <img
               src={CLEARBIT_ICON}
               alt="Clearbit"
+              width={12}
+              height={12}
+              className="size-3 object-contain"
+            />
+          ) : tag.icon === "google-analytics" ? (
+            <img
+              src={GOOGLE_ANALYTICS_ICON}
+              alt="Google Analytics"
               width={12}
               height={12}
               className="size-3 object-contain"

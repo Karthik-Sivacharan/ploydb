@@ -145,6 +145,20 @@ export function createToolCallHandler(
           columnId: string
           value: unknown
         }>
+        // Append mode: prepend existing cell value to the new value
+        const mode = args.mode as "replace" | "append" | undefined
+        if (mode === "append") {
+          const visibleRows = grid!.table.getRowModel().rows
+          for (const u of updates) {
+            const row = visibleRows[u.rowIndex]
+            if (row) {
+              const existing = (row.original as Record<string, unknown>)[u.columnId]
+              if (existing != null && String(existing).length > 0) {
+                u.value = `${String(existing)}${u.value}`
+              }
+            }
+          }
+        }
         const targetCols = new Set(updates.map((u) => u.columnId))
         const hasGenerating = [...targetCols].some((c) => generatingColumns.has(c))
 
@@ -394,6 +408,13 @@ export function createToolCallHandler(
         // This handler is a no-op; the UI renders the loading card based
         // on seeing a searchNews tool call in the message stream.
         console.log("[Korra tool] searchNews (fake research):", args.industries)
+        return
+      }
+
+      case "checkAnalytics": {
+        // Research tool — shows a loading card in chat while reasoning streams.
+        // Actual findings are baked into the demo script response text.
+        console.log("[Korra tool] checkAnalytics (research):", args.source, args.query)
         return
       }
 

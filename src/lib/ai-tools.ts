@@ -70,6 +70,10 @@ export const korraTools = {
         .array(cellUpdateSchema)
         .min(1)
         .describe("Array of cell updates to apply"),
+      mode: z
+        .enum(["replace", "append"])
+        .optional()
+        .describe("Update mode — 'replace' (default) overwrites the cell, 'append' adds to the existing value"),
     }),
   }),
 
@@ -150,6 +154,15 @@ export const korraTools = {
         .array(z.string())
         .min(1)
         .describe("List of industry names to research"),
+    }),
+  }),
+
+  checkAnalytics: tool({
+    description:
+      "Check analytics data from connected tools like Google Analytics. Use this to look up AB test results, conversion data, and experiment outcomes.",
+    inputSchema: z.object({
+      source: z.string().describe("Analytics source to check, e.g. 'Google Analytics'"),
+      query: z.string().describe("What to look up, e.g. 'AB test results for legal landing page'"),
     }),
   }),
 

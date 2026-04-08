@@ -1,6 +1,6 @@
 // Happy Path V5 — "Prioritize stale leads"
 //
-// 9-step scripted demo (steps 0-8) using live PloyDB API (960 contacts).
+// 13-step scripted demo (steps 0-12) using live PloyDB API (960 contacts).
 // All data comes from the Railway API — no Faker demo data.
 //
 // V5: More conversational flow. Korra explains her thinking, asks permission
@@ -30,6 +30,7 @@ export interface DemoToolCall {
     | "addRow"
     | "deleteRows"
     | "searchNews"
+    | "checkAnalytics"
   args: Record<string, unknown>
 }
 
@@ -37,7 +38,7 @@ export interface ContextTag {
   type: "source" | "ploybook"
   name: string
   /** Icon hint: "google-sheets" renders the Sheets logo, "ploybook" renders BookOpen */
-  icon: "google-sheets" | "ploybook" | "clearbit"
+  icon: "google-sheets" | "ploybook" | "clearbit" | "google-analytics"
 }
 
 export interface DemoStep {
@@ -91,6 +92,34 @@ function generateVisitUpdates(): Array<{
     updates.push({ rowIndex: i, columnId: "fld_website_visits", value: visits })
   }
   return updates
+}
+
+/** Generate personalized page URLs for the 8 High priority contacts (rows 0-7). */
+function generatePageUrlUpdates() {
+  const slugs = [
+    "martinez-legal", "chen-partners", "williams-law",
+    "johnson-legal", "patel-associates", "thompson-firm",
+    "garcia-legal", "kim-partners",
+  ]
+  return slugs.map((slug, i) => ({
+    rowIndex: i,
+    columnId: "fld_personalized_page",
+    value: `https://stackline.com/for/${slug}`,
+  }))
+}
+
+/** Generate P.S. lines to append to existing email drafts for rows 0-7. */
+function generateEmailAppendUpdates() {
+  const slugs = [
+    "martinez-legal", "chen-partners", "williams-law",
+    "johnson-legal", "patel-associates", "thompson-firm",
+    "garcia-legal", "kim-partners",
+  ]
+  return slugs.map((slug, i) => ({
+    rowIndex: i,
+    columnId: "fld_followup_draft",
+    value: `\n\nP.S. I put together a page specifically for your team: https://stackline.com/for/${slug}`,
+  }))
 }
 
 // ─── Steps ───────────────────────────────────────────────────────────────────
@@ -340,6 +369,98 @@ export const DEMO_STEPS: DemoStep[] = [
       },
     ],
     thinkingDelay: 800,
+    autoAdvance: 500,
+  },
+
+  // ── Step 9: Pitch hyperpersonalized landing pages ───────────────────
+  // Auto-triggered after step 8. Korra suggests the idea without
+  // revealing the "how" — waits for user to say yes.
+  {
+    step: 9,
+    response:
+      "Emails are ready. We can take this a step further — hyperpersonalized landing pages for each lead dramatically boost response rates. Want me to set that up?",
+    toolCalls: [],
+    thinkingDelay: 5000,
+  },
+
+  // ── Step 10: Check Google Analytics + findings ──────────────────────
+  // User said yes. Korra connects to GA, shows chain-of-thought
+  // research, then reports the winning variant. Auto-advances to step 11.
+  {
+    step: 10,
+    response:
+      "Pulling your Google Analytics data to see which page variant performed best...",
+    contextTags: [
+      { type: "ploybook", name: "Build a Content Page", icon: "ploybook" },
+      { type: "source", name: "Google Analytics", icon: "google-analytics" },
+    ],
+    reasoning: [
+      "Checking Google Analytics experiment data for stackline.com...",
+      "→ Found: Experiment \"Legal Landing Page\" (Jan 15 – Feb 28, 2026)",
+      "→ Variant A: \"AI-Powered Document Automation for Law Firms\" — 14.2% conversion rate",
+      "→ Variant B: \"Streamline Your Legal Workflows\" — 11.5% conversion rate",
+      "→ Variant A wins by 23% relative lift (p-value 0.03, statistically significant)",
+      "→ Variant A also had 40% lower bounce rate among legal industry visitors",
+    ].join("\n"),
+    toolCalls: [
+      {
+        name: "checkAnalytics",
+        args: {
+          source: "Google Analytics",
+          query: "AB test results for legal landing page variants",
+        },
+      },
+    ],
+    followUp:
+      "Clear winner — \"AI-Powered Document Automation for Law Firms\" converted 23% better with a significantly lower bounce rate among legal visitors. I'll use that as the base for each personalized page.",
+    thinkingDelay: 2000,
+    autoAdvance: 500,
+  },
+
+  // ── Step 11: Create personalized landing pages ──────────────────────
+  // Auto-triggered from step 10. Adds a URL column + fills 8 URLs.
+  {
+    step: 11,
+    response:
+      "Building personalized landing pages for your High priority contacts using the winning variant.",
+    toolCalls: [
+      {
+        name: "addColumn",
+        args: {
+          id: "fld_personalized_page",
+          name: "Personalized Page",
+          type: "url",
+          source: "ai-generated",
+        },
+      },
+      {
+        name: "editCells",
+        args: { updates: generatePageUrlUpdates() },
+      },
+    ],
+    thinkingDelay: 1500,
+    autoAdvance: 6000,
+  },
+
+  // ── Step 12: Append landing page links to email drafts ──────────────
+  // Auto-triggered from step 11. Appends P.S. with landing page URL
+  // to existing follow-up drafts — does NOT replace them.
+  {
+    step: 12,
+    response:
+      "Let me append the landing page links to those draft emails.",
+    toolCalls: [
+      {
+        name: "editCells",
+        args: {
+          mode: "append",
+          updates: generateEmailAppendUpdates(),
+        },
+      },
+    ],
+    followUp:
+      "Done — the full loop is complete: enriched data → prioritized contacts → personalized email → personalized landing page.",
+    thinkingDelay: 1500,
   },
 ]
 

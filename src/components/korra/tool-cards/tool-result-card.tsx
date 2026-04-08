@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import {
+  BarChart3,
   Filter,
   Pencil,
   Columns3,
@@ -41,6 +42,8 @@ export function ToolResultCard({ toolName, input, result }: ToolCardProps) {
       return <SortBadgeCard input={input} />
     case "openDatabase":
       return <OpenDatabaseCard input={input} />
+    case "checkAnalytics":
+      return <CheckAnalyticsCard input={input} />
     default:
       return null
   }
@@ -292,6 +295,23 @@ function OpenDatabaseCard({ input }: { input: Record<string, unknown> }) {
     <CardShell icon={Table2} iconClassName="text-sky-600 dark:text-sky-400">
       <span className="text-muted-foreground">Opened</span>
       <span className="font-medium capitalize text-foreground">{slug}</span>
+    </CardShell>
+  )
+}
+
+// ─── Check Analytics Card ─────────────────────────────────────────
+
+function CheckAnalyticsCard({ input }: { input: Record<string, unknown> }) {
+  const source = input.source as string
+  const query = input.query as string
+
+  return (
+    <CardShell icon={BarChart3} iconClassName="text-sky-600 dark:text-sky-400">
+      <span className="text-muted-foreground">Checked</span>
+      <span className="font-medium text-foreground">{source}</span>
+      <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
+        {query}
+      </Badge>
     </CardShell>
   )
 }
