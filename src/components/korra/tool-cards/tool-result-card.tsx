@@ -333,7 +333,7 @@ function ConnectAppCard({ input }: { input: Record<string, unknown> }) {
   const config = APP_ICONS[app] ?? { url: "", label: app }
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-muted/40 px-3 py-2.5 text-sm">
+    <div className="flex cursor-pointer items-center gap-3 rounded-lg border border-border/50 bg-muted/40 px-3 py-2.5 text-sm transition-colors hover:bg-muted/60">
       {config.url && (
         <img
           src={config.url}
