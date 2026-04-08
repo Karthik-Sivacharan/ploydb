@@ -54,6 +54,8 @@ export interface DemoStep {
   /** Reasoning / chain-of-thought text streamed before the main response.
    *  Shows as an expandable "Thinking..." block with step-by-step reasoning. */
   reasoning?: string
+  /** Text streamed after tool calls complete. Use for follow-up questions. */
+  followUp?: string
 }
 
 // ─── Priority distribution for 34 Legal contacts ─────────────────────────────
@@ -256,6 +258,8 @@ export const DEMO_STEPS: DemoStep[] = [
     step: 6,
     response:
       "I pulled website activity from Clearbit — turns out several of these leads have been visiting your pricing and product pages. Combined with title seniority and company size, here's how they stack up.",
+    followUp:
+      "Does this priority order look good to you?",
     contextTags: [
       { type: "source", name: "Clearbit", icon: "clearbit" },
     ],

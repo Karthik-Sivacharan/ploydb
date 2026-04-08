@@ -15,6 +15,7 @@ export async function POST(req: Request) {
   const toolCalls = step.toolCalls ?? []
   const thinkingDelay = step.thinkingDelay ?? 800
   const reasoning = step.reasoning ?? null
+  const followUp = step.followUp ?? null
 
   const textId = "text-0"
   const reasoningId = "reasoning-0"
@@ -101,6 +102,20 @@ export async function POST(req: Request) {
               toolName: tc.name,
               input: JSON.stringify(tc.args),
             })
+          }
+
+          // ─── Follow-up text (after tool cards) ─────────────────
+          if (followUp) {
+            const followUpId = "text-1"
+            controller.enqueue({ type: "text-start" as const, id: followUpId })
+            for (let i = 0; i < followUp.length; i++) {
+              controller.enqueue({
+                type: "text-delta" as const,
+                id: followUpId,
+                delta: followUp[i],
+              })
+            }
+            controller.enqueue({ type: "text-end" as const, id: followUpId })
           }
 
           // ─── Finish ────────────────────────────────────────────
