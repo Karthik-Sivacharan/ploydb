@@ -427,7 +427,7 @@ export function KorraChat({ variant, chat, onFirstMessage, toolResults, showAudi
   // Derive current demo step from assistant message count
   const assistantCount = messages.filter((m) => m.role === "assistant").length
   const stepIndex = Math.max(0, assistantCount - 1)
-  const contextTags = variant === "panel" ? getAccumulatedTags(stepIndex) : []
+  const contextTags = variant === "panel" ? getAccumulatedTags(stepIndex).reverse() : []
 
   // ─── Panel variant ───────────────────────────────────────────────
   if (variant === "panel") {
