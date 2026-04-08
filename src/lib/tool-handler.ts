@@ -158,6 +158,11 @@ export function createToolCallHandler(
               }
             }
           }
+          // Trigger column shimmer for append mode (shows "updating" state)
+          for (const colId of new Set(updates.map((u) => u.columnId))) {
+            generatingColumns.add(colId)
+            grid!.setGeneratingColumn(colId, true)
+          }
         }
         const targetCols = new Set(updates.map((u) => u.columnId))
         const hasGenerating = [...targetCols].some((c) => generatingColumns.has(c))

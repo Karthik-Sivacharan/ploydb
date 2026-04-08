@@ -81,6 +81,7 @@ const CONNECTED_SOURCES = [
   { name: "Sheets", iconUrl: "https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/idKa2XnbFY.svg?c=1bxid64Mup7aczewSAYMX&t=1755572735234" },
   { name: "Analytics", iconUrl: "https://cdn.brandfetch.io/idYpJMnlBx/w/192/h/192/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1768155572893" },
   { name: "Figma", iconUrl: "https://cdn.brandfetch.io/idZHcZ_i7F/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1729268241679" },
+  { name: "Gmail", iconUrl: "https://cdn.brandfetch.io/id5o3EIREg/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1696475443284" },
   { name: "Clearbit", iconUrl: "https://cdn.brandfetch.io/idPfQccWRj/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1668081777632" },
 ]
 

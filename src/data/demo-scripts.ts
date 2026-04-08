@@ -463,7 +463,7 @@ export const DEMO_STEPS: DemoStep[] = [
     ],
     followUp:
       "Done — the full loop is complete: enriched data → prioritized contacts → personalized email → personalized landing page.",
-    thinkingDelay: 1500,
+    thinkingDelay: 3000,
   },
 ]
 
