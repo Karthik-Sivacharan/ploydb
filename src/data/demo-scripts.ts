@@ -45,7 +45,6 @@ export interface DemoStep {
   response: string
   toolCalls: DemoToolCall[]
   dryRun?: boolean
-  ploybook?: string
   /** New context tags introduced at this step (accumulate forward) */
   contextTags?: ContextTag[]
   /** Delay in ms before text starts streaming (shows thinking shimmer). Default 800. */
@@ -100,6 +99,9 @@ export const DEMO_STEPS: DemoStep[] = [
     step: 0,
     response:
       "I see 960 contacts in your CRM. Let me open that up and take a look.",
+    contextTags: [
+      { type: "ploybook", name: "Re-engage Stale Leads", icon: "ploybook" },
+    ],
     toolCalls: [
       { name: "openDatabase", args: { slug: "contacts" } },
     ],
@@ -254,9 +256,7 @@ export const DEMO_STEPS: DemoStep[] = [
     step: 6,
     response:
       "I pulled website activity from Clearbit — turns out several of these leads have been visiting your pricing and product pages. Combined with title seniority and company size, here's how they stack up.",
-    ploybook: "Contact Prioritization",
     contextTags: [
-      { type: "ploybook", name: "Contact Prioritization", icon: "ploybook" },
       { type: "source", name: "Clearbit", icon: "clearbit" },
     ],
     toolCalls: [
@@ -323,9 +323,7 @@ export const DEMO_STEPS: DemoStep[] = [
     step: 8,
     response:
       "Writing follow-up drafts for your High and Medium priority contacts. Each email is personalized with their name, title, company, and the AI adoption context we found.",
-    contextTags: [
-      { type: "ploybook", name: "Personalized Outreach", icon: "ploybook" },
-    ],
+    contextTags: [],
     toolCalls: [
       {
         name: "addColumn",
