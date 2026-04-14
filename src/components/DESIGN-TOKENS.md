@@ -4,6 +4,24 @@ Three-layer architecture: **Primitives → Semantics → Tailwind classes**.
 
 All tokens defined in `src/app/globals.css`. Never use raw oklch values in components — always use semantic Tailwind classes (`bg-primary`, `text-ai-accent`, etc.).
 
+Primitives are defined in `:root` but NOT registered as Tailwind utilities — this enforces semantic-only usage. You cannot write `bg-neutral-50`; you must use `bg-muted` or `bg-secondary`.
+
+## Component Structure (Atomic Design)
+
+```
+components/
+├── ui/              # Atoms — shadcn primitives (button, badge, input, etc.)
+├── molecules/       # Composed from atoms, single purpose
+│   ├── cells/       # Grid cell renderers (status, currency, tags, etc.)
+│   ├── chat/        # Chat message elements (message, reasoning, shimmer, etc.)
+│   └── tool-cards/  # AI tool result cards
+├── organisms/       # Complex self-contained sections
+│   ├── grid/        # Data grid system
+│   ├── chat/        # Chat panel orchestration
+│   ├── layout/      # App sidebar, navbar
+│   └── dashboard/   # Home page sections
+```
+
 ---
 
 ## Layer 1: Primitives
@@ -188,7 +206,7 @@ Fallback color: `var(--neutral-600)`. Data colors (hex from API/Faker) are inten
 | Focus ring | `--focus-ring-width`, `--focus-ring-offset`, `--focus-ring-color` | `@theme inline` |
 | Border radius | `--radius-sm` through `--radius-4xl` (calculated from `--radius`) | `@theme inline` |
 | Motion (CSS) | 3 easings + 6 durations | `@theme inline` |
-| Motion (JS) | Easings, springs, variants, presets | `src/lib/motion.ts` |
+| Motion (JS) | Easings, durations, springs, transitions, fade, scaleIn, slideUp, stagger | `src/lib/motion.ts` |
 | Glass surfaces | `surface-translucent`, `surface-inset`, `surface-overlay`, `border-glass`, `border-subtle` | globals.css (defined, not yet used) |
 | Shadows | `shadow-glass`, `shadow-glow-blue`, `shadow-glow-green`, `shadow-elevated` | globals.css (defined, not yet used) |
 | Glows | `glow-accent`, `glow-success` | globals.css (defined, not yet used) |
