@@ -86,7 +86,7 @@ function fieldToColumnDef(
       const options = (cfg?.options ?? []).map((opt) => ({
         value: opt.id,
         label: opt.label,
-        color: opt.color ?? "#64748b",
+        color: opt.color ?? "var(--neutral-500)",
       }));
       return {
         ...base,

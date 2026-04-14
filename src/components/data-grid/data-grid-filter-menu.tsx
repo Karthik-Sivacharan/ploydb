@@ -219,8 +219,8 @@ export function DataGridFilterMenu<TData>({
                 className={cn(
                   "h-5 rounded-sm px-1.5 font-mono font-normal text-xs",
                   attribution === "korra"
-                    ? "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300"
-                    : "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300"
+                    ? "bg-ai-muted text-ai-muted-foreground"
+                    : "bg-user-muted text-user-muted-foreground"
                 )}
               >
                 {columnFilters.length}

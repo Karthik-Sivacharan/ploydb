@@ -233,7 +233,7 @@ export default function PersonaPage() {
               </Table>
             </CardContent>
           </Card>
-          <p className="mt-4 rounded-md border border-dashed border-amber-500/40 bg-amber-500/5 px-4 py-3 text-sm text-amber-600 dark:text-amber-400">
+          <p className="mt-4 rounded-md border border-dashed border-warning/40 bg-warning/5 px-4 py-3 text-sm text-warning-muted-foreground">
             6 tools. Constant tab-switching. Data lives in silos. Sofia copies
             information between tools manually.
           </p>

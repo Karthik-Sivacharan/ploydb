@@ -41,8 +41,8 @@ export function CellAttributionIndicator({
                 borderWidth: "0 8px 8px 0",
                 borderColor: `transparent ${
                   isKorra
-                    ? "var(--color-sky-500)"
-                    : "var(--color-amber-500)"
+                    ? "var(--color-ai-accent)"
+                    : "var(--color-user)"
                 } transparent transparent`,
               }}
               aria-label={`Last edited by ${isKorra ? "Korra" : "You"}`}
@@ -57,7 +57,7 @@ export function CellAttributionIndicator({
             <span
               className={cn(
                 "inline-block size-2 rounded-full",
-                isKorra ? "bg-sky-500" : "bg-amber-500"
+                isKorra ? "bg-ai-accent" : "bg-user"
               )}
             />
             Last edited by {isKorra ? "Korra" : "You"}
@@ -105,7 +105,7 @@ function AuditEntryRow({ entry }: { entry: CellAuditEntry }) {
       <span
         className={cn(
           "mt-1 inline-block size-2 shrink-0 rounded-full",
-          isKorra ? "bg-sky-500" : "bg-amber-500"
+          isKorra ? "bg-ai-accent" : "bg-user"
         )}
       />
       <div className="min-w-0 flex-1">
@@ -129,8 +129,8 @@ function AuditEntryRow({ entry }: { entry: CellAuditEntry }) {
           <span
             className={
               isKorra
-                ? "text-sky-600 dark:text-sky-400"
-                : "text-amber-600 dark:text-amber-400"
+                ? "text-ai-accent dark:text-ai-accent"
+                : "text-user dark:text-user-muted-foreground"
             }
           >
             {displayValue(entry.value)}

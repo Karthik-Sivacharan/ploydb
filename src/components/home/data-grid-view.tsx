@@ -489,7 +489,7 @@ export function DataGridView({
               options: mappedOptions.map((o) => ({
                 value: o.value,
                 label: o.label,
-                color: o.color ?? "#64748b",
+                color: o.color ?? "var(--neutral-500)",
               })),
             }
             break
@@ -643,12 +643,12 @@ export function DataGridView({
         {/* Collaborator avatars */}
         <div className="flex -space-x-2">
           <Avatar className="size-9 ring-2 ring-background">
-            <AvatarFallback className="bg-sky-100 text-xs font-semibold text-sky-700 dark:bg-sky-900 dark:text-sky-300">
+            <AvatarFallback className="bg-ai-muted text-xs font-semibold text-ai-muted-foreground">
               KO
             </AvatarFallback>
           </Avatar>
           <Avatar className="size-9 ring-2 ring-background">
-            <AvatarFallback className="bg-amber-100 text-xs font-semibold text-amber-700 dark:bg-amber-900 dark:text-amber-300">
+            <AvatarFallback className="bg-user-muted text-xs font-semibold text-user-muted-foreground">
               SC
             </AvatarFallback>
           </Avatar>
@@ -687,7 +687,7 @@ export function DataGridView({
                   id="sync-toggle"
                   checked={syncEnabled}
                   onCheckedChange={setSyncEnabled}
-                  className="h-4 w-7 data-[state=checked]:bg-sky-600 [&_span]:size-3 [&_span]:data-[state=checked]:translate-x-3"
+                  className="h-4 w-7 data-[state=checked]:bg-ai [&_span]:size-3 [&_span]:data-[state=checked]:translate-x-3"
                 />
                 <img
                   src="https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/idKa2XnbFY.svg?c=1bxid64Mup7aczewSAYMX&t=1755572735234"
@@ -699,7 +699,7 @@ export function DataGridView({
                 <Separator orientation="vertical" className="h-3 bg-muted-foreground/40" />
                 <span className={cn(
                   "text-xs",
-                  syncEnabled ? "text-muted-foreground" : "text-amber-500"
+                  syncEnabled ? "text-muted-foreground" : "text-user"
                 )}>
                   Last synced 2m ago
                 </span>

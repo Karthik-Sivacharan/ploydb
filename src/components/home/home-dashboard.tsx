@@ -272,7 +272,7 @@ export function HomeDashboard() {
                         className={cn(
                           "group relative flex w-64 shrink-0 flex-col gap-3 overflow-hidden rounded-xl border p-4 text-left transition-colors snap-start",
                           template.featured
-                            ? "border-sky-200 bg-sky-50/50 hover:bg-sky-50 dark:border-sky-800/60 dark:bg-sky-950/30 dark:hover:bg-sky-950/50"
+                            ? "border-ai-border bg-ai-surface/50 hover:bg-ai-surface dark:border-ai-border/60 dark:bg-ai-surface/30 dark:hover:bg-ai-surface/50"
                             : "border-border/60 bg-card hover:border-border hover:bg-accent/50"
                         )}
                       >
@@ -281,17 +281,17 @@ export function HomeDashboard() {
                             {/* <BorderBeam
                               size={60}
                               duration={8}
-                              colorFrom="var(--color-sky-400)"
-                              colorTo="var(--color-sky-600)"
+                              colorFrom="var(--color-ai-shimmer)"
+                              colorTo="var(--color-ai)"
                             /> */}
-                            <Badge className="absolute top-3 right-3 bg-sky-100 text-sky-700 hover:bg-sky-100 dark:bg-sky-900 dark:text-sky-300 dark:hover:bg-sky-900 text-[10px] px-1.5 py-0">
+                            <Badge className="absolute top-3 right-3 bg-ai-muted text-ai-muted-foreground hover:bg-ai-muted dark:hover:bg-ai-muted text-[10px] px-1.5 py-0">
                               Try it now
                             </Badge>
                           </>
                         )}
                         <template.icon className={cn(
                           "size-5",
-                          template.featured ? "text-sky-600 dark:text-sky-400" : "text-muted-foreground"
+                          template.featured ? "text-ai-accent" : "text-muted-foreground"
                         )} />
                         <div className="space-y-1">
                           <div className="text-sm font-medium">{template.title}</div>
@@ -351,7 +351,7 @@ export function HomeDashboard() {
                         <span className="min-w-0 flex-1 truncate text-sm">{ploy.title}</span>
                         {ploy.status === "working" ? (
                           <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
-                            <span className="inline-block size-1.5 rounded-full bg-emerald-500" />
+                            <span className="inline-block size-1.5 rounded-full bg-source" />
                             Working...
                           </span>
                         ) : (

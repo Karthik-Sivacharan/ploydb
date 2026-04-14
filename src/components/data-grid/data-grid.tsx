@@ -188,7 +188,7 @@ export function DataGrid<TData>({
                         showEndBorder && header.column.id !== "select",
                       "border-s":
                         showStartBorder && header.column.id !== "select",
-                      "bg-teal-100/60 dark:bg-teal-900/25":
+                      "bg-lookup-muted/60 dark:bg-lookup-muted/25":
                         header.column.columnDef.meta?.source === "lookup" || header.column.columnDef.meta?.source === "clearbit",
                       "generating-shimmer":
                         generatingColumns?.has(header.column.id),

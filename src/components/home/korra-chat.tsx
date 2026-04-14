@@ -97,8 +97,8 @@ function ContextTagsRow({ tags }: { tags: ContextTag[] }) {
           className={cn(
             "gap-1.5 py-0.5 text-[11px]",
             tag.type === "source"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-300"
-              : "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950/30 dark:text-sky-300"
+              ? "border-source-border bg-source-surface text-source-muted-foreground"
+              : "border-ai-border bg-ai-surface text-ai-muted-foreground"
           )}
         >
           {tag.icon === "google-sheets" ? (
@@ -264,7 +264,7 @@ function KorraPromptInput({
               id="autopilot"
               checked={autopilot}
               onCheckedChange={setAutopilot}
-              className="h-4 w-7 data-[state=checked]:bg-sky-600 [&_span]:size-3 [&_span]:data-[state=checked]:translate-x-3"
+              className="h-4 w-7 data-[state=checked]:bg-ai [&_span]:size-3 [&_span]:data-[state=checked]:translate-x-3"
             />
             <Label
               htmlFor="autopilot"
@@ -441,7 +441,7 @@ export function KorraChat({ variant, chat, onFirstMessage, toolResults, showAudi
               id="audit-trail"
               checked={showAuditTrail ?? true}
               onCheckedChange={onShowAuditTrailChange}
-              className="h-4 w-7 data-[state=checked]:bg-sky-600 [&_span]:size-3 [&_span]:data-[state=checked]:translate-x-3"
+              className="h-4 w-7 data-[state=checked]:bg-ai [&_span]:size-3 [&_span]:data-[state=checked]:translate-x-3"
             />
             <Label
               htmlFor="audit-trail"
@@ -453,7 +453,7 @@ export function KorraChat({ variant, chat, onFirstMessage, toolResults, showAudi
           {/* Right: Korra avatar + name */}
           <div className="flex items-center gap-2">
             <Avatar className="size-7">
-              <AvatarFallback className="bg-sky-100 text-xs font-semibold text-sky-700 dark:bg-sky-900 dark:text-sky-300">
+              <AvatarFallback className="bg-ai-muted text-xs font-semibold text-ai-muted-foreground">
                 KO
               </AvatarFallback>
             </Avatar>

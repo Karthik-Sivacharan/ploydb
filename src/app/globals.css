@@ -7,40 +7,44 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* ── Semantic color registrations ── */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, monospace;
   --font-heading: "Geist", ui-sans-serif, system-ui, sans-serif;
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* ── Radius scale ── */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -49,89 +53,474 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* Motion design system — easing curves */
+  /* ── Status semantic colors ── */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-muted: var(--success-muted);
+  --color-success-muted-foreground: var(--success-muted-foreground);
+  --color-destructive-muted: var(--destructive-muted);
+  --color-destructive-muted-foreground: var(--destructive-muted-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-muted: var(--warning-muted);
+  --color-warning-muted-foreground: var(--warning-muted-foreground);
+
+  /* ── AI identity — sky-derived (Korra) ── */
+  --color-ai: var(--ai);
+  --color-ai-foreground: var(--ai-foreground);
+  --color-ai-accent: var(--ai-accent);
+  --color-ai-muted: var(--ai-muted);
+  --color-ai-muted-foreground: var(--ai-muted-foreground);
+  --color-ai-surface: var(--ai-surface);
+  --color-ai-border: var(--ai-border);
+  --color-ai-shimmer: var(--ai-shimmer);
+
+  /* ── User identity — amber-derived ── */
+  --color-user: var(--user);
+  --color-user-foreground: var(--user-foreground);
+  --color-user-muted: var(--user-muted);
+  --color-user-muted-foreground: var(--user-muted-foreground);
+
+  /* ── Lookup identity — teal-derived (linked columns) ── */
+  --color-lookup: var(--lookup);
+  --color-lookup-foreground: var(--lookup-foreground);
+  --color-lookup-accent: var(--lookup-accent);
+  --color-lookup-muted: var(--lookup-muted);
+  --color-lookup-muted-foreground: var(--lookup-muted-foreground);
+  --color-lookup-surface: var(--lookup-surface);
+  --color-lookup-border: var(--lookup-border);
+
+  /* ── Source identity — emerald-derived (connected data) ── */
+  --color-source: var(--source);
+  --color-source-foreground: var(--source-foreground);
+  --color-source-muted: var(--source-muted);
+  --color-source-muted-foreground: var(--source-muted-foreground);
+  --color-source-surface: var(--source-surface);
+  --color-source-border: var(--source-border);
+
+  /* ── Glass surface tokens ── */
+  --color-surface-translucent: var(--surface-translucent);
+  --color-surface-translucent-hover: var(--surface-translucent-hover);
+  --color-surface-inset: var(--surface-inset);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-surface-overlay-hover: var(--surface-overlay-hover);
+  --color-border-glass: var(--border-glass);
+  --color-border-subtle: var(--border-subtle);
+
+  /* ── Primitive scale colors — exposed for Tailwind utilities ── */
+  --color-white: var(--white);
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
+  --color-neutral-950: var(--neutral-950);
+  --color-neutral-975: var(--neutral-975);
+  --color-neutral-1000: var(--neutral-1000);
+  --color-black: var(--black);
+
+  /* ── Glow accent colors ── */
+  --color-glow-accent: var(--glow-accent);
+  --color-glow-success: var(--glow-success);
+
+  /* ── Shadow tiers ── */
+  --shadow-glass: var(--shadow-glass);
+  --shadow-glow-blue: var(--shadow-glow-blue);
+  --shadow-glow-green: var(--shadow-glow-green);
+  --shadow-elevated: var(--shadow-elevated);
+
+  /* ── Motion tokens — easing curves ── */
   --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
   --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-cubic: cubic-bezier(0.645, 0.045, 0.355, 1);
 
-  /* Motion design system — duration tokens */
+  /* ── Motion tokens — durations ── */
   --duration-instant: 100ms;
   --duration-micro: 150ms;
   --duration-fast: 200ms;
   --duration-normal: 250ms;
   --duration-slow: 300ms;
   --duration-ambient: 600ms;
+
+  /* ── Typography scale ── */
+  --font-size-caption: 9px;
+  --font-size-badge: 10px;
+  --font-size-detail: 11px;
+  --font-size-body-sm: 0.8125rem;   /* 13px */
+  --font-size-body: 0.875rem;       /* 14px */
+  --font-size-body-lg: 1rem;        /* 16px */
+  --font-size-heading-sm: 1.125rem; /* 18px */
+  --font-size-heading: 1.25rem;     /* 20px */
+  --font-size-heading-lg: 1.5rem;   /* 24px */
+  --font-size-heading-xl: 2rem;     /* 32px */
+
+  /* ── Icon size tokens ── */
+  --icon-xs: 14px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+
+  /* ── Z-index scale ── */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-popup: 50;
+  --z-modal: 100;
+
+  /* ── Focus ring ── */
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 0px;
+  --focus-ring-color: var(--ring);
+
+  /* ── Layout tokens ── */
+  --layout-sidebar-width: 208px;
+  --layout-header-height: 3.5rem;
+  --layout-panel-gap: 1rem;
 }
 
+/* ══════════════════════════════════════════════════════════════
+   Primitive color tokens
+   Raw palette values — never change between themes.
+   Semantic tokens below reference these.
+   Neutral generated via culori (from Ploy design system).
+   Sky, green, red, amber from Tailwind v4 defaults.
+   ══════════════════════════════════════════════════════════════ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* Neutral primitives (achromatic, culori-generated + extended endpoints) */
+  --white: oklch(1 0 0);
+  --neutral-50: oklch(0.978 0 0);
+  --neutral-100: oklch(0.936 0 0);
+  --neutral-200: oklch(0.881 0 0);
+  --neutral-300: oklch(0.827 0 0);
+  --neutral-400: oklch(0.742 0 0);
+  --neutral-500: oklch(0.648 0 0);
+  --neutral-600: oklch(0.573 0 0);
+  --neutral-700: oklch(0.469 0 0);
+  --neutral-800: oklch(0.394 0 0);
+  --neutral-900: oklch(0.320 0 0);
+  --neutral-950: oklch(0.238 0 0);
+  --neutral-975: oklch(0.205 0 0);
+  --neutral-1000: oklch(0.145 0 0);
+  --black: oklch(0 0 0);
+
+  /* White alpha primitives — for translucent dark-mode borders and overlays */
+  --white-a5: oklch(1 0 0 / 5%);
+  --white-a8: oklch(1 0 0 / 8%);
+  --white-a10: oklch(1 0 0 / 10%);
+  --white-a15: oklch(1 0 0 / 15%);
+
+  /* Black alpha primitives — for translucent light-mode borders and overlays */
+  --black-a3: oklch(0 0 0 / 3%);
+  --black-a5: oklch(0 0 0 / 5%);
+  --black-a6: oklch(0 0 0 / 6%);
+  --black-a8: oklch(0 0 0 / 8%);
+  --black-a10: oklch(0 0 0 / 10%);
+  --black-a15: oklch(0 0 0 / 15%);
+
+  /* Sky primitives (Tailwind v4 defaults — AI/Korra accent) */
+  --sky-50: oklch(0.977 0.013 236.62);
+  --sky-100: oklch(0.951 0.026 236.824);
+  --sky-200: oklch(0.901 0.058 230.902);
+  --sky-300: oklch(0.828 0.111 230.318);
+  --sky-400: oklch(0.746 0.16 232.661);
+  --sky-500: oklch(0.685 0.169 237.323);
+  --sky-600: oklch(0.588 0.158 241.966);
+  --sky-700: oklch(0.5 0.134 242.749);
+  --sky-800: oklch(0.443 0.11 240.79);
+  --sky-900: oklch(0.391 0.09 240.876);
+  --sky-950: oklch(0.293 0.066 243.157);
+
+  /* Green primitives (Tailwind v4 defaults) */
+  --green-50: oklch(0.982 0.018 155.826);
+  --green-100: oklch(0.962 0.044 156.743);
+  --green-200: oklch(0.925 0.084 155.995);
+  --green-300: oklch(0.871 0.15 154.449);
+  --green-400: oklch(0.792 0.209 151.711);
+  --green-500: oklch(0.723 0.219 149.579);
+  --green-600: oklch(0.627 0.194 149.214);
+  --green-700: oklch(0.527 0.154 150.069);
+  --green-800: oklch(0.448 0.119 151.328);
+  --green-900: oklch(0.393 0.095 152.535);
+  --green-950: oklch(0.266 0.065 152.934);
+
+  /* Red primitives (Tailwind v4 defaults) */
+  --red-50: oklch(0.971 0.013 17.38);
+  --red-100: oklch(0.936 0.032 17.717);
+  --red-200: oklch(0.885 0.062 18.334);
+  --red-300: oklch(0.808 0.114 19.571);
+  --red-400: oklch(0.704 0.191 22.216);
+  --red-500: oklch(0.637 0.237 25.331);
+  --red-600: oklch(0.577 0.245 27.325);
+  --red-700: oklch(0.505 0.213 27.518);
+  --red-800: oklch(0.444 0.177 26.899);
+  --red-900: oklch(0.396 0.141 25.723);
+  --red-950: oklch(0.258 0.092 26.042);
+
+  /* Amber primitives (Tailwind v4 defaults) */
+  --amber-50: oklch(0.987 0.022 95.277);
+  --amber-100: oklch(0.962 0.059 95.617);
+  --amber-200: oklch(0.924 0.12 95.746);
+  --amber-300: oklch(0.879 0.169 91.605);
+  --amber-400: oklch(0.828 0.189 84.429);
+  --amber-500: oklch(0.769 0.188 70.08);
+  --amber-600: oklch(0.666 0.179 58.318);
+  --amber-700: oklch(0.555 0.163 48.998);
+  --amber-800: oklch(0.473 0.137 46.201);
+  --amber-900: oklch(0.414 0.112 45.904);
+  --amber-950: oklch(0.279 0.077 45.635);
+
+  /* Teal primitives (Tailwind v4 defaults — lookup/link accent) */
+  --teal-50: oklch(0.984 0.014 180.72);
+  --teal-100: oklch(0.953 0.051 180.801);
+  --teal-200: oklch(0.91 0.096 180.426);
+  --teal-300: oklch(0.855 0.15 175.034);
+  --teal-400: oklch(0.777 0.152 181.912);
+  --teal-500: oklch(0.704 0.14 182.503);
+  --teal-600: oklch(0.6 0.118 184.704);
+  --teal-700: oklch(0.511 0.096 186.391);
+  --teal-800: oklch(0.437 0.078 188.216);
+  --teal-900: oklch(0.386 0.063 188.416);
+  --teal-950: oklch(0.277 0.046 192.524);
+
+  /* Emerald primitives (Tailwind v4 defaults — source/data accent) */
+  --emerald-50: oklch(0.979 0.021 166.113);
+  --emerald-100: oklch(0.95 0.052 163.051);
+  --emerald-200: oklch(0.905 0.093 164.15);
+  --emerald-300: oklch(0.845 0.143 164.978);
+  --emerald-400: oklch(0.765 0.177 163.223);
+  --emerald-500: oklch(0.696 0.17 162.48);
+  --emerald-600: oklch(0.596 0.145 163.225);
+  --emerald-700: oklch(0.508 0.118 165.612);
+  --emerald-800: oklch(0.432 0.095 166.913);
+  --emerald-900: oklch(0.378 0.077 168.94);
+  --emerald-950: oklch(0.262 0.051 172.552);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Semantic tokens — light mode
+   Derived from primitives above. Values that fall between
+   primitive steps are kept exact and annotated.
+   ══════════════════════════════════════════════════════════════ */
+:root {
+  /* Surfaces — neutral-derived */
+  --background: var(--white);
+  --foreground: var(--neutral-1000);
+  --card: var(--white);
+  --card-foreground: var(--neutral-1000);
+  --popover: var(--white);
+  --popover-foreground: var(--neutral-1000);
+  /* Primary — neutral-derived (PloyDB uses achromatic primary) */
+  --primary: var(--neutral-975);
+  --primary-foreground: var(--neutral-50);
+  /* Secondary / muted / accent — neutral-derived */
+  --secondary: var(--neutral-50);
+  --secondary-foreground: var(--neutral-975);
+  --muted: var(--neutral-50);
+  --muted-foreground: var(--neutral-600);
+  --accent: var(--neutral-50);
+  --accent-foreground: var(--neutral-975);
+  /* Destructive — red-derived */
+  --destructive: var(--red-600);
+  --destructive-foreground: var(--neutral-50);
+  --destructive-muted: var(--red-100);
+  --destructive-muted-foreground: var(--red-700);
+  /* Success — green-derived */
+  --success: var(--green-600);
+  --success-foreground: var(--neutral-50);
+  --success-muted: var(--green-100);
+  --success-muted-foreground: var(--green-900);
+  /* Warning — amber-derived */
+  --warning: var(--amber-400);
+  --warning-foreground: var(--amber-900);
+  --warning-muted: var(--amber-100);
+  --warning-muted-foreground: var(--amber-800);
+  /* Borders — neutral-derived */
+  --border: var(--neutral-100);
+  --input: var(--neutral-100);
+  /* Ring — neutral-derived */
+  --ring: var(--neutral-400);
+  /* Charts — snapped to nearest neutral primitive */
+  --chart-1: var(--neutral-200);
+  --chart-2: var(--neutral-600);
+  --chart-3: var(--neutral-700);
+  --chart-4: var(--neutral-800);
+  --chart-5: var(--neutral-950);
+  /* Layout */
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Sidebar — neutral-derived */
+  --sidebar: var(--neutral-50);
+  --sidebar-foreground: var(--neutral-1000);
+  --sidebar-primary: var(--neutral-975);
+  --sidebar-primary-foreground: var(--neutral-50);
+  --sidebar-accent: var(--neutral-50);
+  --sidebar-accent-foreground: var(--neutral-975);
+  --sidebar-border: var(--neutral-100);
+  --sidebar-ring: var(--neutral-400);
+
+  /* AI identity — sky-derived (Korra) */
+  --ai: var(--sky-600);
+  --ai-foreground: var(--neutral-50);
+  --ai-accent: var(--sky-500);                 /* icons, indicators */
+  --ai-muted: var(--sky-100);                  /* badge/tag bg */
+  --ai-muted-foreground: var(--sky-700);       /* badge/tag text */
+  --ai-surface: var(--sky-50);                 /* card bg, tint */
+  --ai-border: var(--sky-200);                 /* card/tag border */
+  --ai-shimmer: var(--sky-400);                /* shimmer gradient */
+  /* User identity — amber-derived */
+  --user: var(--amber-500);
+  --user-foreground: var(--neutral-50);
+  --user-muted: var(--amber-100);              /* badge bg */
+  --user-muted-foreground: var(--amber-700);   /* badge text */
+  /* Lookup identity — teal-derived (linked columns) */
+  --lookup: var(--teal-600);
+  --lookup-foreground: var(--neutral-50);
+  --lookup-accent: var(--teal-500);            /* icons */
+  --lookup-muted: var(--teal-100);             /* row tint bg */
+  --lookup-muted-foreground: var(--teal-700);  /* badge text */
+  --lookup-surface: var(--teal-50);            /* badge bg */
+  --lookup-border: var(--teal-200);            /* badge border */
+  /* Source identity — emerald-derived (connected data) */
+  --source: var(--emerald-500);
+  --source-foreground: var(--neutral-50);
+  --source-muted: var(--emerald-100);          /* badge bg */
+  --source-muted-foreground: var(--emerald-700); /* badge text */
+  --source-surface: var(--emerald-50);         /* badge surface */
+  --source-border: var(--emerald-200);         /* badge border */
+
+  /* Glass surface tokens — light mode */
+  --surface-translucent: oklch(1 0 0 / 96%);
+  --surface-translucent-hover: oklch(1 0 0 / 98%);
+  --surface-inset: oklch(0.97 0 0 / 90%);
+  --surface-overlay: var(--black-a3);
+  --surface-overlay-hover: var(--black-a6);
+  --border-glass: var(--black-a8);
+  --border-subtle: var(--black-a5);
+
+  /* Glow — sky-tinted for AI accent */
+  --glow-accent: oklch(0.685 0.169 237.323 / 10%);   /* sky-500 at 10% */
+  --glow-success: oklch(0.627 0.194 149.214 / 30%);   /* green-600 at 30% */
+
+  /* Shadow tiers */
+  --shadow-glass: 0 4px 24px -1px oklch(0 0 0 / 10%);
+  --shadow-glow-blue: 0 0 20px -5px oklch(0.685 0.169 237.323 / 10%);
+  --shadow-glow-green: 0 0 6px oklch(0.627 0.194 149.214 / 30%);
+  --shadow-elevated: 0 8px 32px -4px oklch(0 0 0 / 15%);
 }
 
+/* ══════════════════════════════════════════════════════════════
+   Semantic tokens — dark mode
+   ══════════════════════════════════════════════════════════════ */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Surfaces — neutral-derived */
+  --background: var(--neutral-1000);
+  --foreground: var(--neutral-50);
+  --card: var(--neutral-975);
+  --card-foreground: var(--neutral-50);
+  --popover: var(--neutral-975);
+  --popover-foreground: var(--neutral-50);
+  /* Primary — neutral-derived (lighter in dark mode for readability) */
+  --primary: var(--neutral-100);
+  --primary-foreground: var(--neutral-975);
+  /* Secondary / muted / accent — neutral-derived */
+  --secondary: var(--neutral-950);
+  --secondary-foreground: var(--neutral-50);
+  --muted: var(--neutral-950);
+  --muted-foreground: var(--neutral-400);
+  --accent: var(--neutral-950);
+  --accent-foreground: var(--neutral-50);
+  /* Destructive — red-derived */
+  --destructive: var(--red-400);
+  --destructive-foreground: var(--neutral-50);
+  --destructive-muted: var(--red-950);
+  --destructive-muted-foreground: var(--red-300);
+  /* Success — green-derived */
+  --success: var(--green-400);
+  --success-foreground: var(--neutral-50);
+  --success-muted: var(--green-950);
+  --success-muted-foreground: var(--green-400);
+  /* Warning — amber-derived */
+  --warning: var(--amber-400);
+  --warning-foreground: var(--amber-900);
+  --warning-muted: var(--amber-950);
+  --warning-muted-foreground: var(--amber-300);
+  /* Borders — alpha-based for dark mode transparency */
+  --border: var(--white-a10);
+  --input: var(--white-a15);
+  /* Ring — neutral-derived */
+  --ring: var(--neutral-600);
+  /* Charts — snapped to nearest neutral primitive */
+  --chart-1: var(--neutral-200);
+  --chart-2: var(--neutral-600);
+  --chart-3: var(--neutral-700);
+  --chart-4: var(--neutral-800);
+  --chart-5: var(--neutral-950);
+  /* Sidebar — neutral + sky-derived */
+  --sidebar: var(--neutral-975);
+  --sidebar-foreground: var(--neutral-50);
+  --sidebar-primary: var(--sky-700);
+  --sidebar-primary-foreground: var(--neutral-50);
+  --sidebar-accent: var(--neutral-950);
+  --sidebar-accent-foreground: var(--neutral-50);
+  --sidebar-border: var(--white-a10);
+  --sidebar-ring: var(--neutral-600);
+
+  /* AI identity — sky-derived (Korra) */
+  --ai: var(--sky-600);
+  --ai-foreground: var(--neutral-50);
+  --ai-accent: var(--sky-400);                 /* lighter for dark readability */
+  --ai-muted: var(--sky-900);
+  --ai-muted-foreground: var(--sky-300);
+  --ai-surface: var(--sky-950);
+  --ai-border: var(--sky-800);
+  --ai-shimmer: var(--sky-500);
+  /* User identity — amber-derived */
+  --user: var(--amber-500);
+  --user-foreground: var(--neutral-50);
+  --user-muted: var(--amber-900);
+  --user-muted-foreground: var(--amber-300);
+  /* Lookup identity — teal-derived (linked columns) */
+  --lookup: var(--teal-600);
+  --lookup-foreground: var(--neutral-50);
+  --lookup-accent: var(--teal-400);
+  --lookup-muted: var(--teal-900);
+  --lookup-muted-foreground: var(--teal-300);
+  --lookup-surface: var(--teal-950);
+  --lookup-border: var(--teal-800);
+  /* Source identity — emerald-derived (connected data) */
+  --source: var(--emerald-500);
+  --source-foreground: var(--neutral-50);
+  --source-muted: var(--emerald-900);
+  --source-muted-foreground: var(--emerald-300);
+  --source-surface: var(--emerald-950);
+  --source-border: var(--emerald-800);
+
+  /* Glass surface tokens — dark mode */
+  --surface-translucent: oklch(0.11 0 0 / 94%);
+  --surface-translucent-hover: oklch(0.11 0 0 / 97%);
+  --surface-inset: oklch(0.06 0 0 / 80%);
+  --surface-overlay: var(--white-a5);
+  --surface-overlay-hover: var(--white-a10);
+  --border-glass: var(--white-a8);
+  --border-subtle: var(--white-a5);
+
+  /* Glow — sky-tinted for AI accent */
+  --glow-accent: oklch(0.685 0.169 237.323 / 18%);
+  --glow-success: oklch(0.627 0.194 149.214 / 50%);
+
+  /* Shadow tiers */
+  --shadow-glass: 0 4px 24px -1px oklch(0 0 0 / 30%);
+  --shadow-glow-blue: 0 0 30px -5px oklch(0.685 0.169 237.323 / 18%);
+  --shadow-glow-green: 0 0 8px oklch(0.627 0.194 149.214 / 50%);
+  --shadow-elevated: 0 8px 32px -4px oklch(0 0 0 / 50%);
 }
 
+/* ══════════════════════════════════════════════════════════════
+   Animations
+   ══════════════════════════════════════════════════════════════ */
 @keyframes shimmer-sweep {
   0% {
     transform: translateX(-100%);
@@ -144,17 +533,21 @@
 .generating-shimmer {
   position: relative;
   overflow: hidden;
-  @apply bg-sky-100/50 dark:bg-sky-900/20;
+  @apply bg-ai-muted/50 dark:bg-ai-muted/20;
 }
 
 .generating-shimmer::after {
   content: "";
   position: absolute;
   inset: 0;
-  @apply bg-gradient-to-r from-transparent via-sky-400/8 to-transparent dark:via-sky-500/8;
+  @apply bg-gradient-to-r from-transparent via-ai-shimmer/8 to-transparent;
   animation: shimmer-sweep 1.2s ease-in-out infinite;
   pointer-events: none;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Utilities
+   ══════════════════════════════════════════════════════════════ */
 
 /* Scroll fade edges — apply to overflow containers to soften clipped content */
 @utility fade-edge-r {
@@ -172,6 +565,9 @@
   mask-image: linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%);
 }
 
+/* ══════════════════════════════════════════════════════════════
+   Base layer
+   ══════════════════════════════════════════════════════════════ */
 @layer base {
   * {
     @apply border-border outline-ring/50;

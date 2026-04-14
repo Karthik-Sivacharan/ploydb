@@ -291,7 +291,7 @@ function DataGridRowImpl<TData>({
               grow: stretchColumns && columnId !== "select",
               "border-e": showEndBorder && columnId !== "select",
               "border-s": showStartBorder && columnId !== "select",
-              "bg-teal-100/50 dark:bg-teal-900/20":
+              "bg-lookup-muted/50 dark:bg-lookup-muted/20":
                 cell.column.columnDef.meta?.source === "lookup" || cell.column.columnDef.meta?.source === "clearbit",
               "generating-shimmer":
                 generatingColumns?.has(columnId),

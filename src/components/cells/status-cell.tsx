@@ -92,8 +92,7 @@ export function StatusCell<TData>({
 
   const currentOption = optionByValue.get(value);
   const displayLabel = currentOption?.label ?? value;
-  // Fallback must be hex since we use hex alpha trick (color + "15") for tinted backgrounds
-  const FALLBACK_STATUS_COLOR = "#737373";
+  const FALLBACK_STATUS_COLOR = "var(--neutral-600)";
   const displayColor = currentOption?.color ?? FALLBACK_STATUS_COLOR;
 
   return (
@@ -126,7 +125,7 @@ export function StatusCell<TData>({
               variant="secondary"
               className="w-fit whitespace-pre-wrap px-1.5 py-px"
               style={{
-                backgroundColor: displayColor + "15",
+                backgroundColor: `color-mix(in oklch, ${displayColor} 8%, transparent)`,
                 color: displayColor,
               }}
             >

@@ -122,7 +122,7 @@ function FilterBadgeCard({
   return (
     <CardShell
       icon={Filter}
-      iconClassName="text-sky-600 dark:text-sky-400"
+      iconClassName="text-ai-accent"
       expandable={filterCount > 1}
       expandContent={
         <div className="space-y-1">
@@ -171,7 +171,7 @@ function EditSummaryCard({
   return (
     <CardShell
       icon={Pencil}
-      iconClassName="text-sky-600 dark:text-sky-400"
+      iconClassName="text-ai-accent"
       expandable={updates.length > 0}
       expandContent={
         <div className="space-y-1">
@@ -183,7 +183,7 @@ function EditSummaryCard({
               <span className="font-medium text-foreground">
                 {formatColumnName(u.columnId as string)}
               </span>
-              <span className="text-emerald-600 dark:text-emerald-400">
+              <span className="text-source dark:text-source-muted-foreground">
                 {String(u.value)}
               </span>
             </div>
@@ -217,7 +217,7 @@ function AddColumnCard({ input }: { input: Record<string, unknown> }) {
   return (
     <CardShell
       icon={Columns3}
-      iconClassName="text-sky-600 dark:text-sky-400"
+      iconClassName="text-ai-accent"
       expandable={!!options && options.length > 0}
       expandContent={
         options && (
@@ -257,7 +257,7 @@ function SortBadgeCard({ input }: { input: Record<string, unknown> }) {
   return (
     <CardShell
       icon={ArrowUpDown}
-      iconClassName="text-sky-600 dark:text-sky-400"
+      iconClassName="text-ai-accent"
       expandable={sorts.length > 1}
       expandContent={
         <div className="space-y-1">
@@ -295,7 +295,7 @@ function OpenDatabaseCard({ input }: { input: Record<string, unknown> }) {
   const slug = input.slug as string
 
   return (
-    <CardShell icon={Table2} iconClassName="text-sky-600 dark:text-sky-400">
+    <CardShell icon={Table2} iconClassName="text-ai-accent">
       <span className="text-muted-foreground">Opened</span>
       <span className="font-medium capitalize text-foreground">{slug}</span>
     </CardShell>
@@ -309,7 +309,7 @@ function CheckAnalyticsCard({ input }: { input: Record<string, unknown> }) {
   const query = input.query as string
 
   return (
-    <CardShell icon={BarChart3} iconClassName="text-sky-600 dark:text-sky-400">
+    <CardShell icon={BarChart3} iconClassName="text-ai-accent">
       <span className="text-muted-foreground">Checked</span>
       <span className="font-medium text-foreground">{source}</span>
       <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
@@ -358,7 +358,7 @@ function SourceBadge({ source }: { source: "lookup" | "ai-generated" | "clearbit
     return (
       <Badge
         variant="outline"
-        className="gap-1 border-teal-200 bg-teal-50 px-1.5 py-0 text-[10px] text-teal-700 dark:border-teal-800 dark:bg-teal-950/30 dark:text-teal-300"
+        className="gap-1 border-lookup-border bg-lookup-surface px-1.5 py-0 text-[10px] text-lookup-muted-foreground"
       >
         <Link2 className="size-2.5" />
         {source === "clearbit" ? "Clearbit" : "Lookup"}
@@ -369,7 +369,7 @@ function SourceBadge({ source }: { source: "lookup" | "ai-generated" | "clearbit
   return (
     <Badge
       variant="outline"
-      className="gap-1 border-sky-200 bg-sky-50 px-1.5 py-0 text-[10px] text-sky-700 dark:border-sky-800 dark:bg-sky-950/30 dark:text-sky-300"
+      className="gap-1 border-ai-border bg-ai-surface px-1.5 py-0 text-[10px] text-ai-muted-foreground"
     >
       <FilePenLine className="size-2.5" />
       AI
