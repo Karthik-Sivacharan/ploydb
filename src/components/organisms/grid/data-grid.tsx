@@ -4,11 +4,11 @@ import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import * as React from "react";
-import { DataGridColumnHeader } from "@/components/data-grid/data-grid-column-header";
-import { DataGridContextMenu } from "@/components/data-grid/data-grid-context-menu";
-import { DataGridPasteDialog } from "@/components/data-grid/data-grid-paste-dialog";
-import { DataGridRow } from "@/components/data-grid/data-grid-row";
-import { DataGridSearch } from "@/components/data-grid/data-grid-search";
+import { DataGridColumnHeader } from "@/components/organisms/grid/data-grid-column-header";
+import { DataGridContextMenu } from "@/components/organisms/grid/data-grid-context-menu";
+import { DataGridPasteDialog } from "@/components/organisms/grid/data-grid-paste-dialog";
+import { DataGridRow } from "@/components/organisms/grid/data-grid-row";
+import { DataGridSearch } from "@/components/organisms/grid/data-grid-search";
 import { useAsRef } from "@/hooks/use-as-ref";
 import type { useDataGrid } from "@/hooks/use-data-grid";
 import {

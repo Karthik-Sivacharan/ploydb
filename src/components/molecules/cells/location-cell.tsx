@@ -2,7 +2,7 @@
 
 import { MapPin } from "lucide-react";
 import * as React from "react";
-import { DataGridCellWrapper } from "@/components/data-grid/data-grid-cell-wrapper";
+import { DataGridCellWrapper } from "@/components/organisms/grid/data-grid-cell-wrapper";
 import { cn } from "@/lib/utils";
 import type { DataGridCellProps } from "@/types/data-grid";
 

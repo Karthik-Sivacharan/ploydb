@@ -17,11 +17,11 @@ import {
 } from "lucide-react"
 import { useTheme } from "next-themes"
 
-import { useNav } from "@/components/nav-context"
-import { NavMain } from "@/components/nav-main"
-import { NavResources } from "@/components/nav-resources"
-import { NavUser } from "@/components/nav-user"
-import { WorkspaceSwitcher } from "@/components/workspace-switcher"
+import { useNav } from "@/components/molecules/nav-context"
+import { NavMain } from "@/components/molecules/nav-main"
+import { NavResources } from "@/components/molecules/nav-resources"
+import { NavUser } from "@/components/molecules/nav-user"
+import { WorkspaceSwitcher } from "@/components/molecules/workspace-switcher"
 import { Separator } from "@/components/ui/separator"
 import {
   Sidebar,

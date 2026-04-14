@@ -10,7 +10,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggle } from "@/components/molecules/theme-toggle";
 
 export function Navbar() {
   return (

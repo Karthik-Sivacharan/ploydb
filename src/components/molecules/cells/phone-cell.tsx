@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { DataGridCellWrapper } from "@/components/data-grid/data-grid-cell-wrapper";
+import { DataGridCellWrapper } from "@/components/organisms/grid/data-grid-cell-wrapper";
 import { cn } from "@/lib/utils";
 import type { DataGridCellProps } from "@/types/data-grid";
 
-export function EmailCell<TData>({
+export function PhoneCell<TData>({
   cell,
   tableMeta,
   rowIndex,
@@ -162,7 +162,7 @@ export function EmailCell<TData>({
         />
       ) : displayValue ? (
         <a
-          href={`mailto:${displayValue}`}
+          href={`tel:${displayValue.replace(/[^\d+]/g, "")}`}
           data-slot="grid-cell-content"
           className="text-primary truncate hover:underline"
           onClick={(e) => e.stopPropagation()}

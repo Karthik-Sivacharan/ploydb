@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Check } from "lucide-react";
-import { DataGridCellWrapper } from "@/components/data-grid/data-grid-cell-wrapper";
+import { DataGridCellWrapper } from "@/components/organisms/grid/data-grid-cell-wrapper";
 import { Badge } from "@/components/ui/badge";
 import {
   Command,

@@ -16,7 +16,7 @@ import {
   PromptInputActionMenuTrigger,
   PromptInputActionMenuContent,
   PromptInputActionMenuItem,
-} from "@/components/ai-elements/prompt-input"
+} from "@/components/molecules/chat/prompt-input"
 
 interface ChatPanelProps {
   onSubmit: (message: { text: string }) => void

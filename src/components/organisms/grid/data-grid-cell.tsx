@@ -12,19 +12,19 @@ import {
   SelectCell,
   ShortTextCell,
   UrlCell,
-} from "@/components/data-grid/data-grid-cell-variants";
-import { CurrencyCell } from "@/components/cells/currency-cell";
-import { PercentCell } from "@/components/cells/percent-cell";
-import { EmailCell } from "@/components/cells/email-cell";
-import { PhoneCell } from "@/components/cells/phone-cell";
-import { LocationCell } from "@/components/cells/location-cell";
-import { StatusCell } from "@/components/cells/status-cell";
-import { TagsCell } from "@/components/cells/tags-cell";
-import { ColorCell } from "@/components/cells/color-cell";
-import { JsonCell } from "@/components/cells/json-cell";
-import { DatetimeCell } from "@/components/cells/datetime-cell";
-import { RefCell } from "@/components/cells/ref-cell";
-import { RefsCell } from "@/components/cells/refs-cell";
+} from "@/components/organisms/grid/data-grid-cell-variants";
+import { CurrencyCell } from "@/components/molecules/cells/currency-cell";
+import { PercentCell } from "@/components/molecules/cells/percent-cell";
+import { EmailCell } from "@/components/molecules/cells/email-cell";
+import { PhoneCell } from "@/components/molecules/cells/phone-cell";
+import { LocationCell } from "@/components/molecules/cells/location-cell";
+import { StatusCell } from "@/components/molecules/cells/status-cell";
+import { TagsCell } from "@/components/molecules/cells/tags-cell";
+import { ColorCell } from "@/components/molecules/cells/color-cell";
+import { JsonCell } from "@/components/molecules/cells/json-cell";
+import { DatetimeCell } from "@/components/molecules/cells/datetime-cell";
+import { RefCell } from "@/components/molecules/cells/ref-cell";
+import { RefsCell } from "@/components/molecules/cells/refs-cell";
 import type { DataGridCellProps } from "@/types/data-grid";
 
 export const DataGridCell = React.memo(DataGridCellImpl, (prev, next) => {

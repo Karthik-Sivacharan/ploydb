@@ -8,8 +8,8 @@ import type {
 } from "@tanstack/react-table";
 import type { VirtualItem } from "@tanstack/react-virtual";
 import * as React from "react";
-import { DataGridCell } from "@/components/data-grid/data-grid-cell";
-import { CellAttributionIndicator } from "@/components/cells/cell-attribution-indicator";
+import { DataGridCell } from "@/components/organisms/grid/data-grid-cell";
+import { CellAttributionIndicator } from "@/components/molecules/cells/cell-attribution-indicator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cellKey } from "@/types/cell-attribution";
 import type { CellAuditMap } from "@/types/cell-attribution";

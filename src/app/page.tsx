@@ -1,10 +1,10 @@
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar } from "@/components/organisms/layout/app-sidebar"
 import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
-import { HomeDashboard } from "@/components/home/home-dashboard"
-import { NavProvider } from "@/components/nav-context"
+import { HomeDashboard } from "@/components/organisms/dashboard/home-dashboard"
+import { NavProvider } from "@/components/molecules/nav-context"
 
 export default function Page() {
   return (

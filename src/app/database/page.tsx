@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { DataGrid } from "@/components/data-grid/data-grid";
-import { DataGridFilterMenu } from "@/components/data-grid/data-grid-filter-menu";
-import { DataGridSortMenu } from "@/components/data-grid/data-grid-sort-menu";
-import { DataGridViewMenu } from "@/components/data-grid/data-grid-view-menu";
-import { DataGridRowHeightMenu } from "@/components/data-grid/data-grid-row-height-menu";
+import { DataGrid } from "@/components/organisms/grid/data-grid";
+import { DataGridFilterMenu } from "@/components/organisms/grid/data-grid-filter-menu";
+import { DataGridSortMenu } from "@/components/organisms/grid/data-grid-sort-menu";
+import { DataGridViewMenu } from "@/components/organisms/grid/data-grid-view-menu";
+import { DataGridRowHeightMenu } from "@/components/organisms/grid/data-grid-row-height-menu";
 import { useDataGrid } from "@/hooks/use-data-grid";
-import { Navbar } from "@/components/navbar";
+import { Navbar } from "@/components/organisms/layout/navbar";
 
 // API data source
 import {

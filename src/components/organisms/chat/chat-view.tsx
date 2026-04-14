@@ -9,24 +9,24 @@ import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import type { ContextTag } from "@/data/demo-scripts"
 import { getAccumulatedTags, AUTO_ADVANCE_PREFIX } from "@/data/demo-scripts"
-import { ToolResultCard } from "@/components/korra/tool-cards/tool-result-card"
+import { ToolResultCard } from "@/components/molecules/tool-cards/tool-result-card"
 import {
   Conversation,
   ConversationContent,
   ConversationEmptyState,
   ConversationScrollButton,
-} from "@/components/ai-elements/conversation"
+} from "@/components/molecules/chat/conversation"
 import {
   Message,
   MessageContent,
   MessageResponse,
-} from "@/components/ai-elements/message"
+} from "@/components/molecules/chat/message"
 import {
   Reasoning,
   ReasoningTrigger,
   ReasoningContent,
-} from "@/components/ai-elements/reasoning"
-import { Shimmer } from "@/components/ai-elements/shimmer"
+} from "@/components/molecules/chat/reasoning"
+import { Shimmer } from "@/components/molecules/chat/shimmer"
 import { BrainIcon } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -39,7 +39,7 @@ import {
   PromptInputActionMenuContent,
   PromptInputActionMenuItem,
   PromptInputSubmit,
-} from "@/components/ai-elements/prompt-input"
+} from "@/components/molecules/chat/prompt-input"
 
 // ─── Types ───────────────────────────────────────────────────────────
 

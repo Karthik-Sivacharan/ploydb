@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { format, parseISO } from "date-fns";
-import { DataGridCellWrapper } from "@/components/data-grid/data-grid-cell-wrapper";
+import { DataGridCellWrapper } from "@/components/organisms/grid/data-grid-cell-wrapper";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import {
