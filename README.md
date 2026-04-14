@@ -52,21 +52,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Environment Variables
 
-Create a `.env.local` file in the `app/` directory:
-
-```bash
-# Required — Mock CRM database hosted on Railway (960 contacts + companies)
-NEXT_PUBLIC_PLOYDB_API_URL=
-NEXT_PUBLIC_PLOYDB_TOKEN=
-
-# Optional — Claude API for email generation (step 8 of demo)
-# Without this, template fallback emails are used instead
-ANTHROPIC_API_KEY=
-
-# Optional — Brand logos for connected sources section
-# Without this, fallback icons are shown
-NEXT_PUBLIC_BRANDFETCH_API_KEY=
-```
+The `.env.example` file has all the variables you need. After copying it to `.env.local`, fill in the values (ask the team for keys):
 
 | Variable | Required | What It Does | Without It |
 |----------|:--------:|-------------|------------|
